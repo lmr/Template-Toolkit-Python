@@ -1,1 +1,46 @@
 This is the README file for the Template Toolkit Python port.
+
+I (Sean McAfee) am now checking in my first draft.  Here follows a
+list of some of the many outstanding issues:
+
+*  I have translated the Perl implementation very literally, even when
+   more Pythonic idioms may ultimately be available.  One of the more
+   obvious examples is in the Template::process routine, which in the
+   original Perl uses a reference to distinguish between a template in
+   a file and in a string; a more Pythonic tack might be to supply two
+   separate methods, process and processString.  In fact, Python lacks
+   altogether a reference type comparable to Perl's, and the
+   util.Reference class I wrote to fill this hole is a simple
+   single-element container class that lacks any reference semantics
+   at all.  Nevertheless, it seems to work well enough for simple
+   uses.  It may be possible to eliminate it altogether.
+
+*  I have translated Template::Grammar.pm directly into
+   template/grammar.py, rather than editing Parser.yp directly.
+   Several of the rules are untested, and some will definitely not
+   work, as I have recorded in comments.
+
+*  Python lacks nested blocks, so I have translated them from Perl
+   thusly:
+
+     {
+       my $foo = ...;
+       # ...
+     }
+
+     def _():
+       foo = ...
+       # ...
+     _()
+
+   More problematic are named nested blocks.  In many places in the
+   original Perl code, code such as "next FILE" or "last SWITCH" can
+   be found.  I have not yet analyzed the code sufficiently to
+   determine if these block names are supplied for documentary
+   purposes only, of if they actually do result in exit from multiple
+   levels of named blocks.  If it's the latter, then they'll
+   ultimately have to be translated into some kind of ugly
+   exception-throwing mechanism, as best I can tell.  I hope not.
+
+*  Comments have been largely elided in the translation process.
+
