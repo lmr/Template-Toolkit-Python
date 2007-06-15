@@ -173,9 +173,6 @@ class Directive:
     return expr + "\n"
 
   def set(self, setlist):  # [% foo = bar, baz = qux %]
-    print "CP 1"
-    print "\n".join(self.assign(var, val) for var,val in chop(setlist, 2))
-    print "CP 2"
     return "\n".join(self.assign(var, val) for var, val in chop(setlist, 2))
 
   def default(self, setlist):   # [% DEFAULT foo = bar, baz = qux %]

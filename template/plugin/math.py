@@ -1,4 +1,4 @@
-import mathx + sqrt
+import math
 import random
 import re
 from template import plugin

@@ -10,6 +10,8 @@ STD_PLUGINS = {
   "file":      "template.plugin.file.File",
   "format":    "template.plugin.format.Format",
   "iterator":  "template.plugin.iterator.Iterator",
+  "math":      "template.plugin.math.Math",
+  "string":    "template.plugin.string.String",
 }
 
 class Plugins(base.Base):
