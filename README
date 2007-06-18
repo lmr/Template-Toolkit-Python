@@ -44,3 +44,12 @@ list of some of the many outstanding issues:
 
 *  Comments have been largely elided in the translation process.
 
+*  Embedded newlines don't work too well.  Eg:
+
+   TEXT = "[% 'abc\ndef' %]"
+   template.Template().process(util.Reference(TEXT))
+
+   This generates illegal Python code with a corresponding newline:
+
+   output.write('abc
+   def')
