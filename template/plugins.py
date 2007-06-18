@@ -12,6 +12,8 @@ STD_PLUGINS = {
   "iterator":  "template.plugin.iterator.Iterator",
   "math":      "template.plugin.math.Math",
   "string":    "template.plugin.string.String",
+  "table":     "template.plugin.table.Table",
+  "Table":     "template.plugin.table.Table",
 }
 
 class Plugins(base.Base):
