@@ -14,6 +14,7 @@ STD_PLUGINS = {
   "string":    "template.plugin.string.String",
   "table":     "template.plugin.table.Table",
   "Table":     "template.plugin.table.Table",
+  "wrap":      "template.plugin.wrap.Wrap",
 }
 
 class Plugins(base.Base):
