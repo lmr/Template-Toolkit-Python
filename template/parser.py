@@ -417,7 +417,7 @@ class Parser(base.Base):
       # preceding text
       if pre:
         line += pre.count("\n")
-        tokens.extend(("TEXT", pre.replace("\n", "").replace(r"\$", "$")))
+        tokens.extend(("TEXT", pre.replace("\$", "$")))
       # variable reference
       if var:
         line += dir.count("\n")
@@ -425,7 +425,7 @@ class Parser(base.Base):
       # other '$' reference - treated as text
       elif dir:
         line += dir.count("\n")
-        tokens.extend(("TEXT", dir.replace("\n", "")))
+        tokens.extend(("TEXT", dir))
     return tokens
 
 class Factory:
