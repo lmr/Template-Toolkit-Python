@@ -217,3 +217,7 @@ class Filters(base.Base):
         return error, constants.STATUS_ERROR
     else:
       return filter, None
+
+  def store(self, name, filter):
+    self.FILTERS[name] = filter
+    return True, None
