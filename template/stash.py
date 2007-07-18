@@ -352,8 +352,7 @@ HASH_OPS = {
 class Stash:
   def __init__(self, params=None):
     self.contents = {"global": {}}
-    if params:
-      self.contents.update(params)
+    self.contents.update(params or {})
     self.contents.update(ROOT_OPS)
     self._PARENT = None
     self._DEBUG  = False
@@ -409,15 +408,17 @@ class Stash:
       ident = [x for component in ident.split(".")
                  for x in (re.sub(r"\(.*$", "", component), 0)]
     if isinstance(ident, (list, tuple)):
-      size = len(ident) - 1
-      for x, y in chop(ident, 2):
+      chopped = list(chop(ident, 2))
+      for i in range(len(chopped)-1):
+        x, y = chopped[i]
         result = self._dotop(root, x, y, True)
         if result is None:
           # last ELEMENT
           return ""
         else:
           root = result
-      result = self._assign(root, ident[-2], ident[-1], value, default)
+      result = self._assign(root, chopped[-1][0], chopped[-1][1],
+                            value, default)
     else:
       result = self._assign(root, ident, 0, value, default)
 

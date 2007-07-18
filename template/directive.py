@@ -105,9 +105,6 @@ class Directive:
     return "output.write(str(%s))" % self.text(text)
 
   def text(self, text):
-    # text = re.sub(r'(["\\])', r'\\\1', text or "")
-    # text = re.sub(r'\n', r'\\n', text)
-    # return '"%s"' % text
     return repr(text)
 
   def quoted(self, items):  # "foo$bar"
@@ -144,7 +141,7 @@ class Directive:
       if len(var) == 2 and not var[1]:
         var = var[0]
       else:
-        var = "[ " + ", ".join(var) + " ]"
+        var = "[ " + ", ".join(str(x) for x in var) + " ]"
     if default:
       val += ", 1"
     return "stash.set(%s, %s)" % (var, val)
@@ -167,13 +164,15 @@ class Directive:
     return names
 
   def get(self, expr):  # [% foo %]
-    return "output.write(str(%s))" % expr
+    return "output.write(str(%s))" % (expr,)
 
   def call(self, expr):  # [% CALL bar %]
     return expr + "\n"
 
   def set(self, setlist):  # [% foo = bar, baz = qux %]
-    return "\n".join(self.assign(var, val) for var, val in chop(setlist, 2))
+    # If one uses a generator as the argument to join here, eventually it
+    # raises a "TypeError: sequence expected, generator found".  Puzzling.
+    return "\n".join([self.assign(var, val) for var, val in chop(setlist, 2)])
 
   def default(self, setlist):   # [% DEFAULT foo = bar, baz = qux %]
     return "\n".join(self.assign(var, val, 1) for var, val in chop(setlist, 2))

@@ -147,7 +147,7 @@ class Parser(base.Base):
     tokens = []
     line  = 1
     splitter = re.compile(r"(?s)(.*?)%(START_TAG)s(.*?)%(END_TAG)s" %
-                          self.__dict__)
+                          vars(self))
     while True:
       match = splitter.match(text)
       if not match:
@@ -251,10 +251,12 @@ class Parser(base.Base):
             continue
           else:
             toktype = "LITERAL"
-            token = "'%s'" % re.sub(r"'", r"\\'", token)
+            # token = "'%s'" % re.sub(r"'", r"\\'", token)
+            token = repr(re.sub(r"'", r"\\'", token))
         else:
           toktype = "LITERAL"
-          token = "'%s'" % token
+          # token = "'%s'" % token
+          token = repr(token)
       else:
         token = match.group(4)
         if token is not None:
