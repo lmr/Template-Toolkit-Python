@@ -29,12 +29,10 @@ class Base:
     self._ERROR = None
 
   def error(self, *args):
-    errvar = util.Reference(self, "_ERROR")
     if args:
-      if isinstance(args[0], (int, str)):
-        errvar.set("".join(str(x) for x in args))
+      if not isinstance(args[0], (str, int)):
+        self._ERROR = args[0]
       else:
-        errvar.set(args[0])
-      return None
+        self._ERROR = "".join(args)
     else:
-      return errvar.get()
+      return self._ERROR
