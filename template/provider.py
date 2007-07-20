@@ -111,7 +111,7 @@ class Provider(base.Base):
   def _load(self, name, alias=None):
     now = time.time()
     error = None
-    if alias is None:  # ???
+    if alias is None and isinstance(name, str):
       alias = name
     # LOAD: {
     if isinstance(name, util.Reference):
