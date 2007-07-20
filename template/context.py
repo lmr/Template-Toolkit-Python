@@ -268,7 +268,7 @@ class Context(base.Base):
         if error:
           if error == constants.STATUS_ERROR:
             if (isinstance(template, base.Exception)
-                and template.type() == constants.ERROR_FILE):
+                and template.type == constants.ERROR_FILE):
               self.throw(template)
             else:
               self.throw(constants.ERROR_FILE, template)
