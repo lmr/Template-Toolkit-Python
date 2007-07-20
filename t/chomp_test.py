@@ -14,35 +14,35 @@ vars = {'foo': 3.14, 'bar': 2.718, 'baz': 1.618,
         'ding': 'Hello', 'dong': 'World'}
 
 class ChompTest(test.TestCase):
-  def foo(self, tmpl, block, vars, expected):
+  def AssertExpectedOutput(self, tmpl, block, vars, expected):
     out = util.Reference("")
     self.failUnless(tmpl.process(block, vars, out))
     self.assertEquals(expected, out.value)
     
   def testNoChomp(self):
     tmpl = template.Template({ "BLOCKS": blocks })
-    self.foo(tmpl, "foo", vars, "\n3.14\n")
-    self.foo(tmpl, "bar", vars, "2.718")
-    self.foo(tmpl, "baz", vars, "\n1.618\n")
-    self.foo(tmpl, "ding", vars, "!Hello!")
-    self.foo(tmpl, "dong", vars, "! World !")
-    self.foo(tmpl, "dang", vars, "Hello!")
+    self.AssertExpectedOutput(tmpl, "foo", vars, "\n3.14\n")
+    self.AssertExpectedOutput(tmpl, "bar", vars, "2.718")
+    self.AssertExpectedOutput(tmpl, "baz", vars, "\n1.618\n")
+    self.AssertExpectedOutput(tmpl, "ding", vars, "!Hello!")
+    self.AssertExpectedOutput(tmpl, "dong", vars, "! World !")
+    self.AssertExpectedOutput(tmpl, "dang", vars, "Hello!")
 
   def testPreChomp(self):
     tmpl = template.Template({ "PRE_CHOMP": 1, "BLOCKS": blocks })
-    self.foo(tmpl, "foo", vars, "3.14\n")
-    self.foo(tmpl, "bar", vars, "2.718")
-    self.foo(tmpl, "baz", vars, "\n1.618\n")
-    self.foo(tmpl, "ding", vars, "!Hello!")
-    self.foo(tmpl, "dong", vars, "! World !")
+    self.AssertExpectedOutput(tmpl, "foo", vars, "3.14\n")
+    self.AssertExpectedOutput(tmpl, "bar", vars, "2.718")
+    self.AssertExpectedOutput(tmpl, "baz", vars, "\n1.618\n")
+    self.AssertExpectedOutput(tmpl, "ding", vars, "!Hello!")
+    self.AssertExpectedOutput(tmpl, "dong", vars, "! World !")
 
   def testPostChomp(self):
     tmpl = template.Template({ 'POST_CHOMP': 1, 'BLOCKS': blocks })
-    self.foo(tmpl, "foo", vars, "\n3.14")
-    self.foo(tmpl, "bar", vars, "2.718")
-    self.foo(tmpl, "baz", vars, "\n1.618\n")
-    self.foo(tmpl, "ding", vars, "!Hello!")
-    self.foo(tmpl, "dong", vars, "! World !")
+    self.AssertExpectedOutput(tmpl, "foo", vars, "\n3.14")
+    self.AssertExpectedOutput(tmpl, "bar", vars, "2.718")
+    self.AssertExpectedOutput(tmpl, "baz", vars, "\n1.618\n")
+    self.AssertExpectedOutput(tmpl, "ding", vars, "!Hello!")
+    self.AssertExpectedOutput(tmpl, "dong", vars, "! World !")
 
   def testChomp(self):
     tt = (('tt_pre_none', template.Template({ 'PRE_CHOMP': CHOMP_NONE })),
