@@ -136,7 +136,7 @@ class Parser(base.Base):
     metadata = self.METADATA = []
     self._ERROR = ""
     tokens = self.split_text(text)
-    if not tokens:
+    if tokens is None:
       return None
     self.FILEINFO.append(info)
     block = self._parse(tokens, info)
