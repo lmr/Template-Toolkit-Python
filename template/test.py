@@ -28,7 +28,7 @@ class TestCase(unittest.TestCase):
     tests = re.split(r"(?mi)^\s*--\s*test\s*--\s*", data)
     if not tests[0]:
       tests.pop(0)
-    tmpl = template.Template(tproc or {})
+    tmpl = tproc or template.Template()
     for count, test in enumerate(tests):
       match = re.search(r"(?mi)^\s*-- name:? (.*?) --\s*\n", test)
       if match:
