@@ -11,7 +11,7 @@ class DirectiveTest(test.TestCase):
     self.Expect(DATA, ttobjs, self._callsign())
 
 
-DATA = """
+DATA = r"""
 #------------------------------------------------------------------------
 # basic directives
 #------------------------------------------------------------------------
