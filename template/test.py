@@ -20,7 +20,7 @@ class TestCase(unittest.TestCase):
   def _callsign(cls):
     return words.copy()
 
-  def Expect(self, data, tproc, vars):
+  def Expect(self, data, tproc, vars=None):
     data = re.sub(r"(?s).*?\n__DATA__\n", "", data)
     data = re.sub(r"(?m)^#.*\n", "", data)
     data = re.sub(r"(?s).*?\s*--\s*start\s*--\s*", "", data)
@@ -28,7 +28,14 @@ class TestCase(unittest.TestCase):
     tests = re.split(r"(?mi)^\s*--\s*test\s*--\s*", data)
     if not tests[0]:
       tests.pop(0)
-    tmpl = tproc or template.Template()
+    ttprocs = None
+    if isinstance(tproc, dict):
+      tproc = template.Template(tproc)
+    elif isinstance(tproc, (tuple, list)):
+      ttprocs = dict(tproc)
+      tproc = tproc[0][1]
+    elif not isinstance(tproc, template.Template):
+      tproc = template.Template()
     for count, test in enumerate(tests):
       match = re.search(r"(?mi)^\s*-- name:? (.*?) --\s*\n", test)
       if match:
@@ -42,11 +49,24 @@ class TestCase(unittest.TestCase):
         input, expect = test, ""
       match = re.match(r"(?mi)^\s*--\s*use\s+(\S+)\s*--\s*\n", input)
       if match:
-        # ...
+        ttname = match.group(1)
+        ttlookup = ttprocs.get(ttname)
+        if ttlookup:
+          tproc = ttlookup
+        else:
+          self.fail("no such template object to use: %s\n" % ttname)
         input = input[:match.start()] + input[match.end():]
       out = util.Reference("")
-      tmpl.process(util.Reference(input), vars or {}, out)
+      if not tproc.process(util.Reference(input), vars or {}, out):
+        self.fail("%s process FAILED: %s\n%s" % (name, subtext(input), tproc.error()))
       out = out.get().rstrip("\n")
       stripped = expect.rstrip("\n")
       self.assertEqual(stripped, out, "Test #%d:\n%s\n%r != %r" %
                        (count + 1, test, stripped, out))
+
+def subtext(text):
+  text = text.rstrip()
+  if len(text) > 32:
+    text = text[:32] + "..."
+  text = text.replace("\n", "\\n")
+  return text
