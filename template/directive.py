@@ -206,9 +206,9 @@ class Directive:
     else:
       else_ = None
     code = Code()
-    code.write("if %s:" % expr, code.indent, block)
+    code.write("if perlbool(%s):" % expr, code.indent, block)
     for expr, block in elses:
-      code.write(code.unindent, "elif %s:" % expr, code.indent, block)
+      code.write(code.unindent, "elif perlbool(%s):" % expr, code.indent, block)
     if else_ is not None:
       code.write(code.unindent, "else:", code.indent, else_)
     return code.text()
@@ -284,7 +284,7 @@ class Directive:
     code.write("def _():",
                code.indent,
                  "failsafe = %d" % WHILE_MAX,
-                 "while failsafe > 0 and (%s):" % expr,
+                 "while failsafe > 0 and perlbool(%s):" % expr,
                  code.indent,
                    "failsafe -= 1",
                    block,

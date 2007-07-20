@@ -63,3 +63,13 @@ def listify(arg):
   else:
     return [arg]
 
+
+class perlbool:
+  def __init__(self, value, truth=None):
+    self.value = value
+    if truth is None:
+      self.truth = bool(value) and str(value) != "0"
+    else:
+      self.truth = truth
+  def __nonzero__(self):
+    return self.truth

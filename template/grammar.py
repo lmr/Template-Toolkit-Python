@@ -5452,17 +5452,17 @@ def rule139(*args):
   return "str(%s) + str(%s)" % (args[1], args[3])
 
 def rule140(*args):
-  return "%s and %s" % (args[1], args[3])
+  return "(perlbool(%s) and perlbool(%s)).value" % (args[1], args[3])
 
 def rule141(*args):
-  return "%s or %s" % (args[1], args[3])
+  return "(perlbool(%s) or perlbool(%s)).value" % (args[1], args[3])
 
 def rule142(*args):
-  return "not %s" % args[2]
+  return "not perlbool(%s)" % args[2]
 
 def rule143(*args):
-  # FIXME: This doesn't short-circuit like Perl's ?:
-  return "[%s, %s][bool(%s)]" % (args[5], args[3], args[1])
+  return "(perlbool(%s) and perlbool(%s, True) or perlbool(%s, False)).value" \
+      % (args[1], args[3], args[5])
 
 def rule144(*args):
   return factory.assign(*args[2])
