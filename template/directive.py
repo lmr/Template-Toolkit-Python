@@ -185,7 +185,7 @@ class Directive:
     hash_ = args.pop(0)
     file_ = self.filenames(file_)
     if hash_:
-      file_ += ", " + makedict(hash_)
+      file_ += ", { %s }" % ", ".join(hash_)
     return "output.write(str(context.include(%s)))" % file_
 
   def process(self, nameargs):  # [% PROCESS template foo = bar %]
