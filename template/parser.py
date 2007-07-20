@@ -136,12 +136,17 @@ class Parser(base.Base):
     metadata = self.METADATA = []
     self._ERROR = ""
     tokens = self.split_text(text)
+    if not tokens:
+      return None
     self.FILEINFO.append(info)
     block = self._parse(tokens, info)
     self.FILEINFO.pop()
-    return {"BLOCK": block,
-            "DEFBLOCKS": defblock,
-            "METADATA": dict(self.METADATA)}
+    if block:
+      return {"BLOCK": block,
+              "DEFBLOCKS": defblock,
+              "METADATA": dict(self.METADATA)}
+    else:
+      return None
 
   def split_text(self, text):
     tokens = []
@@ -268,7 +273,16 @@ class Parser(base.Base):
           else:
             token = match.group(6)
             if token is not None:
-              toktype = grammar.LEXTABLE.get(token, "IDENT")
+              # reserved words may be in lower case unless case sensitive
+              if self.ANYCASE:
+                uctoken = token.upper()
+              else:
+                uctoken = token
+              toktype = grammar.LEXTABLE.get(uctoken)
+              if toktype is not None:
+                token = uctoken
+              else:
+                toktype = "IDENT"
             else:
               token = match.group(7)
               toktype = grammar.LEXTABLE.get(token, "UNQUOTED")
