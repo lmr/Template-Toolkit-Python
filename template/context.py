@@ -39,11 +39,14 @@ class Context(base.Base):
       self.STASH = stash.Stash(predefs)
 
     # compile any template BLOCKS specified as text
+    self.BLOCKS = {}
+    self.BLKSTACK = []
+    self.EXPOSE_BLOCKS = False
     blocks = config.get("BLOCKS") or {}
     b = {}
     for key, block in blocks.items():
       if isinstance(block, str):
-        block = self.template(block)
+        block = self.template(util.Reference(block))
       b[key] = block
     self.INIT_BLOCKS = self.BLOCKS = b
 
