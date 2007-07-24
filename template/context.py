@@ -51,7 +51,7 @@ class Context(base.Base):
     self.INIT_BLOCKS = self.BLOCKS = b
 
     self.RECURSION = config.get("RECURSION", False)
-    # self.EVAL_PERL = ...
+    self.EVAL_PYTHON = config.get("EVAL_PYTHON", False)
     self.TRIM = config.get("TRIM", False)
     self.BLKSTACK = []
     self.CONFIG   = config
@@ -226,7 +226,10 @@ class Context(base.Base):
       if not error:
         break
       if error == constants.STATUS_ERROR:
-        self.throw(filter)
+        if not isinstance(filter, (str, int)):
+          self.throw(filter)
+        else:
+          self.throw(constants.ERROR_FILTER, filter)
     if not filter:
       return self.error("%s: filter not found" % name)
     if alias:
@@ -315,4 +318,5 @@ class Context(base.Base):
     self.throw(constants.ERROR_FILTER,
                "FILTER providers declined to store filter %s" % name)
 
-
+  def eval_python(self):
+    return self.EVAL_PYTHON
