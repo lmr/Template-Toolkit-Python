@@ -1,3 +1,4 @@
+import re
 from template import util
 
 PyException = Exception
@@ -19,6 +20,15 @@ class Exception(PyException):
       return self.textref.get()
     else:
       return ""
+    
+  def select_handler(self, *options):
+    type = self.type
+    hlut = dict((option, True) for option in options)
+    while type:
+      if hlut.get(type):
+        return type
+      type = re.sub(r'\.?[^.]*$', '', type)
+    return None
 
   def __str__(self):
     return "%s error - %s" % (self.type or "", self.info)
@@ -36,3 +46,4 @@ class Base:
         self._ERROR = "".join(args)
     else:
       return self._ERROR
+
