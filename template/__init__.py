@@ -1,3 +1,4 @@
+import errno
 import os
 import sys
 from template import base, service, util
@@ -26,6 +27,9 @@ class Template(base.Base):
       return True
     else:
       return self.error(self.SERVICE.error())
+    
+  def context(self):
+    return self.SERVICE.CONTEXT
 
 
 def _output(where, textref, options=None):
@@ -44,8 +48,9 @@ def _output(where, textref, options=None):
     try:
       os.makedirs(dirname)
     except OSError, e:
-      error = e
-    else:
+      if e.errno != errno.EEXIST:
+        error = e
+    if not error:
       mode = "w"
       if options.get("binmode"):
         mode += "b"
