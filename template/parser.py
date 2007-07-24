@@ -215,7 +215,10 @@ class Parser(base.Base):
             postlines += match.group().count("\n")
 
       if pre:
-        tokens.extend(["TEXT", pre])
+        if self.INTERPOLATE:
+          tokens.append([pre, line, 'ITEXT'])
+        else:
+          tokens.extend(["TEXT", pre])
       line += prelines
       if dir:
         if dirlines > 0:
@@ -226,7 +229,10 @@ class Parser(base.Base):
       line += dirlines
 
     if text:
-      tokens.extend(["TEXT", text])
+      if self.INTERPOLATE:
+        tokens.append([text, line, "ITEXT"])
+      else:
+        tokens.extend(["TEXT", text])
 
     return tokens
 
