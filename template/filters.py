@@ -4,6 +4,7 @@ import sys
 import template
 from template import base, constants, util # , plugin
 
+eval_namespace = {}
 
 # Static filters:
 
@@ -40,6 +41,11 @@ def lcfirst(text):
     text = text[0].lower() + text[1:]
   return text
 
+def stderr(*args):
+  for arg in args:
+    sys.stderr.write(str(arg))
+  return ""
+
 def collapse(text):
   return re.sub(r"\s+", " ", text.strip())
 
@@ -65,27 +71,23 @@ def indent_filter_factory(context, pad=4):
   except:
     pass
   def indent(text=""):
-    return re.sub(r"(?m)^", lambda m: pad, text)
+    return re.sub(r"(?m)^(?=(?s).)", lambda m: pad, text)
   return indent
 
-def format_filter_factory(context, format=None):
-  if format is None:
-    format = "%s"
-  def format_(text=""):
-    return "\n".join(format % string for string in text.split("\n"))
-  return format_
+def format_filter_factory(context, formatstr="%s"):
+  def format(text=""):
+    # The "rstrip" is to emulate Perl's strip, which elides trailing nulls.
+    return "\n".join(formatstr % string
+                     for string in text.rstrip("\n").split("\n"))
+  return format
 
 
-def truncate_filter_factory(context, length=None, char=None):
-  if len is None:
-    length = 32
-  if char is None:
-    char = "..."
+def truncate_filter_factory(context, length=32, char="..."):
   def truncate(text=""):
     if len(text) <= length:
       return text
     else:
-      return text[:length] + char
+      return text[:length-len(char)] + char
   return truncate
 
 def repeat_filter_factory(context, iter=1):
@@ -98,7 +100,8 @@ def replace_filter_factory(context, search="", replace=""):
     return re.sub(search, replace, text)
   return replace_
 
-def remove_filter_factory(context, search=""):
+def remove_filter_factory(context, search="", *args):
+  # print "******** remove_filter_factory: search=%r, args=%r" % (search, args)
   def remove(text=""):
     return re.sub(search, "", text)
   return remove
@@ -108,12 +111,28 @@ def eval_filter_factory(context):
     return context.process(util.Reference(text))
   return eval
 
+def python_filter_factory(context):
+  if not context.eval_python():
+    return None, base.Exception("python", "EVAL_PYTHON is not set")
+  def python_filter(text):
+    saved = (eval_namespace.get("context"), eval_namespace.get("stash"))
+    eval_namespace["context"] = context
+    eval_namespace["stash"] = context.stash()
+    try:
+      try:
+        return str(eval(text, eval_namespace))
+      except Exception, e:
+        context.throw(e)
+    finally:
+      eval_namespace["context"], eval_namespace["stash"] = saved
+  return python_filter
+
 def redirect_filter_factory(context, file, options=None):
   outpath = context.config().get("OUTPUT_PATH")
   if not outpath:
     return None, base.Exception("redirect", "OUTPUT_PATH is not set")
   if not isinstance(options, dict):
-    options = {"binmode": options}
+    options = { "binmode": options }
   def redirect(text=""):
     outpath = context.config().get("OUTPUT_PATH")
     if not outpath:
@@ -123,6 +142,7 @@ def redirect_filter_factory(context, file, options=None):
     if error:
       raise base.Exception("redirect", error)
     return ""
+  return redirect
 
 def stdout_filter_factory(context, options=None):
   if not isinstance(options, dict):
@@ -138,13 +158,14 @@ FILTERS = {
   "html": html_filter,
   "html_para": html_paragraph,
   "html_break": html_para_break,
+  "html_para_break": html_para_break,
   "html_line_break": html_line_break,
   "uri": uri_filter,
   "upper": str.upper,
   "lower": str.lower,
   "ucfirst": ucfirst,
   "lcfirst": lcfirst,
-  "stderr": sys.stderr.write,
+  "stderr": stderr,
   "trim": str.strip,
   "null": lambda x: "",
   "collapse": collapse,
@@ -158,11 +179,10 @@ FILTERS = {
   "replace":     [replace_filter_factory, True],
   "remove":      [remove_filter_factory, True],
   "eval":        [eval_filter_factory, True],
-  "evaltt":      [eval_filter_factory, True],
-##   # "perl": ...
-##   # "evalperl": ...
+  "evaltt":      [eval_filter_factory, True], # alias
+  "python":      [python_filter_factory, True],
   "redirect":    [redirect_filter_factory, True],
-  "file":        [redirect_filter_factory, True],
+  "file":        [redirect_filter_factory, True], # alias
   "stdout":      [stdout_filter_factory, True],
 ##   "latex":       [latex_filter_factory, True],
  }
@@ -188,7 +208,7 @@ class Filters(base.Base):
       factory = self.FILTERS.get(name) or FILTERS.get(name)
       if not factory:
         return None, constants.STATUS_DECLINED
-    if isinstance(factory, list):
+    if isinstance(factory, (tuple, list)):
       factory, is_dynamic = util.unpack(factory, 2)
     else:
       is_dynamic = False
@@ -197,14 +217,16 @@ class Filters(base.Base):
       if is_dynamic:
         try:
           retval = factory(context, *(args or []))
-          if isinstance(retval, tuple):
+          if isinstance(retval, (tuple, list)):
             filter, error = util.unpack(retval, 2)
           else:
             filter, error = retval, None
         except base.Exception, e:
           error = error or e
-          if not (error or callable(filter)):
-            error = "invalid FILTER for '%s' (not callable)" % name
+        except Exception, e:
+          error = error or base.Exception(constants.ERROR_FILTER, str(e))
+        if not (error or callable(filter)):
+          error = "invalid FILTER for '%s' (not callable)" % name
       else:
         filter = factory
     else:
