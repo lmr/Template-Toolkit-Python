@@ -58,7 +58,7 @@ class TestCase(unittest.TestCase):
         input = input[:match.start()] + input[match.end():]
       out = util.Reference("")
       if not tproc.process(util.Reference(input), vars or {}, out):
-        self.fail("%s process FAILED: %s\n%s" % (name, subtext(input), tproc.error()))
+        self.fail("Test #%d: %s process FAILED: %s\n%s" % (count + 1, name, subtext(input), tproc.error()))
       out = out.get().rstrip("\n")
       stripped = expect.rstrip("\n")
       self.assertEqual(stripped, out, "Test #%d:\n%s\n%r != %r" %
