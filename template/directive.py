@@ -230,36 +230,42 @@ class Directive:
                   " stash.get(['import', [value]])")
       loop_restore = "stash = context.delocalise()"
     code = Code()
-    code.write("def _():",
-               code.indent,
-                 "oldloop = None",
-                 "list_ = %s" % list_,
-                 "if not isinstance(list_, Iterator):",
-                 " list_ = Iterator(list_)",
-                 "value, error = list_.get_first()",
-                 loop_save,
-                 "stash.set('loop', list_)",
-                 "try:",
-                 code.indent,
-                   "while not error: # LOOP",
-                   code.indent,
-                     loop_set,
-                     block,
-                     "value, error = list_.get_next()",
-                   code.unindent,
-                 code.unindent,
-                 "finally:",
-                 code.indent,
-                   loop_restore,
-                 code.unindent,
-                 "if error and error != constants.STATUS_DONE:",
-                 " raise Exception(error)",
-               code.unindent,
-               "_()")
+    code.write(
+      "def _(stash):",
+      code.indent,
+        "oldloop = None",
+        "list_ = %s" % list_,
+        "if not isinstance(list_, Iterator):",
+        " list_ = Iterator(list_)",
+        "value, error = list_.get_first()",
+        loop_save,
+        "stash.set('loop', list_)",
+        "try:",
+        code.indent,
+          "while not error:",
+          code.indent,
+            "try:",
+            code.indent,
+              loop_set,
+              block,
+              "value, error = list_.get_next()",
+            code.unindent,
+            "except Control.Continue:\n value, error = list_.get_next()",
+            "except Control.Break:\n break",
+          code.unindent,
+        code.unindent,
+        "finally:",
+        code.indent,
+          loop_restore,
+        code.unindent,
+        "if error and error != constants.STATUS_DONE:",
+        " raise Exception(error)",
+      code.unindent,
+      "_(stash)")
     return code.text()
 
   def next(self, *args):
-    return "value, error = list_.get_next()\ncontinue # next LOOP"
+    return "raise Control.Continue"
 
   def wrapper(self, nameargs, block):  # [% WRAPPER template foo = bar %]
     file, args = unpack(nameargs, 2)
@@ -286,8 +292,13 @@ class Directive:
                  "failsafe = %d" % WHILE_MAX,
                  "while failsafe > 0 and perlbool(%s):" % expr,
                  code.indent,
-                   "failsafe -= 1",
-                   block,
+                   "try:",
+                   code.indent,
+                     "failsafe -= 1",
+                     block,
+                   code.unindent,
+                   "except Control.Continue:\n pass",
+                   "except Control.Break:\n break",
                  code.unindent,
                  "if not failsafe:",
                  " raise Error('WHILE loop terminated (> %d iterations)')"
@@ -398,7 +409,7 @@ class Directive:
     return "output.seek(0)\noutput.truncate()"
 
   def break_(self):  # [% BREAK %]
-    return "break # last LOOP"
+    return "raise Control.Break"
 
   def return_(self):  # [% RETURN %]
     return "context.throw('return', '', output)"  # \$output in Perl
