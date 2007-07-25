@@ -73,3 +73,10 @@ class perlbool:
       self.truth = truth
   def __nonzero__(self):
     return self.truth
+
+
+class Control:
+  class Continue(Exception):
+    pass
+  class Break(Exception):
+    pass
