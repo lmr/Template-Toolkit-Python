@@ -5158,7 +5158,7 @@ def rule38(*args):
 
 def rule39(*args):
   if args[0].INFOR or args[0].INWHILE:
-    return "break LOOP"  # FIXME: This won't work, obviously.
+    return "raise Control.Break"
   else:
     return "break"
 
@@ -5166,7 +5166,7 @@ def rule40(*args):
   if args[0].INFOR:
     return factory.next()
   elif args[0].INWHILE:
-    return "continue LOOP"  # FIXME: This won't work, obviously.
+    return "raise Control.Continue"
   else:
     return "continue"
 
@@ -5316,8 +5316,7 @@ def rule83(*args):
   return args[2]
 
 def rule85(*args):
-  args[1] = re.sub(r"'(.*)'", r"\1", args[1])
-  return args[1]
+  return re.sub(r"^'(.*)'$", r"\1", args[1])
 
 def rule88(*args):
   if args[2]:
@@ -5526,7 +5525,7 @@ def rule167(*args):
   return factory.quoted(args[2])
 
 def rule168(*args):
-  return "'%s'" % args[1]
+  return "'%s'" % (args[1],)
 
 def rule170(*args):
   return "%s.%s" % (args[1], args[3])
