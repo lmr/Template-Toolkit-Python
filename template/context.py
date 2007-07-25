@@ -41,7 +41,6 @@ class Context(base.Base):
     # compile any template BLOCKS specified as text
     self.BLOCKS = {}
     self.BLKSTACK = []
-    self.EXPOSE_BLOCKS = False
     blocks = config.get("BLOCKS") or {}
     b = {}
     for key, block in blocks.items():
@@ -279,21 +278,21 @@ class Context(base.Base):
             else:
               self.throw(constants.ERROR_FILE, template)
         elif blockname:
-          template = template.blocks()[blockname]
+          template = template.blocks().get(blockname)
           if template:
             return template
         else:
           return template
       if not isinstance(shortname, str) or not self.EXPOSE_BLOCKS:
         break
-      match = re.search(r"/[^/]+$", shortname)
+      match = re.search(r"/([^/]+)$", shortname)
       if not match:
         break
       shortname = shortname[:match.start()] + shortname[match.end():]
       if blockname:
-        blockname = "%s/%s" % (match.group(0), blockname)
+        blockname = "%s/%s" % (match.group(1), blockname)
       else:
-        blockname = match.group(0)
+        blockname = match.group(1)
 
     self.throw(constants.ERROR_FILE, "%s: not found" % name)
 
