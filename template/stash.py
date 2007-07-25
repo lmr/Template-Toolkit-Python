@@ -9,14 +9,14 @@ class Error(Exception):
   pass
 
 def increment(x):
-  x += 1
+  return x + 1
 
 def decrement(x):
-  x -= 1
+  return x - 1
 
 ROOT_OPS = {
-  "inc": increment,  # these clearly
-  "dec": decrement,  # will not work in Python (or will they?)
+  "inc": increment,
+  "dec": decrement,
   }
 
 def scalar_item(scalar):
@@ -72,7 +72,10 @@ def scalar_remove(scalar=None, search=None):
   return re.sub(search, str(scalar), "")
 
 def scalar_split(scalar="", split=None, limit=None):
-  return str(scalar).split(split, limit)
+  if limit is not None:
+    return str(scalar).split(split, limit)
+  else:
+    return str(scalar).split(split)
 
 def scalar_chunk(scalar="", size=1):
   string = str(scalar)
