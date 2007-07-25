@@ -5,10 +5,8 @@ from template import util, base, constants
 
 class Iterator(base.Base):
   def __init__(self, data=None, params=None):
-    if data is None:
-      data = []
-    if params is None:
-      params = {}
+    data = data or []
+    params = params or {}
     if isinstance(data, dict):
       data = [{"key": key, "value": data[key]} for key in sorted(data.keys())]
     elif util.can(data, "as_list"):
