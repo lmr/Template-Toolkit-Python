@@ -13,6 +13,7 @@ PYEVAL_NAMESPACE = {
   "re":        re,
   "util":      util,
   "perlbool":  util.perlbool,
+  "Control":   util.Control,
   }
 
 class Document(base.Base):
