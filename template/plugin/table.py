@@ -59,7 +59,7 @@ class Table(plugin.Plugin):
     if row is None:
       return self.rows()
     if row >= self._NROWS or row < 0:
-      return []
+      return None
     index = row
     set = []
     for c in range(self._NCOLS):
@@ -74,7 +74,7 @@ class Table(plugin.Plugin):
     if col is None:
       return self.cols()
     if col >= self._NCOLS or col < 0:
-      return []
+      return None
     blanks = 0
     start = self._COLOFF * col
     end = start + self._NROWS - 1
@@ -84,17 +84,19 @@ class Table(plugin.Plugin):
       blanks = end - self._SIZE + 1
       end = self._SIZE - 1
     if start >= self._SIZE:
-      return []
+      return None
     set = self._DATA[start:end+1]
     if self._PAD:
       set.extend([None] * blanks)
     return set
 
   def rows(self):
-    return [self.row(x) for x in range(self._NROWS)]
+    return [row for row in [self.row(x) for x in range(self._NROWS)]
+            if row is not None]
 
   def cols(self):
-    return [self.col(x) for x in range(self._NCOLS)]
+    return [col for col in [self.col(x) for x in range(self._NCOLS)]
+            if col is not None]
 
   def data(self):
     return self._DATA
