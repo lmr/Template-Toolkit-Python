@@ -250,8 +250,8 @@ class Directive:
               block,
               "value, error = list_.get_next()",
             code.unindent,
-            "except Control.Continue:\n value, error = list_.get_next()",
-            "except Control.Break:\n break",
+            "except Continue:\n value, error = list_.get_next()",
+            "except Break:\n break",
           code.unindent,
         code.unindent,
         "finally:",
@@ -265,7 +265,7 @@ class Directive:
     return code.text()
 
   def next(self, *args):
-    return "raise Control.Continue"
+    return "raise Continue"
 
   def wrapper(self, nameargs, block):  # [% WRAPPER template foo = bar %]
     file, args = unpack(nameargs, 2)
@@ -297,8 +297,8 @@ class Directive:
                      "failsafe -= 1",
                      block,
                    code.unindent,
-                   "except Control.Continue:\n pass",
-                   "except Control.Break:\n break",
+                   "except Continue:\n pass",
+                   "except Break:\n break",
                  code.unindent,
                  "if not failsafe:",
                  " raise Error('WHILE loop terminated (> %d iterations)')"
@@ -409,7 +409,7 @@ class Directive:
     return "output.seek(0)\noutput.truncate()"
 
   def break_(self):  # [% BREAK %]
-    return "raise Control.Break"
+    return "raise Break"
 
   def return_(self):  # [% RETURN %]
     return "context.throw('return', '', output)"  # \$output in Perl
@@ -497,4 +497,3 @@ class Directive:
                "return output.getvalue()")
     code.write(code.unindent, "stash.set('%s', _)" % ident)
     return code.text()
-

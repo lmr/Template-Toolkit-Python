@@ -5158,7 +5158,7 @@ def rule38(*args):
 
 def rule39(*args):
   if args[0].INFOR or args[0].INWHILE:
-    return "raise Control.Break"
+    return "raise Break"
   else:
     return "break"
 
@@ -5166,7 +5166,7 @@ def rule40(*args):
   if args[0].INFOR:
     return factory.next()
   elif args[0].INWHILE:
-    return "raise Control.Continue"
+    return "raise Continue"
   else:
     return "continue"
 

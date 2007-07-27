@@ -75,8 +75,9 @@ class perlbool:
     return self.truth
 
 
-class Control:
-  class Continue(Exception):
-    pass
-  class Break(Exception):
-    pass
+class Continue(Exception):
+  pass
+
+
+class Break(Exception):
+  pass
