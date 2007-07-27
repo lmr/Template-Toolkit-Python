@@ -2,9 +2,11 @@ import sys
 import re
 import cStringIO as StringIO
 
-from template import base, context, constants, util
+from template import base, context, config, constants, util
 
 class Service(base.Base):
+  _NewContext = config.Config.context
+
   def __init__(self, config=None):
     base.Base.__init__(self)
     if config is None:
@@ -32,7 +34,7 @@ class Service(base.Base):
     else:
       self.AUTO_RESET = True
     self.DEBUG = config.get("DEBUG", 0) & constants.DEBUG_SERVICE
-    self.CONTEXT = config.get("CONTEXT") or context.Context(config)
+    self.CONTEXT = config.get("CONTEXT") or self._NewContext(config)
     if not self.CONTEXT:
       raise base.Exception()
 
@@ -143,4 +145,3 @@ class Service(base.Base):
       return None
 
     return output
-

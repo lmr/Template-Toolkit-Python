@@ -236,7 +236,7 @@ class Directive:
         "oldloop = None",
         "list_ = %s" % list_,
         "if not isinstance(list_, Iterator):",
-        " list_ = Iterator(list_)",
+        " list_ = NewIterator(list_)",
         "value, error = list_.get_first()",
         loop_save,
         "stash.set('loop', list_)",

@@ -1,6 +1,6 @@
 import re
 import cStringIO
-from template import base, constants, iterator, util
+from template import base, config, constants, iterator, util
 
 ERROR = None
 
@@ -9,6 +9,7 @@ PYEVAL_NAMESPACE = {
   "base":      base,  # for Exception
   "constants": constants,
   "Iterator":  iterator.Iterator,
+  "NewIterator": config.Config.iterator,
   "Reference": util.Reference,
   "re":        re,
   "util":      util,

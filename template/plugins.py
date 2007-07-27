@@ -27,8 +27,8 @@ class Plugins(base.Base):
     self.PLUGIN_BASE = pbase
     self.PLUGINS = STD_PLUGINS.copy()
     self.PLUGINS.update(plugins)
-    self.TOLERANT = params.get("TOLERANT") or 0
-    # self.LOAD_PERL = ...
+    self.TOLERANT = params.get("TOLERANT") or False
+    self.LOAD_PYTHON = params.get("LOAD_PYTHON") or False
     self.FACTORY = factory or {}
     self.DEBUG = (params.get("DEBUG") or 0) & constants.DEBUG_PLUGINS
 
@@ -53,7 +53,7 @@ class Plugins(base.Base):
       else:
         return error, constants.STATUS_ERROR
     return plugin, None
-    
+
   def _load(self, name, context):
     error = factory = None
     impl = self.PLUGINS.get(name) or self.PLUGINS.get(name.lower())
@@ -82,4 +82,3 @@ class Plugins(base.Base):
         return error, constants.STATUS_ERROR
     else:
       return None, constants.STATUS_DECLINED
-

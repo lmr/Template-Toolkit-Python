@@ -5,7 +5,7 @@ import stat
 import time
 import types
 
-from template import constants, document, parser, util, base
+from template import config, constants, document, util, base
 
 PREV = 0
 NAME = 1
@@ -203,12 +203,13 @@ class Provider(base.Base):
     text  = data["text"]
     error = None
 
-    parseobj = self.PARSER or parser.Parser(self.PARAMS)
+    if not self.PARSER:
+      self.PARSER = config.Config.parser(self.PARAMS)
 
     # discard the template text - we don't need it any more
     del data["text"]
 
-    parsedoc = parseobj.parse(text, data)
+    parsedoc = self.PARSER.parse(text, data)
     if parsedoc:
       parsedoc["METADATA"].update({"name": data["name"],
                                    "modtime": data["time"]})
@@ -238,7 +239,7 @@ class Provider(base.Base):
 
     else:
       error = base.Exception("parse",
-                             "%s %s" % (data["name"], parseobj.error()))
+                             "%s %s" % (data["name"], self.PARSER.error()))
 
     if self.TOLERANT:
       return None, constants.STATUS_DECLINED
