@@ -20,7 +20,7 @@ class TestCase(unittest.TestCase):
   def _callsign(cls):
     return words.copy()
 
-  def Expect(self, data, tproc, vars=None):
+  def Expect(self, data, tproc=None, vars=None):
     data = re.sub(r"(?s).*?\n__DATA__\n", "", data)
     data = re.sub(r"(?m)^#.*\n", "", data)
     data = re.sub(r"(?s).*?\s*--\s*start\s*--\s*", "", data)
