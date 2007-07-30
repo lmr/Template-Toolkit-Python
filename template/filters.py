@@ -2,7 +2,8 @@ import re
 import sys
 
 import template
-from template import base, constants, util # , plugin
+from template import base, constants, util
+from template.plugin import filter as plugin_filter
 
 eval_namespace = {}
 
@@ -198,7 +199,7 @@ class Filters(base.Base):
     error   = None
 
     if not isinstance(name, str):
-      if isinstance(name, plugin.filter.Filter):
+      if isinstance(name, plugin_filter.Filter):
         factory = name.factory()
         if not factory:
           return self.error(name.error())
