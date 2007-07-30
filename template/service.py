@@ -38,6 +38,9 @@ class Service(base.Base):
     if not self.CONTEXT:
       raise base.Exception()
 
+  def context(self):
+    return self.CONTEXT
+
   def process(self, template, params=None):
     context = self.CONTEXT
     output  = StringIO.StringIO()
@@ -94,7 +97,7 @@ class Service(base.Base):
           break
         output.write(procout)
         procout = StringIO.StringIO()
-      
+
       try:
         for name in self.POST_PROCESS:
           output.write(context.process(name))

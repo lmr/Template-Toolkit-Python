@@ -27,9 +27,12 @@ class Template(base.Base):
       return True
     else:
       return self.error(self.SERVICE.error())
-    
+
   def context(self):
     return self.SERVICE.CONTEXT
+
+  def service(self):
+    return self.SERVICE
 
 
 def _output(where, textref, options=None):
@@ -63,4 +66,3 @@ def _output(where, textref, options=None):
   else:
     error = "output_handler() cannot determine target type (%s)" % where
   return error
-

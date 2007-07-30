@@ -205,7 +205,7 @@ class Context(base.Base):
   def delocalise(self):
     self.STASH = self.STASH.declone()
 
-  def plugin(self, name, args):
+  def plugin(self, name, args=None):
     for provider in self.LOAD_PLUGINS:
       plugin, error = provider.fetch(name, args, self)
       if not error:
@@ -320,3 +320,6 @@ class Context(base.Base):
 
   def eval_python(self):
     return self.EVAL_PYTHON
+
+  def trim(self):
+    return self.TRIM
