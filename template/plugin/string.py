@@ -4,171 +4,192 @@ from template import plugin
 
 
 class String(plugin.Plugin):
-  def __init__(self, text="", context=None, config=None):
-    if config is None:
+  def __init__(self, context, *args):
+    args = list(args)
+    if args and isinstance(args[-1], dict):
+      config = args.pop()
+    else:
       config = {}
-    self.text = str(text or config.get("text") or "")
+    if "text" in config:
+      self._text = config["text"]
+    elif args:
+      self._text = args.pop(0)
+    else:
+      self._text = ""
     self.filters = []
     self._CONTEXT = context
+    filter = config.get("filter") or config.get("filters")
+    if filter:
+      self.output_filter(filter)
 
   # Perl-style "new" method:
-  @classmethod
-  def new(cls, *args, **kwargs):
-    return cls(*args, **kwargs)
+  def new(self, *args):
+    return self.__class__(self._CONTEXT, *args)
 
   def text(self):
     if not self.filters:
-      return self.text
-    text = self.text
+      return self._text
+    _text = self._text
     for name, args in self.filters:
       code = self._CONTEXT.filter(name, args) or self.throw(context.error())
-      text = code(text)
-    return text
+      _text = code(_text)
+    return _text
 
   __str__ = text
 
+  def __eq__(self, other):
+    return self.text() == other.text()
+
+  def __ne__(self, other):
+    return self.text() != other.text()
+
   def copy(self):
-    return String(self.text)
+    return String(self._CONTEXT, self._text)
 
   def output_filter(self, filter):
     if isinstance(filter, dict):
-      filter = filter.items()
+      filter = list(sum(filter.items(), ()))
     elif isinstance(filter, str):
       filter = re.split(r"\s*\W+\s*", filter)
 
     while filter:
       name = filter.pop(0)
-      if filter and (isinstance(filter, (list, tuple, dict))
-                     or len(filter) == 0):
+      if filter and (isinstance(filter[0], (list, tuple, dict))
+                     or len(filter[0]) == 0):
         args = filter.pop(0)
         if args:
           if not isinstance(args, (list, tuple)):
             args = [args]
-          else:
-            args = []
         else:
           args = []
-      self.filters.push([name, args])
+      else:
+        args = []
+      self.filters.append([name, args])
     return ""
 
   def push(self, *args):
-    self.text += "".join(args)
+    self._text += "".join(args)
     return self
 
   def unshift(self, *args):
-    self.text = "".join(args) + self.text
+    self._text = "".join(args) + self._text
     return self
 
   def pop(self, strip=None):
     if strip is not None:
-      self.text = re.sub(strip + "$", "", self.text)
+      self._text = re.sub(strip + "$", "", self._text)
     return self
 
   def shift(self, strip=None):
     if strip is not None:
-      self.text = re.sub("^" + strip, "", self.text)
+      self._text = re.sub("^" + strip, "", self._text)
     return self
 
   def center(self, width=0):
-    length = len(self.text)
+    length = len(self._text)
     if length < width:
-      lpad = (width - len) / 2
-      rpad = width - len - lpad
-      self.text = " " * lpad + self.text + " " * rpad
+      lpad = (width - length) // 2
+      rpad = width - length - lpad
+      self._text = " " * lpad + self._text + " " * rpad
     return self
 
   def left(self, width=0):
-    if width > len(self.text):
-      self.text = self.text + " " * (width - len(self.text))
+    if width > len(self._text):
+      self._text += " " * (width - len(self._text))
     return self
 
   def right(self, width=0):
-    if width > len(self.text):
-      self.text = " " * (width - len(self.text)) + self.text
+    if width > len(self._text):
+      self._text = " " * (width - len(self._text)) + self._text
     return self
 
   def format(self, fmt="%s"):
-    self.text = format % self.text
+    self._text = fmt % self._text
     return self
 
   def filter(self, name, *args):
     code = self._CONTEXT.filter(name, args) or self.throw(self._CONTEXT.error())
-    return code(self.text)
+    return code(self._text)
 
   def upper(self):
-    self.text = self.text.upper()
+    self._text = self._text.upper()
     return self
 
   def lower(self):
-    self.text = self.text.lower()
+    self._text = self._text.lower()
     return self
 
   def capital(self):
-    if self.text:
-      self.text = self.text[0].upper() + self.text[1:]
+    if self._text:
+      self._text = self._text[0].upper() + self._text[1:]
     return self
 
   def chop(self):
-    if self.text:
-      self.text = self.text[1:]
+    if self._text:
+      self._text = self._text[:-1]
     return self
 
   def chomp(self):
     # Not exactly like Perl's chomp, but what is one to do...
-    if self.text and self.text[-1] == "\n":
-      self.text = self.text[:-1]
+    if self._text and self._text[-1] == "\n":
+      self._text = self._text[:-1]
     return self
 
   def trim(self):
-    self.text = self.text.strip()
+    self._text = self._text.strip()
     return self
 
   def collapse(self):
-    self.text = re.sub(r"\s+", " ", self.text.strip())
+    self._text = re.sub(r"\s+", " ", self._text.strip())
     return self
 
   def length(self):
-    return len(self.text)
+    return len(self._text)
 
   def truncate(self, length=None, suffix=""):
     if length is not None:
-      if len(self.text) > length:
-        self.text = self.text[:length - len(suffix)] + suffix
+      if len(self._text) > length:
+        self._text = self._text[:length - len(suffix)] + suffix
     return self
 
   def substr(self, offset=0, length=None, replacement=None):
     if length is not None:
       if replacement is not None:
-        removed = self.text[offset:offset+length]
-        text[offset:offset+length] = replacement
+        removed = self._text[offset:offset+length]
+        self._text = (self._text[:offset]
+                      + replacement
+                      + self._text[offset+length:])
         return removed
       else:
-        return self.text[offset:offset+length]
+        return self._text[offset:offset+length]
     else:
-      return self.text[offset:]
+      return self._text[offset:]
 
   def repeat(self, n=None):
     if n is not None:
-      self.text = self.text * n
+      self._text = self._text * n
     return self
 
   def replace(self, search=None, replace=""):
     if search is not None:
-      self.text = re.sub(search, replace, self.text)
+      self._text = re.sub(search, replace, self._text)
     return self
 
   def remove(self, search=""):
-    self.text = re.sub(search, "", self.text)
+    self._text = re.sub(search, "", self._text)
+    return self
 
   def split(self, split=r"\s", limit=0):
-    return re.split(split, self.text, limit)
+    if limit == 0:
+      return re.split(split, self._text)
+    else:
+      return re.split(split, self._text, limit - 1)
 
   def search(self, pattern):
-    return re.search(pattern, self.text) is not None
+    return re.search(pattern, self._text) is not None
 
   def equals(self, comparison=""):
-    return self.text == str(comparison)
-
+    return self._text == str(comparison)
 
   # Alternate method names:
   centre = center
