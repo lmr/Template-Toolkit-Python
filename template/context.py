@@ -214,7 +214,8 @@ class Context(base.Base):
         self.throw(plugin)
     self.throw(constants.ERROR_PLUGIN, "%s: plugin not found" % name)
 
-  def filter(self, name, args, alias=None):
+  def filter(self, name, args=None, alias=None):
+    args = args or []
     filter = None
     if not args and isinstance(name, str):
       filter = self.FILTER_CACHE.get(name)
