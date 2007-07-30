@@ -6,6 +6,7 @@ from template import base, constants, util
 PLUGIN_BASE = ("template.plugin", "Plugin")
 
 STD_PLUGINS = {
+  "datafile":  ("template.plugin.datafile", "Datafile"),
   "directory": ("template.plugin.directory", "Directory"),
   "file":      ("template.plugin.file", "File"),
   "format":    ("template.plugin.format", "Format"),

@@ -497,9 +497,10 @@ class Stash:
         elif isinstance(item, (list, tuple)):
           # hash slice
           return [root[x] for x in item]
-    elif isinstance(root, (list, tuple)):
+    elif isinstance(root, (list, tuple)) or hasattr(root, "TT_LIST_ATTRIBUTE"):
       # if root is a list then we check for a LIST_OPS pseudo-method
       # or return the numerical index into the list, or None
+      root = getattr(root, "TT_LIST_ATTRIBUTE", root)
       value = LIST_OPS.get(item)
       if value:
         result = value(root, *args)
