@@ -6,15 +6,15 @@ from template import base, constants, util
 PLUGIN_BASE = ("template.plugin", "Plugin")
 
 STD_PLUGINS = {
-  "directory": "template.plugin.directory.Directory",
-  "file":      "template.plugin.file.File",
-  "format":    "template.plugin.format.Format",
-  "iterator":  "template.plugin.iterator.Iterator",
-  "math":      "template.plugin.math.Math",
-  "string":    "template.plugin.string.String",
-  "table":     "template.plugin.table.Table",
-  "Table":     "template.plugin.table.Table",
-  "wrap":      "template.plugin.wrap.Wrap",
+  "directory": ("template.plugin.directory", "Directory"),
+  "file":      ("template.plugin.file", "File"),
+  "format":    ("template.plugin.format", "Format"),
+  "iterator":  ("template.plugin.iterator", "Iterator"),
+  "math":      ("template.plugin.math", "Math"),
+  "string":    ("template.plugin.string", "String"),
+  "table":     ("template.plugin.table", "Table"),
+  "Table":     ("template.plugin.table", "Table"),
+  "wrap":      ("template.plugin.wrap", "Wrap"),
 }
 
 class Plugins(base.Base):
@@ -55,19 +55,23 @@ class Plugins(base.Base):
     return plugin, None
 
   def _load(self, name, context):
-    error = factory = None
+    error = factory = ok = None
     impl = self.PLUGINS.get(name) or self.PLUGINS.get(name.lower())
     if impl:
       # plugin name is explicitly stated in PLUGIN_NAME
-      module_name, class_name = impl.rsplit(".", 1)
+      module_name, class_name = impl
       try:
         module = __import__(module_name, globals(), None, True)
+        ok = True
       except Exception, e:
         error = e
     else:
-      raise NotImplementedError("plugin search by PLUGIN_BASE")
+      # Try each of the PLUGIN_BASE values to build module name
+      # ...Only it's not clear how this should work in Python,
+      # so we skip it for now.
+      pass
 
-    if not error:
+    if ok:
       try:
         factory = getattr(getattr(module, class_name), "load")(context)
       except Exception, e:
