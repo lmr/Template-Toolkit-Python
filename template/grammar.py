@@ -5285,7 +5285,7 @@ def rule74(*args):
   return args[0].push_defblock()
 
 def rule75(*args):
-  return factory.view(*(args[2], args[5]. args[0].pop_defblock()))
+  return factory.view(*(args[2], args[5], args[0].pop_defblock()))
 
 def rule76(*args):
   raise None  # PERL
