@@ -4,11 +4,11 @@ from template import base
 from template.plugin import file
 
 class Directory(file.File):
-  def __init__(self, context, path, config=None):
+  def __init__(self, context, path=None, config=None):
     if not isinstance(config, dict):
       config = {}
     if not path:
-      raise base.Exception("no directory specified")
+      self.throw("no directory specified")
     file.File.__init__(self, context, path, config)
     self.files = []
     self.dirs  = []
@@ -55,4 +55,3 @@ class Directory(file.File):
 
   def throw(self, error):
     raise base.Exception("Directory", error)
-
