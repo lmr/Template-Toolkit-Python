@@ -1,7 +1,7 @@
 import sys
 import re
 
-from template import grammar, directive, base
+from template import grammar, directive, base, util
 from template.constants import *
 
 CONTINUE = 0
@@ -132,8 +132,8 @@ class Parser(base.Base):
     return '#line %s "%s"\n' % (line, file_)
 
   def parse(self, text, info):
-    defblock = self.DEFBLOCK = {}
-    metadata = self.METADATA = []
+    self.DEFBLOCK = {}
+    self.METADATA = []
     self._ERROR = ""
     tokens = self.split_text(text)
     if tokens is None:
@@ -143,8 +143,8 @@ class Parser(base.Base):
     self.FILEINFO.pop()
     if block:
       return {"BLOCK": block,
-              "DEFBLOCKS": defblock,
-              "METADATA": dict(self.METADATA)}
+              "DEFBLOCKS": self.DEFBLOCK,
+              "METADATA": dict(util.chop(self.METADATA, 2))}
     else:
       return None
 
@@ -429,6 +429,11 @@ class Parser(base.Base):
     block = self.DEFBLOCK
     self.DEFBLOCK = self.DEFBLOCK_STACK.pop(0)
     return block
+
+  def add_metadata(self, setlist):
+    if self.METADATA is not None:
+      self.METADATA.extend(setlist)
+    return None
 
   def interpolate_text(self, text, line=0):
     tokens = []
