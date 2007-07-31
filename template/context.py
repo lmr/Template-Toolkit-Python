@@ -156,11 +156,11 @@ class Context(base.Base):
         if isinstance(component, document.Document):
           if isinstance(element, dict):
             element["caller"] = component.name
-            element["callers"] = getattr(component, "callers", [])
+            element["callers"] = getattr(component, "callers") or []
             element["callers"].append(element["caller"])
           else:
             element.caller = component.name
-            element.callers = getattr(component, "callers", [])
+            element.callers = getattr(component, "callers") or []
             element.callers.append(element.caller)
         self.STASH.set("component", element)
         if not localize:
