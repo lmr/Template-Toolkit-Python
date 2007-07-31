@@ -82,7 +82,7 @@ class Directive:
     code = Code()
     code.write("def _():",
                code.indent,
-                 "output = StringIO",
+                 "output = StringIO()",
                  "try:",
                  code.indent,
                    "# BLOCK: {",
