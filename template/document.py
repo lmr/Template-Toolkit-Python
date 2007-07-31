@@ -45,12 +45,19 @@ class Document(base.Base):
           return self.error(e)
         defblocks[key] = namespace["_"]
 
-    for key, value in metadata.items():
-      setattr(self, key, value)
-
+    self._META = metadata.copy()
     self._BLOCK     = block
     self._DEFBLOCKS = defblocks
     self._HOT       = 0
+
+  def __getattr__(self, name):
+    if name and name[0].islower():
+      return self._META.get(name)
+    else:
+      raise AttributeError(name)
+
+  def block(self):
+    return self._BLOCK
 
   def blocks(self):
     return self._DEFBLOCKS
