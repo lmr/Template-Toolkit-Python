@@ -21,6 +21,7 @@ class TestCase(unittest.TestCase):
     return words.copy()
 
   def Expect(self, data, tproc=None, vars=None):
+    vars = vars or {}
     data = re.sub(r"(?s).*?\n__DATA__\n", "", data)
     data = re.sub(r"(?m)^#.*\n", "", data)
     data = re.sub(r"(?s).*?\s*--\s*start\s*--\s*", "", data)
@@ -57,8 +58,16 @@ class TestCase(unittest.TestCase):
           self.fail("no such template object to use: %s\n" % ttname)
         input = input[:match.start()] + input[match.end():]
       out = util.Reference("")
-      if not tproc.process(util.Reference(input), vars or {}, out):
-        self.fail("Test #%d: %s process FAILED: %s\n%s" % (count + 1, name, subtext(input), tproc.error()))
+      if not tproc.process(util.Reference(input), vars, out):
+        self.fail("Test #%d: %s process FAILED: %s\n%s" %
+                  (count + 1, name, subtext(input), tproc.error()))
+      match = re.match(r"(?i)\s*--+\s*process\s*--+\s*\n", expect)
+      if match:
+        out2 = util.Reference("")
+        expect = expect[match.end():]
+        if not tproc.process(util.Reference(expect), vars, out2):
+          self.fail("Template process failed (expect): %s" % tproc.error())
+        expect = out2.get()
       out = out.get().rstrip("\n")
       stripped = expect.rstrip("\n")
       self.assertEqual(stripped, out, "Test #%d:\n%s\n%r != %r" %
