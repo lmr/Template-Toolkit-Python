@@ -33,11 +33,11 @@ class File(plugin.Plugin):
     name = name + ext
     if ext.startswith("."):
       ext = ext[1:]
-    fields = list(os.path.split(dir))
+    fields = splitpath(dir)
     if fields and not fields[0]:
       fields.pop(0)
     home = "/".join(("..",) * len(fields))
-    abs = os.path.join(root and (root,) or (), path)
+    abs = os.path.join(root, path)
     self.path = path
     self.name = name
     self.root = root
@@ -63,3 +63,14 @@ class File(plugin.Plugin):
       for key in STAT_KEYS:
         setattr(self, key, "")
 
+def splitpath(path):
+  def helper(path):
+    while True:
+      path, base = os.path.split(path)
+      if base:
+        yield base
+      else:
+        break
+  pathcomp = list(helper(path))
+  pathcomp.reverse()
+  return pathcomp
