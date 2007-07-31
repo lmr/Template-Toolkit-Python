@@ -5350,12 +5350,13 @@ def rule97(*args):
   return args[1]
 
 def rule100(*args):
-  if args[3] and args[3][0] == "'":
-    args[3] = args[3][1:]
-  if args[3] and args[3][-1] == "'":
-    args[3] = args[3][:-1]
-  args[3] = re.sub(r"\\'", "'", args[3])
-  return [args[1], args[3]]
+  arg3 = args[3]
+  if arg3 and arg3[0] == "'":
+    arg3 = arg3[1:]
+  if arg3 and arg3[-1] == "'":
+    arg3 = arg3[:-1]
+  arg3 = arg3.replace("\\'", "'")
+  return [args[1], arg3]
 
 def rule101(*args):
   return [args[1], args[4]]
