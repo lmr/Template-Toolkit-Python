@@ -52,7 +52,7 @@ class Plugins(base.Base):
       if self.TOLERANT:
         return None, constants.STATUS_DECLINED
       else:
-        return error, constants.STATUS_ERROR
+        return e, constants.STATUS_ERROR
     return plugin, None
 
   def _load(self, name, context):
