@@ -1,7 +1,7 @@
 import os
 import re
 
-from template import plugin, util
+from template import base, plugin, util
 
 STAT_KEYS = ("dev", "ino", "mode", "nlink", "uid", "gid", "rdev", "size",
              "atime", "mtime", "ctime", "blksize", "blocks")
@@ -62,6 +62,20 @@ class File(plugin.Plugin):
     else:
       for key in STAT_KEYS:
         setattr(self, key, "")
+
+  def rel(self, path):
+    if isinstance(path, self.__class__):
+      path = path.path
+    if path.startswith("/"):
+      return path
+    elif not self.home:
+      return path
+    else:
+      return "%s/%s" % (self.home, path)
+
+  def throw(self, error):
+    raise base.Exception('File', error)
+
 
 def splitpath(path):
   def helper(path):
