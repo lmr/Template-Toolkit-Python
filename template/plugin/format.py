@@ -1,12 +1,24 @@
 from template import plugin
 
+
 def make_formatter(format="%s"):
   def formatter(*args):
-    # NB: Python's formatting operation is much more brittle than Perl's...
-    # A robust implementation here would pad out args with the appropriate
-    # number and type of unspecified arguments.
-    return format % args
+    # This is a pretty hacky way to simulate Perl's permissive string
+    # formatting, which doesn't insist on having exactly the number of
+    # specified arguments available.  It should work all right as long
+    # as only strings are to be formatted.
+    while True:
+      try:
+        return format % args
+      except TypeError, e:
+        if e.args[0].startswith("not enough arguments"):
+          args += ("",)
+        elif e.args[0].startswith("not all arguments converted"):
+          args = args[:-1]
+        else:
+          raise
   return formatter
+
 
 class Format(plugin.Plugin):
   @classmethod
