@@ -54,8 +54,9 @@ class Code:
 #  Template::Directive
 
 class Directive:
-  def __init__(self):
-    pass
+  def __init__(self, config):
+    self.NAMESPACE = config.get("NAMESPACE")
+
 
   def template(self, block):
     if not block or block.isspace():

@@ -1,5 +1,5 @@
-import sys
 import re
+import sys
 
 from template import grammar, directive, base, util
 from template.constants import *
@@ -107,9 +107,7 @@ class Parser(base.Base):
     self.V1DOLLAR    = False
     # self.EVAL_PERL = ...
     self.FILE_INFO   = 1
-    self.GRAMMAR     = None
     self._ERROR      = ""
-    self.FACTORY     = Factory()
     self.INFOR = 0
     self.INWHILE = 0
 
@@ -120,6 +118,13 @@ class Parser(base.Base):
     self.FILEINFO = []
     self.DEFBLOCKS = []
     self.DEFBLOCK_STACK = []
+
+    factory = param.get("FACTORY", directive.Directive)
+    self.GRAMMAR = grammar.Grammar()
+    self.FACTORY = factory({'NAMESPACE': param.get('NAMESPACE')})
+    self.LEXTABLE = self.GRAMMAR.LEXTABLE
+    self.STATES = self.GRAMMAR.STATES
+    self.RULES = self.GRAMMAR.RULES
 
 
   def location(self):
@@ -284,19 +289,19 @@ class Parser(base.Base):
                 uctoken = token.upper()
               else:
                 uctoken = token
-              toktype = grammar.LEXTABLE.get(uctoken)
+              toktype = self.LEXTABLE.get(uctoken)
               if toktype is not None:
                 token = uctoken
               else:
                 toktype = "IDENT"
             else:
               token = match.group(7)
-              toktype = grammar.LEXTABLE.get(token, "UNQUOTED")
+              toktype = self.LEXTABLE.get(token, "UNQUOTED")
       tokens.extend([toktype, token])
     return tokens
 
   def _parse(self, tokens, info):
-    grammar.factory = directive.Directive()
+    self.GRAMMAR.install_factory(self.FACTORY)
     stack = [[0, None]]  # DFA stack
     coderet = None
     token = None
@@ -312,7 +317,7 @@ class Parser(base.Base):
 
     while True:
       stateno = stack[-1][0]
-      state   = grammar.STATES[stateno]
+      state   = self.STATES[stateno]
 
       # see if any lookaheads exist for the current state
       if "ACTIONS" in state:
@@ -370,7 +375,7 @@ class Parser(base.Base):
         # PERL: redo;
       else:
         # reduce (negative ACTION)
-        lhs, len_, code = grammar.RULES[-action]
+        lhs, len_, code = self.RULES[-action]
         # no action implies ACCEPTance
         if not action:
           status = ACCEPT
@@ -395,7 +400,8 @@ class Parser(base.Base):
           return None
         elif status == ERROR:
           break
-        stack.append([grammar.STATES[stack[-1][0]].get("GOTOS", {}).get(lhs), coderet])
+        stack.append([self.STATES[stack[-1][0]].get("GOTOS", {}).get(lhs),
+                      coderet])
 
     # ERROR
     if value is None:
@@ -454,7 +460,3 @@ class Parser(base.Base):
         line += dir.count("\n")
         tokens.extend(("TEXT", dir))
     return tokens
-
-class Factory:
-  def block(self, block):
-    return "\n".join(block or [])

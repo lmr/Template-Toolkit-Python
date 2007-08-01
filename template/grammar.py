@@ -1,6 +1,20 @@
 import re
 import sys
 
+
+factory = None
+
+class Grammar:
+  def __init__(self):
+    self.LEXTABLE = LEXTABLE
+    self.STATES = STATES
+    self.RULES = RULES
+
+  def install_factory(self, new_factory):
+    global factory
+    factory = new_factory
+
+
 RESERVED = ("GET", "CALL", "SET", "DEFAULT", "INSERT", "INCLUDE", "PROCESS",
             "WRAPPER", "BLOCK", "END", "USE", "PLUGIN", "FILTER", "MACRO",
             "PYTHON", "RAWPYTHON", "TO", "STEP", "AND", "OR", "NOT", "DIV",
@@ -5071,8 +5085,6 @@ STATES = [
 		"DEFAULT":  -52
 	}
 ]; 
-
-factory = None
 
 # while (<DATA>) {
 # print;
