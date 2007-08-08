@@ -41,6 +41,7 @@ class TestCase(unittest.TestCase):
       match = re.search(r"(?mi)^\s*-- name:? (.*?) --\s*\n", test)
       if match:
         name = match.group(1)
+        test = test[:match.start()] + test[match.end():]
       else:
         name = "template text %d" % (count + 1)
       match = re.search(r"(?mi)^\s*--\s*expect\s*--\s*\n", test)
