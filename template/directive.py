@@ -73,7 +73,7 @@ class Directive:
                    "# }",
                  code.unindent,
                  "except base.Exception, e:",
-                 " error = context.catch(e, Reference(output))",
+                 " error = context.catch(e, Reference(output.getvalue()))",
                  " if error.type != 'return':",
                  "  raise error",
                  "return output.getvalue()")
@@ -91,7 +91,7 @@ class Directive:
                    "# }",
                  code.unindent,
                  "except base.Exception, e:",
-                 " error = context.catch(e, Reference(output))",
+                 " error = context.catch(e, Reference(output.getvalue()))",
                  " if error.type != 'return':",
                  "  raise error",
                  "return output.getvalue()",
@@ -194,7 +194,7 @@ class Directive:
     hash_ = args.pop(0)
     file_ = self.filenames(file_)
     if hash_:
-      file_ += ", " + makedict(hash_)
+      file_ += ", { %s }" % ", ".join(hash_)
     return "output.write(str(context.process(%s)))" % file_
 
   def if_(self, expr, block, else_=None):  # [% IF foo < bar %] [% ELSE %] [% END %]
@@ -333,9 +333,9 @@ class Directive:
 
   def try_(self, block, catches):  # [% TRY %] ... [% CATCH %] ... [% END %]
     handlers = []
-    final    = catches.pop()
-    default  = None
-    n        = 0
+    final = catches.pop()
+    default = None
+    n = 0
     catchblock = Code()
 
     for catch in catches:
@@ -364,13 +364,18 @@ class Directive:
     code.write("def _():",
                code.indent,
                  "output = StringIO()",
+                 "error = None",
                  "try:",
                  code.indent,
                    block,
                  code.unindent,
                  "except base.Exception, e:",
                  code.indent,
-                   "error = context.catch(e, Reference(output))",
+                   "r = Reference(output.getvalue())",
+                   "error = context.catch(e, r)",
+                   "output.seek(0)",
+                   "output.truncate(0)",
+                   "output.write(r.get())",
                    "if error.type in ('return', 'stop'):",
                    " raise error",
                    "stash.set('error', error)",
@@ -382,7 +387,10 @@ class Directive:
                    code.unindent,
                    default,
                  code.unindent,
+                 "# FINAL",
                  final,
+                 "if error:",
+                 " raise error",
                  "return output.getvalue()",
                code.unindent,
                "output.write(_())")
@@ -402,7 +410,7 @@ class Directive:
                   tuple(hash_)))
     else:
       args = "%s, %s" % (type_, info)
-    return "context.throw(%s, output)" % args # FIXME: \$output in original Perl
+    return "context.throw(%s, Reference(output.getvalue()))" % args
 
 
 
@@ -413,10 +421,10 @@ class Directive:
     return "raise Break"
 
   def return_(self):  # [% RETURN %]
-    return "context.throw('return', '', output)"  # \$output in Perl
+    return "context.throw('return', '', Reference(output.getvalue()))"
 
   def stop(self):  # [% STOP %]
-    return "context.throw('stop', '', output)"  # \$output in Perl
+    return "context.throw('stop', '', Reference(output.getvalue()))"
 
   def use(self, lnameargs):  # [% USE alias = plugin(args) %]
     file_, args, alias = unpack(lnameargs, 3)
