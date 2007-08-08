@@ -22,15 +22,14 @@ RELATIVE_PATH = re.compile(r"(?:^|/)\.+/")
 
 def statfile(path):
   try:
-    statbuf = os.stat(path)
+    return os.stat(path)
   except OSError:
-    statbuf = ()
-  return statbuf
+    return None
 
 class Provider(base.Base):
   def __init__(self, params):
     base.Base.__init__(self)
-    size = params.get("CACHE_SIZE") or 0
+    size = params.get("CACHE_SIZE")
     path = params.get("INCLUDE_PATH") or "."
     cdir = params.get("COMPILE_DIR") or ""
     dlim = params.get("DELIMITER")
@@ -211,8 +210,8 @@ class Provider(base.Base):
 
     parsedoc = self.PARSER.parse(text, data)
     if parsedoc:
-      parsedoc["METADATA"].update({"name": data["name"],
-                                   "modtime": data["time"]})
+      parsedoc["METADATA"].setdefault("name", data["name"])
+      parsedoc["METADATA"].setdefault("modtime", data["time"])
       # write the Python code to the file compfile, if defined
       if compfile is not None:
         basedir = os.path.dirname(compfile)
@@ -330,6 +329,8 @@ class Provider(base.Base):
       return load
 
   def _refresh(self, slot):
+    data = None
+    error = None
     if time.time() - slot[STAT] > STAT_TTL:
       statbuf = statfile(slot[NAME])
       if statbuf:
@@ -370,7 +371,7 @@ class Provider(base.Base):
     else:
       return namespace["_"]
 
-  def _store(self, name, data, compfile):
+  def _store(self, name, data, compfile=None):
     load = self._modified(name)
     data = data["data"]
     if self.SIZE is not None and self.SLOTS >= self.SIZE:
