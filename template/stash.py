@@ -477,7 +477,18 @@ class Stash:
       # and the lvalue flag is set.  Otherwise, we check the HASH_OPS
       # pseudo-methods table, calling the code if found, or return None
       if isdict:
-        value = root.get(item)
+        # We have to try all these variants because Perl hash keys are
+        # stringified, but Python's aren't.
+        try:
+          value = root[item]
+        except KeyError:
+          try:
+            value = root[str(item)]
+          except (KeyError, TypeError):
+            try:
+              value = root[int(item)]
+            except (KeyError, TypeError):
+              value = None
       else:
         value = root[item]
       if value is not None:
@@ -504,15 +515,20 @@ class Stash:
       value = LIST_OPS.get(item)
       if value:
         result = value(root, *args)
-      elif re.match(r"-?\d+$", str(item)):
-        value = root[item]
-        if callable(value):
-          result = value(*args)
+      else:
+        try:
+          value = root[int(item)]
+        except TypeError:
+          if isinstance(item, (list, tuple)):
+            # array slice
+            return [root[x] for x in item]
+        except IndexError:
+          return None
         else:
-          return value
-      elif isinstance(item, (list, tuple)):
-        # array slice
-        return [root[x] for x in item]
+          if callable(value):
+            result = value(*args)
+          else:
+            return value
     elif isinstance(root, types.InstanceType):
       value = getattr(root, item)
       if callable(value):
