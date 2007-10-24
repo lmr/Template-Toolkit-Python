@@ -3,6 +3,11 @@ import os
 import sys
 from template import base, service, util
 
+
+# Convenience alias.
+Literal = util.Literal
+
+
 class Template(base.Base):
   def __init__(self, config=None):
     if config is None:
@@ -12,6 +17,11 @@ class Template(base.Base):
     self.SERVICE = service.Service(config)
     self.OUTPUT = config.get("OUTPUT") or sys.stdout
     self.OUTPUT_PATH = config.get("OUTPUT_PATH")
+
+  def processString(self, template, *args, **kwargs):
+    """A simple wrapper around process() that wraps its template argument
+    in a Literal."""
+    return self.process(Literal(template), *args, **kwargs)
 
   def process(self, template, vars=None, outstream=None, **options):
     output = self.SERVICE.process(template, vars)
@@ -54,9 +64,7 @@ def _output(where, textref, options=None):
       if e.errno != errno.EEXIST:
         error = e
     if not error:
-      mode = "w"
-      if options.get("binmode"):
-        mode += "b"
+      mode = "w%s" % (options.get("binmode") and "b" or "")
       try:
         fp = open(where, mode)
         fp.write(text)

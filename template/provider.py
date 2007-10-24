@@ -113,9 +113,9 @@ class Provider(base.Base):
     if alias is None and isinstance(name, str):
       alias = name
     # LOAD: {
-    if isinstance(name, util.Reference):
-      # name can be a Reference to the input text...
-      data = {"text": name.value,
+    if isinstance(name, util.Literal):
+      # name can be a Literal wrapper around the input text...
+      data = {"text": name.text(),
               "time": now,
               "load": 0}
       if alias is not None:

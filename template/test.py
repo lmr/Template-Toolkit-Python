@@ -59,14 +59,14 @@ class TestCase(unittest.TestCase):
           self.fail("no such template object to use: %s\n" % ttname)
         input = input[:match.start()] + input[match.end():]
       out = util.Reference("")
-      if not tproc.process(util.Reference(input), vars, out):
+      if not tproc.processString(input, vars, out):
         self.fail("Test #%d: %s process FAILED: %s\n%s" %
                   (count + 1, name, subtext(input), tproc.error()))
       match = re.match(r"(?i)\s*--+\s*process\s*--+\s*\n", expect)
       if match:
         out2 = util.Reference("")
         expect = expect[match.end():]
-        if not tproc.process(util.Reference(expect), vars, out2):
+        if not tproc.processString(expect, vars, out2):
           self.fail("Template process failed (expect): %s" % tproc.error())
         expect = out2.get()
       out = out.get().rstrip("\n")

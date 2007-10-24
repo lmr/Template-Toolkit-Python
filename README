@@ -20,36 +20,5 @@ list of some of the many outstanding issues:
    Several of the rules are untested, and some will definitely not
    work, as I have recorded in comments.
 
-*  Python lacks nested blocks, so I have translated them from Perl
-   thusly:
-
-     {
-       my $foo = ...;
-       # ...
-     }
-
-     def _():
-       foo = ...
-       # ...
-     _()
-
-   More problematic are named nested blocks.  In many places in the
-   original Perl code, code such as "next FILE" or "last SWITCH" can
-   be found.  I have not yet analyzed the code sufficiently to
-   determine if these block names are supplied for documentary
-   purposes only, of if they actually do result in exit from multiple
-   levels of named blocks.  If it's the latter, then they'll
-   ultimately have to be translated into some kind of ugly
-   exception-throwing mechanism, as best I can tell.  I hope not.
-
 *  Comments have been largely elided in the translation process.
 
-*  Embedded newlines don't work too well.  Eg:
-
-   TEXT = "[% 'abc\ndef' %]"
-   template.Template().process(util.Reference(TEXT))
-
-   This generates illegal Python code with a corresponding newline:
-
-   output.write('abc
-   def')

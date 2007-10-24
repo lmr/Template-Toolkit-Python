@@ -28,7 +28,7 @@ class ConfigTest(test.TestCase):
     # Force the provider to instantiate a parser and check it uses the
     # correct parameters.
     text = 'The cat sat on the mat'
-    self.failUnless(provider.fetch(util.Reference(text)))
+    self.failUnless(provider.fetch(util.Literal(text)))
     self.failUnless(provider.PARSER.ANYCASE)
     self.failUnless(provider.PARSER.INTERPOLATE)
 

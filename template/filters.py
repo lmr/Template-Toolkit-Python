@@ -109,7 +109,7 @@ def remove_filter_factory(context, search="", *args):
 
 def eval_filter_factory(context):
   def eval(text=""):
-    return context.process(util.Reference(text))
+    return context.process(util.Literal(text))
   return eval
 
 def python_filter_factory(context):

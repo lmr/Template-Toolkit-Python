@@ -3,7 +3,8 @@ import re
 import time
 import cStringIO as StringIO
 
-from template import stash, constants, document, provider, plugins, filters, base, util
+from template import stash, constants, document, provider, plugins, \
+                     filters, base, util
 
 DEBUG = None
 
@@ -45,7 +46,7 @@ class Context(base.Base):
     b = {}
     for key, block in blocks.items():
       if isinstance(block, str):
-        block = self.template(util.Reference(block))
+        block = self.template(util.Literal(block))
       b[key] = block
     self.INIT_BLOCKS = self.BLOCKS = b
 

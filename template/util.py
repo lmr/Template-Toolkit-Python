@@ -11,6 +11,15 @@ def make_list(*args):
   return list
 
 
+class Literal:
+  """A trivial wrapper for a template supplied as a string."""
+  def __init__(self, text):
+    self.__text = text
+
+  def text(self):
+    return self.__text
+
+
 class Reference:
   def __init__(self, value, key=None):
     self.value = value
