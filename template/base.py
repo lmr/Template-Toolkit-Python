@@ -1,7 +1,7 @@
 import re
-from template import util
 
 PyException = Exception
+
 
 class Exception(PyException):
   def __init__(self, type, info, textref=None):
@@ -40,10 +40,20 @@ class Base:
 
   def error(self, *args):
     if args:
-      if not isinstance(args[0], (str, int)):
-        self._ERROR = args[0]
-      else:
-        self._ERROR = "".join(args)
+      self._ERROR = self.__ErrorMessage(args)
     else:
       return self._ERROR
 
+  @classmethod
+  def Error(cls, *args):
+    if args:
+      cls.ERROR = self.__ErrorMessage(args)
+    else:
+      return getattr(cls, "ERROR", None)
+
+  @staticmethod
+  def __ErrorMessage(args):
+    if len(args) == 1:
+      return args[0]
+    else:
+      return "".join(args)

@@ -7,6 +7,7 @@ PLUGIN_BASE = ("template.plugin", "Plugin")
 
 STD_PLUGINS = {
   "datafile":  ("template.plugin.datafile", "Datafile"),
+  "date":      ("template.plugin.date", "Date"),
   "directory": ("template.plugin.directory", "Directory"),
   "file":      ("template.plugin.file", "File"),
   "format":    ("template.plugin.format", "Format"),
