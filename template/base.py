@@ -6,23 +6,23 @@ PyException = Exception
 class Exception(PyException):
   def __init__(self, type, info, textref=None):
     PyException.__init__(self)
-    self.type    = type
-    self.info    = info
-    self.textref = textref
+    self.__type    = type
+    self.__info    = info
+    self.__textref = textref
 
   def text(self, newtextref=None):
     if newtextref:
-      if self.textref and self.textref is not newtextref:
-        newtextref.set(newtextref.get() + self.textref.get())
-      self.textref = newtextref
+      if self.__textref and self.__textref is not newtextref:
+        newtextref.set(newtextref.get() + self.__textref.get())
+      self.__textref = newtextref
       return ""
-    elif self.textref:
-      return self.textref.get()
+    elif self.__textref:
+      return self.__textref.get()
     else:
       return ""
     
   def select_handler(self, *options):
-    type = self.type
+    type = self.__type
     hlut = dict((option, True) for option in options)
     while type:
       if hlut.get(type):
@@ -30,8 +30,17 @@ class Exception(PyException):
       type = re.sub(r'\.?[^.]*$', '', type)
     return None
 
+  def type(self):
+    return self.__type
+
+  def info(self):
+    return self.__info
+
+  def type_info(self):
+    return self.__type, self.__info
+
   def __str__(self):
-    return "%s error - %s" % (self.type or "", self.info)
+    return "%s error - %s" % (self.__type or "", self.__info)
 
 
 class Base:
