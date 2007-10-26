@@ -562,9 +562,23 @@ class Stash:
     else:
       return None
 
+  def getref(self, ident, args=None):
+    root = self
+    if is_seq(ident):
+      chopped = list(chop(ident, 2))
+      for i, (item, args) in enumerate(chopped):
+        if i == len(chopped) - 1:
+          break
+        root = self._dotop(root, item, args)
+        if root is None:
+          break
+    else:
+      item = ident
+    if root is not None:
+      return lambda *x: self._dotop(root, item, tuple(args or ()) + x)
+    else:
+      return lambda *x: ""
 
-
-  ## ...
 
   def update(self, params):
     if params is not None:

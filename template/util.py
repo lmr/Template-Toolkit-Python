@@ -73,7 +73,18 @@ def listify(arg):
     return [arg]
 
 
+def is_seq(x):
+  try:
+    iter(x)
+  except TypeError:
+    return False
+  else:
+    return not isinstance(x, str)
+
+
 class perlbool:
+  # TODO: A reference to an empty array or hash is true in Perl, but an empty
+  # list or dictionary is false in Python.  Is adjustment needed here?
   def __init__(self, value, truth=None):
     self.value = value
     if truth is None:

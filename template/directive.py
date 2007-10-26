@@ -486,26 +486,30 @@ class Directive:
     code.write("# MACRO")
     if args:
       nargs = len(args)
-      proto = ", ".join("arg%d" % i for i in range(1, nargs + 1))
+      proto = ", ".join("arg%d=None" % i for i in range(1, nargs + 1))
+      formal = ", ".join("arg%d" % i for i in range(1, nargs + 1))
       argstr = ", ".join("'%s'" % x for x in args)
-      code.write("def _(%s, extra=None):" % proto,
-                 code.indent,
-                   "params = dict(zip((%s,), (%s,)))" % (argstr, proto),
-                   "if extra:",
-                   " params.update(extra)")
+      code.write(
+        "def _(%s, extra=None):" % proto,
+        code.indent,
+          "params = dict(zip((%s,), (%s,)))" % (argstr, formal),
+          "if extra:",
+          " params.update(extra)")
     else:
-      code.write("def _(params=None):",
-                 code.indent,
-                   "if params is None:",
-                   " params = {}")
-    code.write("output = StringIO()",
-               "stash = context.localise(params)",
-               "try:",
-               code.indent,
-                 block,
-               code.unindent,
-               "finally:",
-               " stash = context.delocalise()",
-               "return output.getvalue()")
+      code.write(
+        "def _(params=None):",
+        code.indent,
+          "if params is None:",
+          " params = {}")
+    code.write(
+      "output = StringIO()",
+      "stash = context.localise(params)",
+      "try:",
+      code.indent,
+        block,
+      code.unindent,
+      "finally:",
+      " stash = context.delocalise()",
+      "return output.getvalue()")
     code.write(code.unindent, "stash.set('%s', _)" % ident)
     return code.text()
