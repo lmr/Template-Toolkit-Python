@@ -431,7 +431,7 @@ class Stash:
       return result
 
   def _assign(self, root, item, args=None, value=None, default=False):
-    if args is None:
+    if not args:
       args = []
     atroot = root is self
     if root is None or item is None:
@@ -449,7 +449,8 @@ class Stash:
         return value
     elif isinstance(root, types.InstanceType):
       if not (default and getattr(root, item)()):
-        return getattr(root, item)(*(args + (value,)))
+        args.append(value)
+        return getattr(root, item)(*args)
     else:
       raise Error("don't know how to assign to %s.%s" % (root, item))
 
@@ -530,7 +531,7 @@ class Stash:
           else:
             return value
     elif isinstance(root, types.InstanceType):
-      value = getattr(root, item)
+      value = getattr(root, item, None)
       if callable(value):
         return value(*args)
       else:
