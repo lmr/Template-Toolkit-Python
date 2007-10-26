@@ -74,7 +74,7 @@ class Directive:
                  code.unindent,
                  "except base.Exception, e:",
                  " error = context.catch(e, Reference(output.getvalue()))",
-                 " if error.type != 'return':",
+                 " if error.type() != 'return':",
                  "  raise error",
                  "return output.getvalue()")
     return code.text()
@@ -92,7 +92,7 @@ class Directive:
                  code.unindent,
                  "except base.Exception, e:",
                  " error = context.catch(e, Reference(output.getvalue()))",
-                 " if error.type != 'return':",
+                 " if error.type() != 'return':",
                  "  raise error",
                  "return output.getvalue()",
                code.unindent,
@@ -197,7 +197,8 @@ class Directive:
       file_ += ", { %s }" % ", ".join(hash_)
     return "output.write(str(context.process(%s)))" % file_
 
-  def if_(self, expr, block, else_=None):  # [% IF foo < bar %] [% ELSE %] [% END %]
+  def if_(self, expr, block, else_=None):
+    # [% IF foo < bar %] [% ELSE %] [% END %]
     if else_:
       elses = else_[:]
     else:
@@ -209,12 +210,13 @@ class Directive:
     code = Code()
     code.write("if perlbool(%s):" % expr, code.indent, block)
     for expr, block in elses:
-      code.write(code.unindent, "elif perlbool(%s):" % expr, code.indent, block)
+      code.write(code.unindent, "elif perlbool(%s):" % expr,
+                 code.indent, block)
     if else_ is not None:
       code.write(code.unindent, "else:", code.indent, else_)
     return code.text()
 
-  def foreach(self, target, list_, args, block):
+  def foreach(self, target, list, args, block):
     # [% FOREACH x = [ foo bar ] %] ... [% END %]
     args = args.pop(0)
     if args:
@@ -222,7 +224,10 @@ class Directive:
     else:
       args = ""
     if target:
-      loop_save = "try:\n oldloop = %s\nexcept:\n pass" % self.ident(["'loop'"])
+      loop_save = ("try:\n"
+                   " oldloop = %s\n"
+                   "except StandardError:\n"
+                   " pass") % self.ident(["'loop'"])
       loop_set = "stash.contents['%s'] = value" % target
       loop_restore = "stash.set('loop', oldloop)"
     else:
@@ -235,32 +240,30 @@ class Directive:
       "def _(stash):",
       code.indent,
         "oldloop = None",
-        "list_ = %s" % list_,
-        "if not isinstance(list_, Iterator):",
-        " list_ = NewIterator(list_)",
-        "value, error = list_.get_first()",
+        "loop = %s" % list,
+        "if not isinstance(loop, Iterator):",
+        " loop = NewIterator(loop)",
         loop_save,
-        "stash.set('loop', list_)",
+        "stash.set('loop', loop)",
         "try:",
         code.indent,
-          "while not error:",
+          "for value in loop:",
           code.indent,
             "try:",
             code.indent,
               loop_set,
               block,
-              "value, error = list_.get_next()",
             code.unindent,
-            "except Continue:\n value, error = list_.get_next()",
-            "except Break:\n break",
+            "except Continue:",
+            " pass",
+            "except Break:",
+            " break",
           code.unindent,
         code.unindent,
         "finally:",
         code.indent,
           loop_restore,
         code.unindent,
-        "if error and error != constants.STATUS_DONE:",
-        " raise Exception(error)",
       code.unindent,
       "_(stash)")
     return code.text()
@@ -376,7 +379,7 @@ class Directive:
                    "output.seek(0)",
                    "output.truncate(0)",
                    "output.write(r.get())",
-                   "if error.type in ('return', 'stop'):",
+                   "if error.type() in ('return', 'stop'):",
                    " raise error",
                    "stash.set('error', error)",
                    "stash.set('e', error)",

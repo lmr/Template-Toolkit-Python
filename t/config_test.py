@@ -87,12 +87,9 @@ class ConfigTest(test.TestCase):
     # Iterator:
     iterator = factory.iterator(['foo', 'bar', 'baz'])
     self.failUnless(iterator)
-    value, error = iterator.get_first()
-    self.assertEquals('foo', value)
-    value, error = iterator.get_next()
-    self.assertEquals('bar', value)
-    value, error = iterator.get_next()
-    self.assertEquals('baz', value)
+    self.assertEquals('foo', iterator.get_first())
+    self.assertEquals('bar', iterator.get_next())
+    self.assertEquals('baz', iterator.get_next())
 
     # Instdir:
     # (later)
