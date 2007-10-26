@@ -10,8 +10,8 @@ class ErrorTest(test.TestCase):
     error = tmpl.error()
     self.assert_(error)
     self.assert_(isinstance(error, base.Exception))
-    self.assertEquals('file', error.type)
-    self.assertEquals('nosuchfile: not found', error.info)
+    self.assertEquals('file', error.type())
+    self.assertEquals('nosuchfile: not found', error.info())
 
 
 test.main()
