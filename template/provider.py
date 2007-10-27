@@ -308,6 +308,8 @@ class Provider(base.Base):
       else:
         return None, constants.STATUS_DECLINED
 
+    return data, error
+
   def _compiled_filename(self, file):
     if not (self.COMPILE_EXT or self.COMPILE_DIR):
       return None
@@ -336,7 +338,7 @@ class Provider(base.Base):
       if statbuf:
         slot[STAT] = time.time()
         if statbuf[stat.ST_MTIME] != slot[LOAD]:
-          data, error = self._load(slot[NAME], slot[DATA].get(name))
+          data, error = self._load(slot[NAME], slot[DATA].name)
           if not error:
             data, error = self._compile(data)
           if not error:
@@ -425,8 +427,7 @@ class Provider(base.Base):
         except base.Exception, e:
           return self.error(e)
         ipaths[:0] = dpaths
-      elif (isinstance(dir, types.InstanceType)
-            and callable(getattr(dir, "paths"))):
+      elif isinstance(dir, types.InstanceType) and util.can(dir, "paths"):
         dpaths = dir.paths()
         if not dpaths:
           return self.error(dir.error())

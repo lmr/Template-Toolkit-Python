@@ -195,7 +195,9 @@ class Parser(base.Base):
     tokens = []
     line = 1
     style = self.STYLE[-1]
-    splitter = re.compile(r"(?s)(.*?)%(START_TAG)s(.*?)%(END_TAG)s" % style)
+    def make_splitter(delims):
+      return re.compile(r"(?s)(.*?)%s(.*?)%s" % delims)
+    splitter = make_splitter((style["START_TAG"], style["END_TAG"]))
     while True:
       match = splitter.match(text)
       if not match:
@@ -254,11 +256,22 @@ class Parser(base.Base):
           tokens.extend(["TEXT", pre])
       line += prelines
       if dir:
-        if dirlines > 0:
-          line_range = "%d-%d" % (line, line + dirlines)
+        # The TAGS directive is a compile-time switch.
+        match = re.match(r"(?i)TAGS\s+(.*)", dir)
+        if match:
+          tags = re.split(r"\s+", match.group(1))
+          if len(tags) > 1:
+            splitter = make_splitter(tuple(re.escape(x) for x in tags[:2]))
+          elif tags[0] in TAG_STYLE:
+            splitter = make_splitter(TAG_STYLE[tags[0]])
+          else:
+            sys.stderr.write("Invalid TAGS style: %s" % tags[0])
         else:
-          line_range = str(line)
-        tokens.append([dir, line_range, self.tokenise_directive(dir)])
+          if dirlines > 0:
+            line_range = "%d-%d" % (line, line + dirlines)
+          else:
+            line_range = str(line)
+          tokens.append([dir, line_range, self.tokenise_directive(dir)])
       line += dirlines
 
     if text:

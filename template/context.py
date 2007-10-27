@@ -296,6 +296,8 @@ class Context(base.Base):
       else:
         blockname = match.group(1)
 
+    # TODO: This is the error thrown when a template has syntax
+    # errors.  Confusing!  Is this what the Perl version does?
     self.throw(constants.ERROR_FILE, "%s: not found" % name)
 
   def stash(self):

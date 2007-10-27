@@ -67,7 +67,8 @@ class TestCase(unittest.TestCase):
         out2 = util.Reference("")
         expect = expect[match.end():]
         if not tproc.processString(expect, vars, out2):
-          self.fail("Template process failed (expect): %s" % tproc.error())
+          self.fail("Test #%d: Template process failed (expect): %s" % (
+            count + 1, tproc.error()))
         expect = out2.get()
       out = out.get().rstrip("\n")
       stripped = expect.rstrip("\n")
