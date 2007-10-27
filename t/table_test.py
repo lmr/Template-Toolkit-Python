@@ -6,7 +6,7 @@ from template import test
 class TableTest(test.TestCase):
   def testTable(self):
     params = { "alphabet": [ c for c in string.lowercase ], "empty": [ ] }
-    self.Expect(DATA, { 'POST_CHOMP': True }, params)
+    self.Expect(DATA, { 'POST_CHOMP': 1 }, params)
 
 
 DATA = r"""

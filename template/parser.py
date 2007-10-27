@@ -35,7 +35,12 @@ DEFAULT_STYLE = {
 
 QUOTED_ESCAPES = {"n": "\n", "r": "\r", "t": "\t"}
 
-CHOMP_FLAGS = "[-=~+]"
+CHOMP_FLAGS = r"[-=~+]"
+
+CHOMP_ALL = str(CHOMP_ALL)
+CHOMP_COLLAPSE = str(CHOMP_COLLAPSE)
+CHOMP_GREEDY = str(CHOMP_GREEDY)
+CHOMP_NONE = str(CHOMP_NONE)
 
 CHOMP_CONST = {
   "-": CHOMP_ALL,
@@ -43,6 +48,10 @@ CHOMP_CONST = {
   "~": CHOMP_GREEDY,
   "+": CHOMP_NONE
 }
+
+def Chomp(x):
+  return re.sub(r"[-=~+]", lambda m: CHOMP_CONST[m.group(0)], str(x))
+
 
 GRAMMAR = re.compile(r"""
     # strip out any comments
@@ -110,6 +119,7 @@ class Parser(base.Base):
     self._ERROR      = ""
     self.INFOR = 0
     self.INWHILE = 0
+    self.STYLE = []
 
     for key in self.__dict__.keys():
       if key in param:
@@ -125,7 +135,35 @@ class Parser(base.Base):
     self.LEXTABLE = self.GRAMMAR.LEXTABLE
     self.STATES = self.GRAMMAR.STATES
     self.RULES = self.GRAMMAR.RULES
+    if not self.new_style(param):
+      return self.Error(self.error())
 
+  def new_style(self, config):
+    if self.STYLE:
+      style = self.STYLE[-1]
+    else:
+      style = DEFAULT_STYLE
+    style = style.copy()
+    tagstyle = config.get("TAG_STYLE")
+    if tagstyle:
+      tags = TAG_STYLE.get(tagstyle)
+      if tags is None:
+        return self.error("Invalid tag style: %s" % tagstyle)
+      start, end = tags
+      config["START_TAG"] = config.get("START_TAG", start)
+      config["END_TAG"] = config.get("END_TAG", end)
+    for key in DEFAULT_STYLE.keys():
+      value = config.get(key)
+      if value is not None:
+        style[key] = value
+    self.STYLE.append(style)
+    return style
+
+  def old_style(self):
+    if len(self.STYLE) <= 1:
+      return self.error("only 1 parser style remaining")
+    self.STYLE.pop()
+    return self.STYLE[-1]
 
   def location(self):
     if not self.FILE_INFO:
@@ -155,9 +193,9 @@ class Parser(base.Base):
 
   def split_text(self, text):
     tokens = []
-    line  = 1
-    splitter = re.compile(r"(?s)(.*?)%(START_TAG)s(.*?)%(END_TAG)s" %
-                          vars(self))
+    line = 1
+    style = self.STYLE[-1]
+    splitter = re.compile(r"(?s)(.*?)%(START_TAG)s(.*?)%(END_TAG)s" % style)
     while True:
       match = splitter.match(text)
       if not match:
@@ -175,15 +213,10 @@ class Parser(base.Base):
           dir = ""
       else:
         # PRE_CHOMP: process whitespace before tag
-        match = re.search(r"^(%s)?\s*" % CHOMP_FLAGS, dir)
+        match = re.match(r"(%s)?\s*" % CHOMP_FLAGS, dir)
+        chomp = Chomp(match and match.group(1) or style["PRE_CHOMP"])
         if match:
           dir = dir[match.end():]
-          if match.group(1):
-            chomp = CHOMP_CONST[match.group(1)]
-          else:
-            chomp = self.PRE_CHOMP
-        else:
-          chomp = self.PRE_CHOMP
         if chomp and pre:
           if chomp == CHOMP_ALL:
             pre = re.sub(r"(\n|^)[^\S\n]*\Z", "", pre)
@@ -194,14 +227,9 @@ class Parser(base.Base):
 
       # POST_CHOMP: process whitespace after tag
       match = re.search(r"\s*(%s)?\s*$" % CHOMP_FLAGS, dir)
+      chomp = Chomp(match and match.group(1) or style["POST_CHOMP"])
       if match:
         dir = dir[:match.start()]
-        if match.group(1):
-          chomp = CHOMP_CONST[match.group(1)]
-        else:
-          chomp = self.POST_CHOMP
-      else:
-        chomp = self.POST_CHOMP
       if chomp:
         if chomp == CHOMP_ALL:
           match = re.match(r"[^\S\n]*\n", text)
@@ -220,7 +248,7 @@ class Parser(base.Base):
             postlines += match.group().count("\n")
 
       if pre:
-        if self.INTERPOLATE:
+        if style["INTERPOLATE"]:
           tokens.append([pre, line, 'ITEXT'])
         else:
           tokens.extend(["TEXT", pre])
@@ -234,7 +262,7 @@ class Parser(base.Base):
       line += dirlines
 
     if text:
-      if self.INTERPOLATE:
+      if style["INTERPOLATE"]:
         tokens.append([text, line, "ITEXT"])
       else:
         tokens.extend(["TEXT", text])

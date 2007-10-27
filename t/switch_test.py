@@ -3,7 +3,7 @@ from template import test
 
 class SwitchTest(test.TestCase):
   def testSwitch(self):
-    ttcfg = { 'POST_CHOMP': True }
+    ttcfg = { 'POST_CHOMP': 1 }
     self.Expect(DATA, ttcfg, self._callsign())
 
 

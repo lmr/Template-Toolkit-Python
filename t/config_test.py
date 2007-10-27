@@ -6,20 +6,20 @@ class ConfigTest(test.TestCase):
     factory = config.Config
 
     # Parser:
-    parser = factory.parser({ 'PRE_CHOMP': True, 'INTERPOLATE': True })
+    parser = factory.parser({ 'PRE_CHOMP': 1, 'INTERPOLATE': True })
     self.failUnless(parser)
-    self.failUnless(parser.PRE_CHOMP)
+    self.assertEquals(1, parser.PRE_CHOMP)
     self.failUnless(parser.INTERPOLATE)
-    parser = factory.parser({ 'POST_CHOMP': True })
+    parser = factory.parser({ 'POST_CHOMP': 1 })
     self.failUnless(parser)
-    self.failUnless(parser.POST_CHOMP)
+    self.assertEquals(1, parser.POST_CHOMP)
 
     # Provider:
     provider = factory.provider({ 'INCLUDE_PATH': 'here:there',
                                   'PARSER': parser })
     self.failUnless(provider)
     self.assertEquals(['here', 'there'], provider.INCLUDE_PATH)
-    self.failUnless(provider.PARSER.POST_CHOMP)
+    self.assertEquals(1, provider.PARSER.POST_CHOMP)
     provider = factory.provider({ 'INCLUDE_PATH': 'cat:mat',
                                   'ANYCASE': True,
                                   'INTERPOLATE': True })

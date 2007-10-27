@@ -61,7 +61,7 @@ class ForeachTest(test.TestCase):
       'nested': [ [ 'a', 'b', 'c' ], [ 'x', 'y', 'z' ] ]
       }
     tmpl = template.Template({ 'INTERPOLATE': True,
-                               'POST_CHOMP': True,
+                               'POST_CHOMP': 1,
                                'ANYCASE': False })
     ttdebug = template.Template({ 'DEBUG': True,
                                   'DEBUG_FORMAT': '' })

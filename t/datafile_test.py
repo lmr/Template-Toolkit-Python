@@ -4,7 +4,7 @@ from template import test
 class DatafileTest(test.TestCase):
   def testDatafile(self):
     params = { 'datafile': [ 'test/lib/udata1', 'test/lib/udata2' ] }
-    self.Expect(DATA, { 'INTERPOLATE': True, 'POST_CHOMP': True }, params)
+    self.Expect(DATA, { 'INTERPOLATE': True, 'POST_CHOMP': 1 }, params)
 
 
 DATA = r"""[% USE userlist = datafile(datafile.0) %]
