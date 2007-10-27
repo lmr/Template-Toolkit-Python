@@ -17,7 +17,7 @@ class Service(base.Base):
     # by splitting on non-word characters
     for item in "PRE_PROCESS", "PROCESS", "POST_PROCESS", "WRAPPER":
       data = config.get(item)
-      if data is None:
+      if not data:
         setattr(self, item, [])
       else:
         if not isinstance(data, list):
@@ -73,7 +73,11 @@ class Service(base.Base):
         break
 
       try:
-        for name in self.PROCESS or [template]:
+        if self.PROCESS is not None:
+          proc = self.PROCESS
+        else:
+          proc = [template]
+        for name in proc:
           procout.write(context.process(name))
           procout_ok = True
       except base.Exception, e:
