@@ -134,7 +134,7 @@ class Directive:
     if len(ident) <= 2 and not ident[1]:
       ident = ident[0]
     else:
-      ident = "[ " + ", ".join(ident) + " ]"
+      ident = "[ " + ", ".join(str(x) for x in ident) + " ]"
     return "stash.getref(%s)" % ident
 
   def assign(self, var, val, default=False):  # foo = bar
