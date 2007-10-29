@@ -69,8 +69,10 @@ class Service(base.Base):
         for name in self.PRE_PROCESS:
           output.write(context.process(name))
       except base.Exception, e:
-        error = util.Reference(e)
+        error = e
         break
+      else:
+        error = None
 
       try:
         if self.PROCESS is not None:
@@ -81,8 +83,7 @@ class Service(base.Base):
           procout.write(context.process(name))
           procout_ok = True
       except base.Exception, e:
-        error = util.Reference(e)
-        recovery = self._recover(error)
+        recovery, error = self._recover(e)
         if recovery is None:
           procout_ok = False
           break
@@ -91,6 +92,8 @@ class Service(base.Base):
           procout.truncate()
           procout.write(recovery)
           procout_ok = True
+      else:
+        error = None
 
       if procout_ok:
         procout = procout.getvalue()
@@ -98,7 +101,10 @@ class Service(base.Base):
           for name in reversed(self.WRAPPER):
             procout = context.process(name, {"content": procout})
         except base.Exception, e:
+          error = e
           break
+        else:
+          error = None
         output.write(procout)
         procout = StringIO.StringIO()
 
@@ -106,7 +112,10 @@ class Service(base.Base):
         for name in self.POST_PROCESS:
           output.write(context.process(name))
       except base.Exception, e:
+        error = e
         break
+      else:
+        error = None
 
       break  # end of SERVICE block
 
@@ -115,40 +124,38 @@ class Service(base.Base):
       del params["template"]
 
     if error:
-      return self.error(error.get())
+      return self.error(error)
 
     return output.getvalue()
 
   def _recover(self, error):
     # a 'stop' exception is thrown by [% STOP %] - we return the output
     # buffer stored in the exception object
-#    if error.get().type == "stop":
-#      return error.get().text()
+    if error.type() == "stop":
+      return error.text()
     handlers = self.ERROR
     if not handlers:
-      return None
+      return None, error
     if isinstance(handlers, dict):
-      hkey = error.get().select_handler(handlers.keys())
+      hkey = error.select_handler(*handlers.keys())
       if hkey:
         handler = handlers.get(hkey)
       else:
         handler = handlers.get("default")
         if not handler:
-          return None
+          return None, error
     else:
       handler = handlers
 
     try:
-      handler = context.template(handler)
+      handler = self.CONTEXT.template(handler)
     except base.Exception, e:
-      error.set(e)
-      return None
+      return None, e
 
-    context.stash().set("error", error.get())
+    self.CONTEXT.stash().set("error", error)
     try:
-      output = context.process(handler)
+      output = self.CONTEXT.process(handler)
     except base.Exception, e:
-      error.set(e)
-      return None
+      return None, e
 
-    return output
+    return output, None

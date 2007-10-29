@@ -20,10 +20,10 @@ class Exception(PyException):
       return self.__textref.get()
     else:
       return ""
-    
+
   def select_handler(self, *options):
-    type = self.__type
-    hlut = dict((option, True) for option in options)
+    type = str(self.__type)
+    hlut = dict((str(option), True) for option in options)
     while type:
       if hlut.get(type):
         return type

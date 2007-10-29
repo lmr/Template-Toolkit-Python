@@ -5377,10 +5377,10 @@ def rule102(*args):
   return [args[1], args[3]]
 
 def rule105(*args):
-  return "util.make_list(%s)" % args[2]
+  return "make_list(%s)" % args[2]
 
 def rule106(*args):
-  return "util.make_list(%s)" % args[2]
+  return "make_list(%s)" % args[2]
 
 def rule107(*args):
   return "[ ]"
