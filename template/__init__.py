@@ -26,7 +26,8 @@ class Template(base.Base):
   def process(self, template, vars=None, outstream=None, **options):
     output = self.SERVICE.process(template, vars)
     if output is not None:
-      outstream = outstream or self.OUTPUT
+      if outstream is None:
+        outstream = self.OUTPUT
       if isinstance(outstream, str):
         if self.OUTPUT_PATH:
           outstream = os.path.join(self.OUTPUT_PATH, outstream)
@@ -55,7 +56,7 @@ def _output(where, textref, options=None):
   elif isinstance(where, util.Reference):
     where.set(str(where.get()) + text)
   elif isinstance(where, list):
-    list.append(text)
+    where.append(text)
   elif isinstance(where, str):
     dirname = os.path.dirname(where)
     try:
