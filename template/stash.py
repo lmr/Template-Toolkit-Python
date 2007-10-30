@@ -3,10 +3,43 @@ import types
 
 from template.util import *
 
-PRIVATE = re.compile(r"^[_.]")
 
 class Error(Exception):
   pass
+
+
+PRIVATE = re.compile(r"[_.]")
+
+LONG_REGEX = re.compile(r"-?\d+")
+
+def _to_lower(x):
+  return str(x).lower()
+
+def _to_long(x):
+  try:
+    return long(x)
+  except ValueError:
+    match = LONG_REGEX.match(str(x))
+    if match:
+      return long(match.group(0))
+    else:
+      return 0L
+
+def _slice(seq, items):
+  if isinstance(items, str):
+    raise TypeError
+  sliced = []
+  for x in items:
+    try:
+      sliced.append(seq[x])
+    except KeyError:
+      sliced.append(None)
+  return sliced
+
+def _curry(func, *args):
+  def curried(*x):
+    return func(*(args + x))
+  return curried
 
 def increment(x):
   return x + 1
@@ -92,7 +125,7 @@ def scalar_substr(scalar="", offset=0, length=0):  # "replacement" arg ignored
 
 
 def hash_item(hash, item=""):
-  if PRIVATE and PRIVATE.search(item):
+  if PRIVATE and PRIVATE.match(item):
     return None
   else:
     return hash[item]
@@ -146,10 +179,10 @@ def hash_import(hash, imp=None):
   return ""
 
 def hash_sort(hash):
-  return sorted(hash.keys(), key=str.lower)
+  return sorted(hash.keys(), key=_to_lower)
 
 def hash_nsort(hash):
-  return sorted(hash.keys(), key=int)
+  return sorted(hash.keys(), key=_to_long)
 
 def list_item(list, item=0):
   return list[item]
@@ -224,19 +257,18 @@ def list_sort(list, field=None):
   if len(list) <= 1:
     return list[:]
   else:
-    lowercase = lambda x: str(x).lower()
     if field:
-      return sorted(list, key=_smartsort(field, lowercase))
+      return sorted(list, key=_smartsort(field, _to_lower))
     else:
-      return sorted(list, key=lowercase)
+      return sorted(list, key=_to_lower)
 
 def list_nsort(list, field=None):
   if len(list) <= 1:
     return list[:]
   elif field:
-    return sorted(list, key=_smartsort(field, int))
+    return sorted(list, key=_smartsort(field, _to_long))
   else:
-    return sorted(list, key=int)
+    return sorted(list, key=_to_long)
 
 def list_unique(list):
   seen = {}
@@ -354,11 +386,12 @@ HASH_OPS = {
 
 class Stash:
   def __init__(self, params=None):
+    params = params or {}
     self.contents = {"global": {}}
-    self.contents.update(params or {})
+    self.contents.update(params)
     self.contents.update(ROOT_OPS)
     self._PARENT = None
-    self._DEBUG  = False
+    self._DEBUG = bool(params.get("_DEBUG"))
 
   def __getitem__(self, key):
     return self.contents.get(key)
@@ -376,6 +409,7 @@ class Stash:
     clone = Stash()
     clone.contents.update(self.contents)
     clone.contents.update(params)
+    clone._DEBUG = self._DEBUG
     clone._PARENT = self
     if import_:
       HASH_OPS["import"](clone, import_)
@@ -386,9 +420,9 @@ class Stash:
 
   def get(self, ident, args=None):
     root = self
-    if not isinstance(ident, (list, tuple)) and ident.startswith("."):
-      ident = [x for comp in ident.split(".")
-                 for x in (re.sub(r"^\(.*$", comp), 0)]
+    if isinstance(ident, str) and ident.find(".") != -1:
+      ident = [y for x in ident.split(".")
+                 for y in (re.sub(r"\(.*$", "", x), 0)]
     if isinstance(ident, (list, tuple)):
       for a, b in chop(ident, 2):
         result = self._dotop(root, a, b)
@@ -408,8 +442,8 @@ class Stash:
     root = self
     # ELEMENT: {
     if isinstance(ident, str) and ident.find(".") >= 0:
-      ident = [x for component in ident.split(".")
-                 for x in (re.sub(r"\(.*$", "", component), 0)]
+      ident = [y for x in ident.split(".")
+                 for y in (re.sub(r"\(.*$", "", x), 0)]
     if isinstance(ident, (list, tuple)):
       chopped = list(chop(ident, 2))
       for i in range(len(chopped)-1):
@@ -436,7 +470,7 @@ class Stash:
     atroot = root is self
     if root is None or item is None:
       return None
-    if PRIVATE and PRIVATE.search(item):
+    if PRIVATE and PRIVATE.match(item):
       return None
     if isinstance(root, dict) or atroot:
       if not (default and root.get(item)):
@@ -467,9 +501,10 @@ class Stash:
       return None
 
     # or if an attempt is made to access a private member, starting _ or .
-    if PRIVATE and isinstance(item, str) and PRIVATE.search(item):
+    if PRIVATE and isinstance(item, str) and PRIVATE.match(item):
       return None
 
+    found = True
     isdict = isinstance(root, dict)
     if atroot or isdict:
       # if root is a regular dict or a Template::Stash kinda dict (the
@@ -482,13 +517,13 @@ class Stash:
         # stringified, but Python's aren't.
         try:
           value = root[item]
-        except KeyError:
+        except (KeyError, TypeError):
           try:
             value = root[str(item)]
           except (KeyError, TypeError):
             try:
               value = root[int(item)]
-            except (KeyError, TypeError):
+            except (KeyError, TypeError, ValueError):
               value = None
       else:
         value = root[item]
@@ -503,26 +538,36 @@ class Stash:
         return root[item]
       # ugly hack: only allow import vmeth to be called on root stash
       else:
-        value = HASH_OPS.get(item)
+        try:
+          value = HASH_OPS.get(item)
+        except TypeError:  # Because item is not hashable, presumably.
+          value = None
         if (value and not atroot) or item == "import":
           result = value(root, *args)
-        elif isinstance(item, (list, tuple)):
-          # hash slice
-          return [root[x] for x in item]
+        else:
+          try:
+            return _slice(root, item)
+          except TypeError:
+            found = False
     elif isinstance(root, (list, tuple)) or hasattr(root, "TT_LIST_ATTRIBUTE"):
       # if root is a list then we check for a LIST_OPS pseudo-method
       # or return the numerical index into the list, or None
       root = getattr(root, "TT_LIST_ATTRIBUTE", root)
-      value = LIST_OPS.get(item)
+      try:
+        value = LIST_OPS.get(item)
+      except TypeError:  # Because item is not hashable, presumably.
+        value = None
       if value:
         result = value(root, *args)
       else:
         try:
           value = root[int(item)]
         except TypeError:
-          if isinstance(item, (list, tuple)):
-            # array slice
-            return [root[x] for x in item]
+          sliced = []
+          try:
+            return _slice(root, item)
+          except TypeError:
+            pass
         except IndexError:
           return None
         else:
@@ -531,11 +576,21 @@ class Stash:
           else:
             return value
     elif isinstance(root, types.InstanceType):
-      value = getattr(root, item, None)
-      if callable(value):
-        return value(*args)
+      try:
+        value = getattr(root, item)
+      except (AttributeError, TypeError):
+        # Failed to get object method, so try some fallbacks.
+        try:
+          func = HASH_OPS[item]
+        except (KeyError, TypeError):
+          pass
+        else:
+          return func(root.__dict__, *args)
       else:
-        return value
+        if callable(value):
+          return value(*args)
+        else:
+          return value
     elif item in SCALAR_OPS and not lvalue:
       result = SCALAR_OPS[item](root, *args)
     elif item in LIST_OPS and not lvalue:
@@ -545,6 +600,8 @@ class Stash:
     else:
       result = []
 
+    if not found and self._DEBUG:
+      raise Error("%s is undefined" % (item,))
 ##     if len(result) >= 0 and result[0] is not None:
 ##       if len(result) > 1:
 ##         return result
