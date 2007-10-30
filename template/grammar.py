@@ -5362,13 +5362,7 @@ def rule97(*args):
   return args[1]
 
 def rule100(*args):
-  arg3 = args[3]
-  if arg3 and arg3[0] == "'":
-    arg3 = arg3[1:]
-  if arg3 and arg3[-1] == "'":
-    arg3 = arg3[:-1]
-  arg3 = arg3.replace("\\'", "'")
-  return [args[1], arg3]
+  return [args[1], eval(args[3])]
 
 def rule101(*args):
   return [args[1], args[4]]
@@ -5413,7 +5407,6 @@ def rule123(*args):
   return "%s: %s" % (args[1], args[3])
 
 def rule124(*args):
-  # return "%s => %s" % (args[1], args[3])  # And this is too.
   return "%s: %s" % (args[1], args[3])
 
 def rule125(*args):
@@ -5431,7 +5424,7 @@ def rule129(*args):
   return [args[1], factory.args(args[3])]
 
 def rule130(*args):
-  return "'%s'" % args[1]
+  return repr(args[1])
 
 def rule131(*args):
   return args[2]

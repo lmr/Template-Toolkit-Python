@@ -108,7 +108,7 @@ class Directive:
     if not items:
       return ""
     elif len(items) == 1:
-      return items[0]
+      return "str(%s)" % items[0]
     else:
       return "''.join(str(x) for x in (" + ", ".join(items) + ",))"
 

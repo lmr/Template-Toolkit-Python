@@ -176,7 +176,7 @@ class Parser(base.Base):
 
   def parse(self, text, info):
     self.DEFBLOCK = {}
-    self.METADATA = []
+    self.METADATA = {}
     self._ERROR = ""
     tokens = self.split_text(text)
     if tokens is None:
@@ -187,7 +187,7 @@ class Parser(base.Base):
     if block:
       return {"BLOCK": block,
               "DEFBLOCKS": self.DEFBLOCK,
-              "METADATA": dict(util.chop(self.METADATA, 2))}
+              "METADATA": self.METADATA}
     else:
       return None
 
@@ -308,12 +308,12 @@ class Parser(base.Base):
             continue
           else:
             toktype = "LITERAL"
-            # token = "'%s'" % re.sub(r"'", r"\\'", token)
-            token = repr(re.sub(r"'", r"\\'", token))
+            token = repr(token)
         else:
           toktype = "LITERAL"
-          # token = "'%s'" % token
-          token = repr(token)
+          # Remove escaped single quotes:
+          token = repr(re.sub(r"\\(.)", lambda m: m.group(m.group(1) == "'"),
+                              token))
       else:
         token = match.group(4)
         if token is not None:
@@ -368,11 +368,7 @@ class Parser(base.Base):
           token = tokens.pop(0)
           if isinstance(token, (list, tuple)):
             # text, line, token = token
-            if len(token) > 2:
-              text, line[0], token = token
-            else:
-              text, line[0] = token
-              token = None
+            text, line[0], token = util.unpack(token, 3)
             if isinstance(token, (list, tuple)):
               tokens[:0] = token + [";", ";"]
               token = None  # force redo
@@ -479,7 +475,8 @@ class Parser(base.Base):
 
   def add_metadata(self, setlist):
     if self.METADATA is not None:
-      self.METADATA.extend(setlist)
+      for key, value in util.chop(setlist, 2):
+        self.METADATA[key] = value
     return None
 
   def interpolate_text(self, text, line=0):
@@ -491,7 +488,7 @@ class Parser(base.Base):
       # preceding text
       if pre:
         line += pre.count("\n")
-        tokens.extend(("TEXT", pre.replace("\$", "$")))
+        tokens.extend(("TEXT", pre.replace("\\$", "$")))
       # variable reference
       if var:
         line += dir.count("\n")
