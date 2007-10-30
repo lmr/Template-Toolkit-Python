@@ -87,7 +87,7 @@ class Context(base.Base):
       files = [files]
     for f in files:  # FILE: {
       name = f
-      regex = "\w{%d,}:" % (int(os.name == "nt") + 1)
+      regex = r"\w{%d,}:" % (int(os.name == "nt") + 1)
       match = re.match(regex, name)
       if match:
         prefix = match.group(0)
@@ -124,7 +124,7 @@ class Context(base.Base):
       raise base.Exception("None", error or "", output)
 
   def include(self, template, params=None):
-    return self.process(template, params, localize=True)
+    return self.process(template, params, True)
 
   def process(self, template, params=None, localize=False):
     output = StringIO.StringIO()

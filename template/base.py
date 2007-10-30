@@ -4,20 +4,20 @@ PyException = Exception
 
 
 class Exception(PyException):
-  def __init__(self, type, info, textref=None):
+  def __init__(self, type, info, buffer=None):
     PyException.__init__(self)
-    self.__type    = type
-    self.__info    = info
-    self.__textref = textref
+    self.__type = type
+    self.__info = info
+    self.__buffer = buffer
 
-  def text(self, newtextref=None):
-    if newtextref:
-      if self.__textref and self.__textref is not newtextref:
-        newtextref.set(newtextref.get() + self.__textref.get())
-      self.__textref = newtextref
+  def text(self, buffer=None):
+    if buffer:
+      if self.__buffer and self.__buffer is not buffer:
+        buffer.reset(buffer.get() + self.__buffer.get())
+      self.__buffer = buffer
       return ""
-    elif self.__textref:
-      return self.__textref.get()
+    elif self.__buffer:
+      return self.__buffer.get()
     else:
       return ""
 

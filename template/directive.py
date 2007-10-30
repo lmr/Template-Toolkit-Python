@@ -1,14 +1,10 @@
-import re
 import cStringIO as StringIO
+import re
 
 from template.util import *
 
 
 WHILE_MAX = 1000
-
-
-class Error(Exception):
-  pass
 
 
 def makedict(elts):
@@ -65,36 +61,36 @@ class Directive:
     code.write("def _(context):",
                code.indent,
                  "stash = context.stash()",
-                 "output = StringIO()",
+                 "output = Buffer()",
                  "try:",
                  code.indent,
                    "# BLOCK: {",
                    block,
                    "# }",
                  code.unindent,
-                 "except base.Exception, e:",
-                 " error = context.catch(e, Reference(output.getvalue()))",
+                 "except Error, e:",
+                 " error = context.catch(e, output)",
                  " if error.type() != 'return':",
                  "  raise error",
-                 "return output.getvalue()")
+                 "return output.get()")
     return code.text()
 
   def anon_block(self, block):
     code = Code()
     code.write("def _():",
                code.indent,
-                 "output = StringIO()",
+                 "output = Buffer()",
                  "try:",
                  code.indent,
                    "# BLOCK: {",
                    block,
                    "# }",
                  code.unindent,
-                 "except base.Exception, e:",
-                 " error = context.catch(e, Reference(output.getvalue()))",
+                 "except Error, e:",
+                 " error = context.catch(e, output)",
                  " if error.type() != 'return':",
                  "  raise error",
-                 "return output.getvalue()",
+                 "return output.get()",
                code.unindent,
                "_()")
     return code.text()
@@ -103,7 +99,7 @@ class Directive:
     return "\n".join(block or [])
 
   def textblock(self, text):
-    return "output.write(str(%s))" % self.text(text)
+    return "output.write(%s)" % self.text(text)
 
   def text(self, text):
     return repr(text)
@@ -165,7 +161,7 @@ class Directive:
     return names
 
   def get(self, expr):  # [% foo %]
-    return "output.write(str(%s))" % (expr,)
+    return "output.write(%s)" % (expr,)
 
   def call(self, expr):  # [% CALL bar %]
     return expr + "\n"
@@ -179,7 +175,7 @@ class Directive:
     return "\n".join(self.assign(var, val, 1) for var, val in chop(setlist, 2))
 
   def insert(self, nameargs):  # [% INSERT file %]
-    return "output.write(str(context.insert(%s)))" % self.filenames(nameargs[0])
+    return "output.write(context.insert(%s))" % self.filenames(nameargs[0])
 
   def include(self, nameargs):   # [% INCLUDE template foo = bar %]
     file_, args = unpack(nameargs, 2)
@@ -187,7 +183,7 @@ class Directive:
     file_ = self.filenames(file_)
     if hash_:
       file_ += ", { %s }" % ", ".join(hash_)
-    return "output.write(str(context.include(%s)))" % file_
+    return "output.write(context.include(%s))" % file_
 
   def process(self, nameargs):  # [% PROCESS template foo = bar %]
     file_, args = unpack(nameargs, 2)
@@ -195,7 +191,7 @@ class Directive:
     file_ = self.filenames(file_)
     if hash_:
       file_ += ", { %s }" % ", ".join(hash_)
-    return "output.write(str(context.process(%s)))" % file_
+    return "output.write(context.process(%s))" % file_
 
   def if_(self, expr, block, else_=None):
     # [% IF foo < bar %] [% ELSE %] [% END %]
@@ -255,7 +251,7 @@ class Directive:
               block,
             code.unindent,
             "except Continue:",
-            " pass",
+            " continue",
             "except Break:",
             " break",
           code.unindent,
@@ -277,12 +273,12 @@ class Directive:
     if len(file) > 1:
       return self.multi_wrapper(file, hash, block)
     file = file[0]
-    hash.append("'content': output.getvalue()")
+    hash.append("'content': output.get()")
     file += ", { " + ",".join(hash) + " }"
     code = Code()
     code.write("def _():",
                code.indent,
-                 "output = StringIO()",
+                 "output = Buffer()",
                  block,
                  "return context.include(%s)" % file,
                code.unindent,
@@ -315,7 +311,7 @@ class Directive:
     code = Code()
     code.write("def _():",
                code.indent,
-                 "result = re.compile(str(%s) + '$')" % expr)
+                 "result = regex(str(%s) + '$')" % expr)
     default = cases.pop()
     for match, block in cases:
       code.write("match = %s" % match,
@@ -367,7 +363,7 @@ class Directive:
     code.write(
       "def _():",
       code.indent,
-        "output = StringIO()",
+        "output = Buffer()",
         "error = None",
         "try:",
         code.indent,
@@ -375,11 +371,7 @@ class Directive:
         code.unindent,
         "except Exception, e:",
         code.indent,
-          "r = Reference(output.getvalue())",
-          "error = context.catch(e, r)",
-          "output.seek(0)",
-          "output.truncate(0)",
-          "output.write(r.get())",
+          "error = context.catch(e, output)",
           "if error.type() in ('return', 'stop'):",
           " raise error",
           "stash.set('error', error)",
@@ -395,7 +387,7 @@ class Directive:
         final,
         "if error:",
         " raise error",
-        "return output.getvalue()",
+        "return output.get()",
       code.unindent,
       "output.write(_())")
     return code.text()
@@ -414,21 +406,21 @@ class Directive:
                   tuple(hash_)))
     else:
       args = "%s, %s" % (type_, info)
-    return "context.throw(%s, Reference(output.getvalue()))" % args
+    return "context.throw(%s, output)" % args
 
 
 
   def clear(self):  # [% CLEAR %]
-    return "output.seek(0)\noutput.truncate()"
+    return "output.clear()"
 
   def break_(self):  # [% BREAK %]
     return "raise Break"
 
   def return_(self):  # [% RETURN %]
-    return "context.throw('return', '', Reference(output.getvalue()))"
+    return "context.throw('return', '', output)"
 
   def stop(self):  # [% STOP %]
-    return "context.throw('stop', '', Reference(output.getvalue()))"
+    return "context.throw('stop', '', output)"
 
   def use(self, lnameargs):  # [% USE alias = plugin(args) %]
     file_, args, alias = unpack(lnameargs, 3)
@@ -457,11 +449,11 @@ class Directive:
     code.write("# FILTER",
                "def _():",
                code.indent,
-                 "output = StringIO()",
+                 "output = Buffer()",
                  "filter = context.filter(%s) or "
                    "context.throw(context.error())" % name,
                  block,
-                 "return filter(output.getvalue())",
+                 "return filter(output.get())",
                code.unindent,
                "output.write(_())")
     return code.text()
@@ -475,9 +467,9 @@ class Directive:
     code = Code()
     code.write("def _():",
                code.indent,
-                 "output = StringIO()",
+                 "output = Buffer()",
                  block,
-                 "return output.getvalue()",
+                 "return output.get()",
                code.unindent,
                "stash.set(%s, _())" % name)
     return code.text()
@@ -503,7 +495,7 @@ class Directive:
           "if params is None:",
           " params = {}")
     code.write(
-      "output = StringIO()",
+      "output = Buffer()",
       "stash = context.localise(params)",
       "try:",
       code.indent,
@@ -511,6 +503,6 @@ class Directive:
       code.unindent,
       "finally:",
       " stash = context.delocalise()",
-      "return output.getvalue()")
+      "return output.get()")
     code.write(code.unindent, "stash.set('%s', _)" % ident)
     return code.text()

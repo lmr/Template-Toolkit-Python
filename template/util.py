@@ -1,3 +1,4 @@
+import cStringIO
 import types
 import operator
 
@@ -9,6 +10,32 @@ def make_list(*args):
     else:
       list.append(arg)
   return list
+
+
+class StringBuffer:
+  """A wrapper around a StringIO object that stringifies all of its
+  arguments before writing them.  Provides a handful of other useful
+  methods as well.
+  """
+  def __init__(self, contents=None):
+    self.__buffer = cStringIO.StringIO()
+    if contents is not None:
+      self.write(contents)
+
+  def write(self, *args):
+    for arg in args:
+      self.__buffer.write(str(arg))
+
+  def clear(self):
+    self.__buffer.seek(0)
+    self.__buffer.truncate(0)
+
+  def reset(self, *args):
+    self.clear()
+    self.write(*args)
+
+  def get(self):
+    return self.__buffer.getvalue()
 
 
 class Literal:

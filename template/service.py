@@ -1,6 +1,6 @@
-import sys
-import re
 import cStringIO as StringIO
+import re
+import sys
 
 from template import base, context, config, constants, util
 
@@ -132,7 +132,7 @@ class Service(base.Base):
     # a 'stop' exception is thrown by [% STOP %] - we return the output
     # buffer stored in the exception object
     if error.type() == "stop":
-      return error.text()
+      return error.text(), error
     handlers = self.ERROR
     if not handlers:
       return None, error

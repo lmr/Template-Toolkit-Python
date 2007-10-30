@@ -1,17 +1,15 @@
 import re
-import cStringIO
 from template import base, config, constants, iterator, util
 
 ERROR = None
 
 PYEVAL_NAMESPACE = {
-  "StringIO":  cStringIO.StringIO,
-  "base":      base,  # for Exception
+  "Buffer":    util.StringBuffer,
+  "Error":     base.Exception,
   "constants": constants,
   "Iterator":  iterator.Iterator,
   "NewIterator": config.Config.iterator,
-  "re":        re,
-  "Reference": util.Reference,
+  "regex":     re.compile,
   "make_list": util.make_list,
   "perlbool":  util.perlbool,
   "Continue":  util.Continue,
