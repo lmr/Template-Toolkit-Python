@@ -5166,7 +5166,7 @@ def rule37(*args):
   return factory.stop()
 
 def rule38(*args):
-  return "output = ''"
+  return "output.clear()"
 
 def rule39(*args):
   if args[0].INFOR or args[0].INWHILE:

@@ -394,8 +394,14 @@ class Directive:
 
   def throw(self, nameargs):  # [% THROW foo "bar error" %]
     type_, args = nameargs
-    hash_ = args.pop(0)
-    info  = args.pop(0)
+    if args:
+      hash_ = args.pop(0)
+    else:
+      hash_ = None
+    if args:
+      info = args.pop(0)
+    else:
+      info = None
     type_ = type_.pop(0)
     if not info:
       args = "%s, None" % type_
