@@ -22,10 +22,13 @@ class TestCase(unittest.TestCase):
 
   def Expect(self, data, tproc=None, vars=None):
     vars = vars or {}
-    data = re.sub(r"(?s).*?\n__DATA__\n", "", data)
     data = re.sub(r"(?m)^#.*\n", "", data)
-    data = re.sub(r"(?s).*?\s*--\s*start\s*--\s*", "", data)
-    data = re.sub(r"(?s)\s*--\s*stop\s*--.*", "", data)
+    match = re.search(r"\s*--\s*start\s*--\s*", data)
+    if match:
+      data = data[match.end():]
+    match = re.search(r"\s*--\s*stop\s*--\s*", data)
+    if match:
+      data = data[:match.start()]
     tests = re.split(r"(?mi)^\s*--\s*test\s*--\s*", data)
     if not tests[0]:
       tests.pop(0)
