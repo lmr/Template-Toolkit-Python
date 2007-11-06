@@ -102,7 +102,6 @@ def replace_filter_factory(context, search="", replace=""):
   return replace_
 
 def remove_filter_factory(context, search="", *args):
-  # print "******** remove_filter_factory: search=%r, args=%r" % (search, args)
   def remove(text=""):
     return re.sub(search, "", text)
   return remove
@@ -233,13 +232,12 @@ class Filters(base.Base):
     else:
       error = "invalid FILTER entry for '%s' (not callable)" % name
 
-    if error:
-      if self.TOLERANT:
-        return None, constants.STATUS_DECLINED
-      else:
-        return error, constants.STATUS_ERROR
-    else:
+    if not error:
       return filter, None
+    elif self.TOLERANT:
+      return None, constants.STATUS_DECLINED
+    else:
+      return error, constants.STATUS_ERROR
 
   def store(self, name, filter):
     self.FILTERS[name] = filter

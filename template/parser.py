@@ -83,6 +83,7 @@ GRAMMAR = re.compile(r"""
     # an unquoted word or symbol matches in $7
     (  [(){}\[\]:;,/\\]  # misc parentheses and symbols
     |  ->                # arrow operator (for future?)
+    |  [-+*]             # math operations
     |  \${?              # dollar with optional left brace
     |  =>                # like "="
     |  [=!<>]?= | [!<>]  # equality tests
@@ -308,15 +309,16 @@ class Parser(base.Base):
             continue
           else:
             toktype = "LITERAL"
-            token = repr(token)
+            token = "scalar(%r)" % token
         else:
           toktype = "LITERAL"
           # Remove escaped single quotes:
-          token = repr(re.sub(r"\\(.)", lambda m: m.group(m.group(1) == "'"),
-                              token))
+          token = re.sub(r"\\(.)", lambda m: m.group(m.group(1) == "'"), token)
+          token = "scalar(%r)" % token
       else:
         token = match.group(4)
         if token is not None:
+          token = "scalar(%s)" % token
           toktype = "NUMBER"
         else:
           token = match.group(5)
@@ -446,7 +448,7 @@ class Parser(base.Base):
     elif value == ";":
       return self._parse_error("unexpected end of directive", text)
     else:
-      return self._parse_error("unexpected token (%s)" % (value,), text)
+      return self._parse_error("unexpected token (%s)" % util.unscalar_lex(value), text)
 
   def _parse_error(self, msg, text=None):
     line = self.LINE[0]
@@ -474,6 +476,7 @@ class Parser(base.Base):
     return block
 
   def add_metadata(self, setlist):
+    setlist = [util.unscalar_lex(x) for x in setlist]
     if self.METADATA is not None:
       for key, value in util.chop(setlist, 2):
         self.METADATA[key] = value

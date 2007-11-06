@@ -2,25 +2,39 @@ import operator
 import sys
 import types
 
-from template import util, base, constants
+from template import base, config, constants, util
+
+
+def Create(expr):
+  if isinstance(expr, util.PerlScalar):
+    expr = expr.value()
+  if isinstance(expr, Iterator):
+    return expr
+  else:
+    return config.Config.iterator(expr)
+
+
+def prepare_data(data):
+  data = data or []
+  if isinstance(data, dict):
+    data = [{"key": key, "value": value} for key, value in data.iteritems()]
+    data.sort(key=operator.itemgetter("key"))
+  elif util.can(data, "as_list"):
+    data = data.as_list()
+  elif isinstance(data, str):
+    data = [data]
+  elif not isinstance(data, list):
+    try:
+      data = list(data)
+    except TypeError:
+      data = [data]
+  return data
+
 
 
 class Iterator(base.Base):
   def __init__(self, data=None, params=None):
-    data = data or []
-    if isinstance(data, dict):
-      data = [{"key": key, "value": value} for key, value in data.iteritems()]
-      data.sort(key=operator.itemgetter("key"))
-    elif util.can(data, "as_list"):
-      data = data.as_list()
-    elif isinstance(data, str):
-      data = [data]
-    elif not isinstance(data, list):
-      try:
-        data = list(data)
-      except TypeError:
-        data = [data]
-    self.__impl = self.__IteratorImpl(data)
+    self.__impl = self.__IteratorImpl(prepare_data(data))
 
   def __iter__(self):
     return iter(self.__impl)
@@ -135,7 +149,7 @@ class Iterator(base.Base):
         self.count = self.max + 1
         self.first = False
         self.last = True
-        return self.dataset[start:]
+        return util.unscalar_list(self.dataset[start:])
 
     def __iter__(self):
       self.start()
@@ -148,7 +162,7 @@ class Iterator(base.Base):
       if not self.ready:
         self.ready = True
         if self.data:
-          return self.data[0]
+          return util.unscalar(self.data[0])
       elif self.advance():
-        return self.data[self.index]
+        return util.unscalar(self.data[self.index])
       raise StopIteration

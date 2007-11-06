@@ -8,6 +8,7 @@ from template import stash, constants, document, provider, plugins, \
 
 DEBUG = None
 
+
 class Context(base.Base):
   def __init__(self, config):
     base.Base.__init__(self)
@@ -79,6 +80,7 @@ class Context(base.Base):
       return base.Exception("None", error, output)
 
   def insert(self, files):
+    files = util.unscalar(files)
     prefix = None
     providers = None
     text = None
@@ -116,6 +118,8 @@ class Context(base.Base):
     return output.getvalue()
 
   def throw(self, error, info=None, output=None):
+    error = util.unscalar(error)
+    info = util.unscalar(info)
     if isinstance(error, base.Exception):
       raise error
     elif info is not None:
@@ -127,6 +131,10 @@ class Context(base.Base):
     return self.process(template, params, True)
 
   def process(self, template, params=None, localize=False):
+    if isinstance(template, util.PerlScalar):
+      template = template.value()
+    if isinstance(params, util.PerlScalar):
+      params = params.value()
     output = StringIO.StringIO()
     if not isinstance(template, list):
       template = [template]
@@ -208,6 +216,7 @@ class Context(base.Base):
 
   def plugin(self, name, args=None):
     for provider in self.LOAD_PLUGINS:
+      args = util.unscalar_list(args)
       plugin, error = provider.fetch(name, args, self)
       if not error:
         return plugin
@@ -216,7 +225,8 @@ class Context(base.Base):
     self.throw(constants.ERROR_PLUGIN, "%s: plugin not found" % name)
 
   def filter(self, name, args=None, alias=None):
-    args = args or []
+    name = util.unscalar(name)
+    args = util.unscalar_list(args or [])
     filter = None
     if not args and isinstance(name, str):
       filter = self.FILTER_CACHE.get(name)

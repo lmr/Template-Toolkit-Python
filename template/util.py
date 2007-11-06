@@ -1,15 +1,19 @@
 import cStringIO
-import types
 import operator
+import re
+import types
 
-def make_list(*args):
-  list = []
-  for arg in args:
-    if isinstance(arg, xrange):
-      list.extend(arg)
-    else:
-      list.append(arg)
-  return list
+
+class ControlFlowException(Exception):
+  pass
+
+
+class Continue(ControlFlowException):
+  pass
+
+
+class Break(ControlFlowException):
+  pass
 
 
 class StringBuffer:
@@ -74,6 +78,155 @@ class Reference:
     return "\\" + repr(self.get())
 
 
+NUMBER_RE = re.compile(r"\s*[-+]?(?:\d+(\.\d*)?|(\.\d+))([Ee][-+]?\d+)?")
+
+class PerlScalar:
+  __False = (False, 0, "", "0")
+
+  def __init__(self, value, truth=None):
+    self.__value = value
+    self.__truth = truth
+
+  def value(self):
+    return self.__value
+
+  def __rpow__(self, _):
+    return PerlScalar(self.__value, True)
+
+  def __add__(self, other):
+    return PerlScalar(self.__numify() + other.__numify(), self.__truth)
+
+  def __sub__(self, other):
+    return PerlScalar(self.__numify() - other.__numify(), self.__truth)
+
+  def __mul__(self, other):
+    return PerlScalar(self.__numify() * other.__numify(), self.__truth)
+
+  def __div__(self, other):
+    return PerlScalar(self.__numify() / other.__numify(), self.__truth)
+
+  def __mod__(self, other):
+    return PerlScalar(self.__numify() % other.__numify(), self.__truth)
+
+  def __floordiv__(self, other):
+    return PerlScalar(self.__numify() // other.__numify(), self.__truth)
+
+  def __eq__(self, other):
+    # TODO: These comparison operations might need a little more
+    # work to handle Perl-like comparison of strings and numbers, etc.
+    return PerlScalar(self.__value == other.__value)
+
+  def __gt__(self, other):
+    return PerlScalar(self.__value > other.__value)
+
+  def __ge__(self, other):
+    return PerlScalar(self.__value >= other.__value)
+
+  def __lt__(self, other):
+    return PerlScalar(self.__value < other.__value)
+
+  def __le__(self, other):
+    return PerlScalar(self.__value <= other.__value)
+
+  def __cmp__(self, other):
+    return PerlScalar(cmp(self.__value, other.__value))
+
+  def __and__(self, other):
+    """String concatenation."""
+    return PerlScalar("%s%s" % (self.__value, other.__value))
+
+  def __nonzero__(self):
+    if self.__truth is not None:
+      return self.__truth
+    else:
+      return self.__value not in self.__False
+
+  def __invert__(self):
+    return PerlScalar(not self)
+
+  def __int__(self):
+    try:
+      return int(self.__value)
+    except (TypeError, ValueError):
+      return 0
+
+  def __long__(self):
+    try:
+      return long(self.__value)
+    except (TypeError, ValueError):
+      return 0L
+
+  def __iter__(self):
+    return iter(self.__value)
+
+  def __str__(self):
+    if self.__value is True:
+      return "1"
+    elif self.__value is False:
+      return ""
+    else:
+      return str(self.__value)
+
+  def __numify(self):
+    value = self.__value
+    if isinstance(value, (int, long, float)):
+      return value
+    match = NUMBER_RE.match(str(value))
+    if not match:
+      return 0
+    elif match.group(1) or match.group(2) or match.group(3):
+      return float(match.group(0))
+    else:
+      return long(match.group(0))
+
+
+def unscalar(x):
+  if isinstance(x, PerlScalar):
+    return x.value()
+  else:
+    return x
+
+
+def unscalar_lex(x):
+  if x.startswith("scalar(") and x.endswith(")"):
+    return eval(x[7:-1])
+  else:
+    return x
+
+
+def unscalar_list(seq):
+  try:
+    return [unscalar(item) for item in seq]
+  except TypeError:
+    return []
+
+
+def ScalarList(*args):
+  list = []
+  for arg in args:
+    if isinstance(arg, xrange):
+      list.extend(arg)
+    else:
+      list.append(unscalar(arg))
+  return PerlScalar(list)
+
+
+def SwitchList(arg):
+  value = arg.value()
+  if is_seq(value):
+    return arg
+  else:
+    return ScalarList(value)
+
+
+def ScalarDictionary(*pairs):
+  return PerlScalar(dict((unscalar(key), unscalar(val)) for key, val in pairs))
+
+
+def Concatenate(*args):
+  return PerlScalar("".join(str(x) for x in args))
+
+
 def can(object, method):
   return callable(getattr(object, method, None))
 
@@ -109,22 +262,3 @@ def is_seq(x):
     return not isinstance(x, str)
 
 
-class perlbool:
-  # TODO: A reference to an empty array or hash is true in Perl, but an empty
-  # list or dictionary is false in Python.  Is adjustment needed here?
-  def __init__(self, value, truth=None):
-    self.value = value
-    if truth is None:
-      self.truth = bool(value) and str(value) != "0"
-    else:
-      self.truth = truth
-  def __nonzero__(self):
-    return self.truth
-
-
-class Continue(Exception):
-  pass
-
-
-class Break(Exception):
-  pass

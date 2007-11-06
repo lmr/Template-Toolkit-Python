@@ -1,14 +1,14 @@
 import re
 import types
 
-from template.util import *
+from template import util
 
 
 class Error(Exception):
   pass
 
 
-PRIVATE = re.compile(r"[_.]")
+PRIVATE = r"^[_.]"
 
 LONG_REGEX = re.compile(r"-?\d+")
 
@@ -125,7 +125,7 @@ def scalar_substr(scalar="", offset=0, length=0):  # "replacement" arg ignored
 
 
 def hash_item(hash, item=""):
-  if PRIVATE and PRIVATE.match(item):
+  if PRIVATE and re.search(PRIVATE, item):
     return None
   else:
     return hash[item]
@@ -195,7 +195,7 @@ def list_hash(list, n=None):
     n = int(n or 0)
     return dict((index + n, item) for index, item in enumerate(list))
   else:
-    return dict(chop(list, 2))
+    return dict(util.chop(list, 2))
 
 def list_push(list, *args):
   list.extend(args)
@@ -419,12 +419,13 @@ class Stash:
     return self._PARENT or self
 
   def get(self, ident, args=None):
+    ident = util.unscalar(ident)
     root = self
     if isinstance(ident, str) and ident.find(".") != -1:
       ident = [y for x in ident.split(".")
                  for y in (re.sub(r"\(.*$", "", x), 0)]
     if isinstance(ident, (list, tuple)):
-      for a, b in chop(ident, 2):
+      for a, b in util.chop(ident, 2):
         result = self._dotop(root, a, b)
         if result is not None:
           root = result
@@ -433,19 +434,20 @@ class Stash:
     else:
       result = self._dotop(root, ident, args)
 
-    if result is not None:
-      return result
-    else:
-      return self.undefined(ident, args)
+    if result is None:
+      result = self.undefined(ident, args)
+    return util.PerlScalar(result)
 
   def set(self, ident, value, default=False):
     root = self
+    ident = util.unscalar(ident)
+    value = util.unscalar(value)
     # ELEMENT: {
     if isinstance(ident, str) and ident.find(".") >= 0:
       ident = [y for x in ident.split(".")
                  for y in (re.sub(r"\(.*$", "", x), 0)]
     if isinstance(ident, (list, tuple)):
-      chopped = list(chop(ident, 2))
+      chopped = list(util.chop(ident, 2))
       for i in range(len(chopped)-1):
         x, y = chopped[i]
         result = self._dotop(root, x, y, True)
@@ -465,14 +467,14 @@ class Stash:
       return result
 
   def _assign(self, root, item, args=None, value=None, default=False):
-    if not args:
-      args = []
+    item = util.unscalar(item)
+    args = util.unscalar_list(args)
     atroot = root is self
     if root is None or item is None:
       return None
-    if PRIVATE and PRIVATE.match(item):
+    elif PRIVATE and re.search(PRIVATE, item):
       return None
-    if isinstance(root, dict) or atroot:
+    elif isinstance(root, dict) or atroot:
       if not (default and root.get(item)):
         root[item] = value
         return value
@@ -491,8 +493,9 @@ class Stash:
     return None
 
   def _dotop(self, root, item, args=None, lvalue=False):
-    if not isinstance(args, (list, tuple)):
-      args = []
+    root = util.unscalar(root)
+    item = util.unscalar(item)
+    args = util.unscalar_list(args)
     atroot = root is self
     result = None
 
@@ -501,7 +504,7 @@ class Stash:
       return None
 
     # or if an attempt is made to access a private member, starting _ or .
-    if PRIVATE and isinstance(item, str) and PRIVATE.match(item):
+    if PRIVATE and isinstance(item, str) and re.search(PRIVATE, item):
       return None
 
     found = True
@@ -602,18 +605,7 @@ class Stash:
 
     if not found and self._DEBUG:
       raise Error("%s is undefined" % (item,))
-##     if len(result) >= 0 and result[0] is not None:
-##       if len(result) > 1:
-##         return result
-##       else:
-##         return result[0]
-##     elif len(result) >= 1 and result[1] is not None:
-##       raise Error(result[1])
-##     elif self._DEBUG:
-##       raise Error("%s is undefined" % (item,))
-##     else:
-##       return None
-    if result is not None:
+    elif result is not None:
       return result
     elif self._DEBUG:
       raise Error("%s is undefined" % (item,))
@@ -622,8 +614,8 @@ class Stash:
 
   def getref(self, ident, args=None):
     root = self
-    if is_seq(ident):
-      chopped = list(chop(ident, 2))
+    if util.is_seq(ident):
+      chopped = list(util.chop(ident, 2))
       for i, (item, args) in enumerate(chopped):
         if i == len(chopped) - 1:
           break

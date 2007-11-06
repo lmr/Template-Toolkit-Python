@@ -1,6 +1,8 @@
 import re
 import sys
 
+from template import util
+
 
 factory = None
 
@@ -5084,15 +5086,15 @@ STATES = [
 	{#State 351
 		"DEFAULT":  -52
 	}
-]; 
+];
 
-# while (<DATA>) {
-# print;
-# if (/^def (rule\d+)/) {
-# print qq(  print "$1: args=%r" % (args,)\n);
-# }
-# }
-# __DATA__
+## while (<DATA>) {
+## print;
+## if (/^def (rule\d+)/) {
+## print qq(  print "$1: args=%r" % (args,)\n);
+## }
+## }
+## __DATA__
 
 def rule1(*args):
   return factory.template(args[1])
@@ -5324,10 +5326,11 @@ def rule82(*args):
   return None
 
 def rule83(*args):
-  args[0].DEFBLOCKS.append(args[2])
+  args[0].DEFBLOCKS.append(util.unscalar_lex(args[2]))
   return args[2]
 
 def rule85(*args):
+  # TODO: Should this just be eval(args[1])?
   return re.sub(r"^'(.*)'$", r"\1", args[1])
 
 def rule88(*args):
@@ -5362,7 +5365,7 @@ def rule97(*args):
   return args[1]
 
 def rule100(*args):
-  return [args[1], eval(args[3])]
+  return [args[1], util.unscalar_lex(args[3])]
 
 def rule101(*args):
   return [args[1], args[4]]
@@ -5371,16 +5374,17 @@ def rule102(*args):
   return [args[1], args[3]]
 
 def rule105(*args):
-  return "make_list(%s)" % args[2]
+  return "List(%s)" % args[2]
 
 def rule106(*args):
-  return "make_list(%s)" % args[2]
+  return "List(%s)" % args[2]
 
 def rule107(*args):
-  return "[ ]"
+  # return "scalar([])"
+  return "[]"
 
 def rule108(*args):
-  return "{ %s }" % args[2]
+  return "Dict(%s)" % args[2]
 
 def rule109(*args):
   return factory.ident(args[1])
@@ -5404,17 +5408,20 @@ def rule120(*args):
   return "%s, %s" % (args[1], args[2])
 
 def rule123(*args):
-  return "%s: %s" % (args[1], args[3])
+  # return "%s: %s" % (args[1], args[3])
+  return "(%s, %s)" % (args[1], args[3])
 
 def rule124(*args):
-  return "%s: %s" % (args[1], args[3])
+  # return "%s: %s" % (args[1], args[3])
+  return "(%s, %s)" % (args[1], args[3])
 
 def rule125(*args):
   args[1].extend(args[3])
   return args[1]
 
 def rule126(*args):
-  args[1].extend(x for comp in args[3].split(".") for x in (comp, 0))
+  for component in str(util.unscalar_lex(args[3])).split("."):
+    args[1].extend((component, 0))
   return args[1]
 
 def rule128(*args):
@@ -5445,7 +5452,7 @@ def rule135(*args):
   return "%s %s %s" % (args[1], args[2], args[3])
 
 def rule136(*args):
-  return "int(%s / %s)" % (args[1], args[3])
+  return "%s // %s" % (args[1], args[3])
 
 def rule137(*args):
   return "%s %% %s" % (args[1], args[3])
@@ -5454,20 +5461,19 @@ def rule138(*args):
   return "%s %s %s" % (args[1], CMPOP[args[2]], args[3])
 
 def rule139(*args):
-  return "str(%s) + str(%s)" % (args[1], args[3])
+  return "%s & %s" % (args[1], args[3])
 
 def rule140(*args):
-  return "(perlbool(%s) and perlbool(%s)).value" % (args[1], args[3])
+  return "%s and %s" % (args[1], args[3])
 
 def rule141(*args):
-  return "(perlbool(%s) or perlbool(%s)).value" % (args[1], args[3])
+  return "%s or %s" % (args[1], args[3])
 
 def rule142(*args):
-  return "not perlbool(%s)" % args[2]
+  return "~%s" % args[2]
 
 def rule143(*args):
-  return "(perlbool(%s) and perlbool(%s, True) or perlbool(%s, False)).value" \
-      % (args[1], args[3], args[5])
+  return "%s and 1**%s or %s" % (args[1], args[3], args[5])
 
 def rule144(*args):
   return factory.assign(*args[2])

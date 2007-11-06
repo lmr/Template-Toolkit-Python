@@ -55,7 +55,7 @@ class ProviderTest(test.TestCase):
     update_file("This is the old content")
 
     #------------------------------------------------------------------------
-    # instantiate a bunch of providers, using various different techniques, 
+    # instantiate a bunch of providers, using various different techniques,
     # with different load options but sharing the same parser;  then set them
     # to work fetching some files and check they respond as expected
     #------------------------------------------------------------------------
@@ -91,7 +91,7 @@ class ProviderTest(test.TestCase):
 
     def dpaths():
       return [os.path.join(lib, x) for x in "one", "two"]
-    
+
     def badpaths():
       return [badpaths]
 

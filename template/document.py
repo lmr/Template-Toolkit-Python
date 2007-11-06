@@ -4,14 +4,15 @@ from template import base, config, constants, iterator, util
 ERROR = None
 
 PYEVAL_NAMESPACE = {
+  "scalar":    util.PerlScalar,
   "Buffer":    util.StringBuffer,
   "Error":     base.Exception,
-  "constants": constants,
-  "Iterator":  iterator.Iterator,
-  "NewIterator": config.Config.iterator,
-  "regex":     re.compile,
-  "make_list": util.make_list,
-  "perlbool":  util.perlbool,
+  "Iterator":  iterator.Create,
+  "Regex":     re.compile,
+  "List":      util.ScalarList,
+  "Dict":      util.ScalarDictionary,
+  "Switch":    util.SwitchList,
+  "Concat":    util.Concatenate,
   "Continue":  util.Continue,
   "Break":     util.Break,
   }

@@ -128,20 +128,20 @@ class ContextTest(test.TestCase):
     stash = context.stash()
     self.failUnless(stash)
     stash.set('a', 'alpha')
-    self.assertEquals('alpha', stash.get('a'))
+    self.assertEquals('alpha', stash.get('a').value())
     text = context.include('baz')
     self.assertEquals('This is the baz file, a: alpha', text)
     text = context.include('baz', { 'a': 'bravo' })
     self.assertEquals('This is the baz file, a: bravo', text)
     # Check that the stash hasn't been altered
-    self.assertEquals('alpha', stash.get('a'))
+    self.assertEquals('alpha', stash.get('a').value())
     text = context.process('baz')
     self.assertEquals('This is the baz file, a: alpha', text)
     # Check that stash *has* been altered
-    self.assertEquals('charlie', stash.get('a'))
+    self.assertEquals('charlie', stash.get('a').value())
     text = context.process('baz', { 'a': 'bravo' })
     self.assertEquals('This is the baz file, a: bravo', text)
-    self.assertEquals('charlie', stash.get('a'))
+    self.assertEquals('charlie', stash.get('a').value())
 
 
 test.main()

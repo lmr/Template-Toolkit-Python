@@ -7,14 +7,6 @@ from template.util import *
 WHILE_MAX = 1000
 
 
-def makedict(elts):
-  buf = "{"
-  for key, value in chop(elts, 2):
-    buf += key + ": " + value + ","
-  buf += "}"
-  return buf
-
-
 class Code:
   class Error(Exception):
     pass
@@ -107,10 +99,8 @@ class Directive:
   def quoted(self, items):  # "foo$bar"
     if not items:
       return ""
-    elif len(items) == 1:
-      return "str(%s)" % items[0]
     else:
-      return "''.join(str(x) for x in (" + ", ".join(items) + ",))"
+      return "Concat(%s)" % ", ".join(items)
 
   def ident(self, ident):   # foo.bar(baz)
     if not ident:
@@ -121,7 +111,7 @@ class Directive:
     if len(ident) <= 2 and (len(ident) <= 1 or not ident[1]):
       ident = ident[0]
     else:
-      ident = "[ " + ", ".join(str(x) for x in ident) + " ]"
+      ident = "[%s]" % ", ".join(str(x) for x in ident)
     return "stash.get(%s)" % ident
 
   def identref(self, ident):  # \foo.bar(baz)
@@ -130,15 +120,15 @@ class Directive:
     if len(ident) <= 2 and not ident[1]:
       ident = ident[0]
     else:
-      ident = "[ " + ", ".join(str(x) for x in ident) + " ]"
+      ident = "[%s]" % ", ".join(str(x) for x in ident)
     return "stash.getref(%s)" % ident
 
   def assign(self, var, val, default=False):  # foo = bar
-    if type(var) != str:
+    if not isinstance(var, str):
       if len(var) == 2 and not var[1]:
         var = var[0]
       else:
-        var = "[ " + ", ".join(str(x) for x in var) + " ]"
+        var = "[%s]" % ", ".join(str(x) for x in var)
     if default:
       val += ", 1"
     return "stash.set(%s, %s)" % (var, val)
@@ -147,15 +137,14 @@ class Directive:
     args = list(args)
     hash_ = args.pop(0)
     if hash_:
-      # args.append(makedict(hash_))
-      args.append("{ %s }" % ", ".join(hash_))
+      args.append("Dict(%s)" % ", ".join(hash_))
     if not args:
       return "0"
     return "[" + ", ".join(args) + "]"
 
   def filenames(self, names):
     if len(names) > 1:
-      names = "[ " + ", ".join(names) + " ]"
+      names = "[%s]" % ", ".join(names)
     else:
       names = names[0]
     return names
@@ -182,7 +171,7 @@ class Directive:
     hash_ = args.pop(0)
     file_ = self.filenames(file_)
     if hash_:
-      file_ += ", { %s }" % ", ".join(hash_)
+      file_ += ", Dict(%s)" % ", ".join(hash_)
     return "output.write(context.include(%s))" % file_
 
   def process(self, nameargs):  # [% PROCESS template foo = bar %]
@@ -190,7 +179,7 @@ class Directive:
     hash_ = args.pop(0)
     file_ = self.filenames(file_)
     if hash_:
-      file_ += ", { %s }" % ", ".join(hash_)
+      file_ += ", Dict(%s)" % ", ".join(hash_)
     return "output.write(context.process(%s))" % file_
 
   def if_(self, expr, block, else_=None):
@@ -204,9 +193,9 @@ class Directive:
     else:
       else_ = None
     code = Code()
-    code.write("if perlbool(%s):" % expr, code.indent, block)
+    code.write("if %s:" % expr, code.indent, block)
     for expr, block in elses:
-      code.write(code.unindent, "elif perlbool(%s):" % expr,
+      code.write(code.unindent, "elif %s:" % expr,
                  code.indent, block)
     if else_ is not None:
       code.write(code.unindent, "else:", code.indent, else_)
@@ -214,11 +203,11 @@ class Directive:
 
   def foreach(self, target, list, args, block):
     # [% FOREACH x = [ foo bar ] %] ... [% END %]
-    args = args.pop(0)
-    if args:
-      args = ", " + makedict(args)
-    else:
-      args = ""
+##     args = args.pop(0)
+##     if args:
+##       args = ", " + makedict(args)
+##     else:
+##       args = ""
     if target:
       loop_save = ("try:\n"
                    " oldloop = %s\n"
@@ -236,9 +225,7 @@ class Directive:
       "def _(stash):",
       code.indent,
         "oldloop = None",
-        "loop = %s" % list,
-        "if not isinstance(loop, Iterator):",
-        " loop = NewIterator(loop)",
+        "loop = Iterator(%s)" % list,
         loop_save,
         "stash.set('loop', loop)",
         "try:",
@@ -290,15 +277,18 @@ class Directive:
     code.write("def _():",
                code.indent,
                  "failsafe = %d" % WHILE_MAX,
-                 "while failsafe > 0 and perlbool(%s):" % expr,
+##                  "while failsafe > 0 and perlbool(%s):" % expr,
+                 "while failsafe > 0 and %s:" % expr,
                  code.indent,
                    "try:",
                    code.indent,
                      "failsafe -= 1",
                      block,
                    code.unindent,
-                   "except Continue:\n pass",
-                   "except Break:\n break",
+                   "except Continue:",
+                   " pass",
+                   "except Break:",
+                   " break",
                  code.unindent,
                  "if not failsafe:",
                  " raise Error('WHILE loop terminated (> %d iterations)')"
@@ -311,15 +301,12 @@ class Directive:
     code = Code()
     code.write("def _():",
                code.indent,
-                 "result = regex(str(%s) + '$')" % expr)
+                 "result = Regex(str(%s) + '$')" % expr)
     default = cases.pop()
     for match, block in cases:
-      code.write("match = %s" % match,
-                 "if not isinstance(match, list):",
-                 " match = [match]",
-                 "for m in match:",
+      code.write("for match in Switch(%s):" % match,
                  code.indent,
-                   "if result.match(str(m)):",
+                   "if result.match(str(match)):",
                    code.indent,
                      block,
                      "return",
@@ -404,16 +391,15 @@ class Directive:
       info = None
     type_ = type_.pop(0)
     if not info:
-      args = "%s, None" % type_
+      info = "None"
     elif hash_ or args:
-      args = "%s, {'args': [ %s ], %s }" % (
-        type_, ", ".join([info] + args),
-        ", ".join(tuple("'%d': %s" % x for x in enumerate([info] + args)) +
-                  tuple(hash_)))
+      info = "Dict(('args', List(%s)), %s)" % (
+        ", ".join([info] + args),
+        ", ".join(["(%d, %s)" % pair for pair in enumerate([info] + args)]
+                  + hash_))
     else:
-      args = "%s, %s" % (type_, info)
-    return "context.throw(%s, output)" % args
-
+      pass
+    return "context.throw(%s, %s, output)" % (type_, info)
 
 
   def clear(self):  # [% CLEAR %]

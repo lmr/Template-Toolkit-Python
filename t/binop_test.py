@@ -3,13 +3,11 @@ from template import test
 
 class BinopTest(test.TestCase):
   def testBinop(self):
-    class X: pass
-    counter = X()
-    counter.value = 0
-    def alpha(): counter.value += 1; return counter.value
-    def omega(): counter.value += 10; return 0
-    def count(): return counter.value
-    def reset(): counter.value = 0; return counter.value
+    counter = [0]
+    def alpha(): counter[0] += 1; return counter[0]
+    def omega(): counter[0] += 10; return 0
+    def count(): return counter[0]
+    def reset(): counter[0] = 0; return counter[0]
     params = {
       'yes': 1,
       'no': 0,

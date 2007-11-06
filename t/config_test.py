@@ -55,12 +55,12 @@ class ConfigTest(test.TestCase):
     # Stash:
     stash = factory.stash({ 'foo': 10, 'bar': 20 })
     self.failUnless(stash)
-    self.assertEquals(10, stash.get('foo'))
-    self.assertEquals(20, stash.get('bar'))
+    self.assertEquals(10, stash.get('foo').value())
+    self.assertEquals(20, stash.get('bar').value())
     stash = factory.stash({ 'foo': 30, 'bar': lambda *_: 'forty' })
     self.failUnless(stash)
-    self.assertEquals(30, stash.get('foo'))
-    self.assertEquals('forty', stash.get('bar'))
+    self.assertEquals(30, stash.get('foo').value())
+    self.assertEquals('forty', stash.get('bar').value())
 
     # Context:
     context = factory.context({})
@@ -73,7 +73,7 @@ class ConfigTest(test.TestCase):
                                 'LOAD_FILTERS': [ filters ],
                                 'STASH': stash })
     self.failUnless(context)
-    self.assertEquals(30, context.stash().get('foo'))
+    self.assertEquals(30, context.stash().get('foo').value())
     self.failUnless(context.LOAD_TEMPLATES[0].PARSER.INTERPOLATE)
     self.failUnless(context.LOAD_PLUGINS[0].LOAD_PYTHON)
     self.failUnless(context.LOAD_FILTERS[0].TOLERANT)
