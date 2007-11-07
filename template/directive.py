@@ -11,8 +11,14 @@ class Code:
   class Error(Exception):
     pass
 
-  indent   = Error()  # any class
+  indent   = Error()  # any distinct objects
   unindent = Error()  # will do
+
+  @classmethod
+  def format(cls, *args):
+    code = cls()
+    code.write(*args)
+    return code.text()
 
   def __init__(self):
     self.buffer = StringIO.StringIO()
@@ -49,43 +55,37 @@ class Directive:
   def template(self, block):
     if not block or block.isspace():
       return "def _(context):\n return ''\n"
-    code = Code()
-    code.write("def _(context):",
-               code.indent,
-                 "stash = context.stash()",
-                 "output = Buffer()",
-                 "try:",
-                 code.indent,
-                   "# BLOCK: {",
-                   block,
-                   "# }",
-                 code.unindent,
-                 "except Error, e:",
-                 " error = context.catch(e, output)",
-                 " if error.type() != 'return':",
-                 "  raise error",
-                 "return output.get()")
-    return code.text()
+    return Code.format(
+      "def _(context):",
+      Code.indent,
+        "stash = context.stash()",
+        "output = Buffer()",
+        "try:",
+        Code.indent,
+          block,
+        Code.unindent,
+        "except Error, e:",
+        " error = context.catch(e, output)",
+        " if error.type() != 'return':",
+        "  raise error",
+        "return output.get()")
 
   def anon_block(self, block):
-    code = Code()
-    code.write("def _():",
-               code.indent,
-                 "output = Buffer()",
-                 "try:",
-                 code.indent,
-                   "# BLOCK: {",
-                   block,
-                   "# }",
-                 code.unindent,
-                 "except Error, e:",
-                 " error = context.catch(e, output)",
-                 " if error.type() != 'return':",
-                 "  raise error",
-                 "return output.get()",
-               code.unindent,
-               "_()")
-    return code.text()
+    return Code.format(
+      "def _():",
+      Code.indent,
+        "output = Buffer()",
+        "try:",
+        Code.indent,
+          block,
+        Code.unindent,
+        "except Error, e:",
+        " error = context.catch(e, output)",
+        " if error.type() != 'return':",
+        "  raise error",
+        "return output.get()",
+      Code.unindent,
+      "_()")
 
   def block(self, block=None):
     return "\n".join(block or [])
@@ -203,11 +203,6 @@ class Directive:
 
   def foreach(self, target, list, args, block):
     # [% FOREACH x = [ foo bar ] %] ... [% END %]
-##     args = args.pop(0)
-##     if args:
-##       args = ", " + makedict(args)
-##     else:
-##       args = ""
     if target:
       loop_save = ("try:\n"
                    " oldloop = %s\n"
@@ -220,36 +215,34 @@ class Directive:
       loop_set = ("if isinstance(value, dict):\n"
                   " stash.get(['import', [value]])")
       loop_restore = "stash = context.delocalise()"
-    code = Code()
-    code.write(
+    return Code.format(
       "def _(stash):",
-      code.indent,
+      Code.indent,
         "oldloop = None",
         "loop = Iterator(%s)" % list,
         loop_save,
         "stash.set('loop', loop)",
         "try:",
-        code.indent,
+        Code.indent,
           "for value in loop:",
-          code.indent,
+          Code.indent,
             "try:",
-            code.indent,
+            Code.indent,
               loop_set,
               block,
-            code.unindent,
+            Code.unindent,
             "except Continue:",
             " continue",
             "except Break:",
             " break",
-          code.unindent,
-        code.unindent,
+          Code.unindent,
+        Code.unindent,
         "finally:",
-        code.indent,
+        Code.indent,
           loop_restore,
-        code.unindent,
-      code.unindent,
+        Code.unindent,
+      Code.unindent,
       "_(stash)")
-    return code.text()
 
   def next(self, *args):
     return "raise Continue"
@@ -262,40 +255,37 @@ class Directive:
     file = file[0]
     hash.append("'content': output.get()")
     file += ", { " + ",".join(hash) + " }"
-    code = Code()
-    code.write("def _():",
-               code.indent,
-                 "output = Buffer()",
-                 block,
-                 "return context.include(%s)" % file,
-               code.unindent,
-               "output.write(_())")
-    return code.text()
+    return Code.format(
+      "def _():",
+      Code.indent,
+        "output = Buffer()",
+        block,
+        "return context.include(%s)" % file,
+      Code.unindent,
+      "output.write(_())")
 
   def while_(self, expr, block):  # [% WHILE x < 10 %] ... [% END %]
-    code = Code()
-    code.write("def _():",
-               code.indent,
-                 "failsafe = %d" % WHILE_MAX,
-##                  "while failsafe > 0 and perlbool(%s):" % expr,
-                 "while failsafe > 0 and %s:" % expr,
-                 code.indent,
-                   "try:",
-                   code.indent,
-                     "failsafe -= 1",
-                     block,
-                   code.unindent,
-                   "except Continue:",
-                   " pass",
-                   "except Break:",
-                   " break",
-                 code.unindent,
-                 "if not failsafe:",
-                 " raise Error('WHILE loop terminated (> %d iterations)')"
-                   % WHILE_MAX,
-               code.unindent,
-               "_()")
-    return code.text()
+    return Code.format(
+      "def _():",
+      Code.indent,
+        "failsafe = %d" % (WHILE_MAX - 1),
+        "while failsafe and (%s):" % expr,
+        Code.indent,
+          "try:",
+          Code.indent,
+            "failsafe -= 1",
+            block,
+          Code.unindent,
+          "except Continue:",
+          " continue",
+          "except Break:",
+          " break",
+        Code.unindent,
+        "if not failsafe:",
+        " raise Error(None, 'WHILE loop terminated (> %d iterations)')"
+          % WHILE_MAX,
+      Code.unindent,
+      "_()")
 
   def switch(self, expr, cases):  # [% SWITCH %] [% CASE foo %] ... [% END %]
     code = Code()
@@ -339,25 +329,22 @@ class Directive:
       catchblock.write(catchblock.indent, mblock, catchblock.unindent)
     catchblock.write("error = 0")
     if default:
-      code = Code()
-      code.write("else:", code.indent, "# DEFAULT", default, "error = ''")
-      default = code.text()
+      default = Code.format("else:", Code.indent, default, "error = ''")
     else:
       default = "# NO DEFAULT"
     handlers = ", ".join(handlers)
 
-    code = Code()
-    code.write(
+    return Code.format(
       "def _():",
-      code.indent,
+      Code.indent,
         "output = Buffer()",
         "error = None",
         "try:",
-        code.indent,
+        Code.indent,
           block,
-        code.unindent,
+        Code.unindent,
         "except Exception, e:",
-        code.indent,
+        Code.indent,
           "error = context.catch(e, output)",
           "if error.type() in ('return', 'stop'):",
           " raise error",
@@ -365,19 +352,17 @@ class Directive:
           "stash.set('e', error)",
           "handler = error.select_handler(%s)" % handlers,
           "if handler:",
-          code.indent,
+          Code.indent,
             catchblock.text(),
-          code.unindent,
+          Code.unindent,
           default,
-        code.unindent,
-        "# FINAL",
+        Code.unindent,
         final,
         "if error:",
         " raise error",
         "return output.get()",
-      code.unindent,
+      Code.unindent,
       "output.write(_())")
-    return code.text()
 
   def throw(self, nameargs):  # [% THROW foo "bar error" %]
     type_, args = nameargs
@@ -421,7 +406,7 @@ class Directive:
     args = self.args(args)
     if args:
       file_ = "%s, %s" % (file_, args)
-    return "# USE\nstash.set(%s, context.plugin(%s))" % (alias, file_)
+    return "stash.set(%s, context.plugin(%s))" % (alias, file_)
 
   def view(self, nameargs, block, defblocks):  # [% VIEW name args %]
     raise NotImplementedError("VIEW")
@@ -437,18 +422,16 @@ class Directive:
         args = ", None, %s" % alias
     if args:
       name += ", %s" % args
-    code = Code()
-    code.write("# FILTER",
-               "def _():",
-               code.indent,
-                 "output = Buffer()",
-                 "filter = context.filter(%s) or "
-                   "context.throw(context.error())" % name,
-                 block,
-                 "return filter(output.get())",
-               code.unindent,
-               "output.write(_())")
-    return code.text()
+    return Code.format(
+      "def _():",
+      Code.indent,
+        "output = Buffer()",
+        "filter = context.filter(%s) or "
+          "context.throw(context.error())" % name,
+        block,
+        "return filter(output.get())",
+      Code.unindent,
+      "output.write(_())")
 
   def capture(self, name, block):
     if isinstance(name, list):
@@ -456,19 +439,17 @@ class Directive:
         name = name[0]
       else:
         name = "[" + ", ".join(name) + "]"
-    code = Code()
-    code.write("def _():",
-               code.indent,
-                 "output = Buffer()",
-                 block,
-                 "return output.get()",
-               code.unindent,
-               "stash.set(%s, _())" % name)
-    return code.text()
+    return Code.format(
+      "def _():",
+      Code.indent,
+        "output = Buffer()",
+        block,
+        "return output.get()",
+      Code.unindent,
+      "stash.set(%s, _())" % name)
 
   def macro(self, ident, block, args=None):
     code = Code()
-    code.write("# MACRO")
     if args:
       nargs = len(args)
       proto = ", ".join("arg%d=None" % i for i in range(1, nargs + 1))
