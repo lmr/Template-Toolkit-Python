@@ -253,14 +253,27 @@ class Directive:
     if len(file) > 1:
       return self.multi_wrapper(file, hash, block)
     file = file[0]
-    hash.append("'content': output.get()")
-    file += ", { " + ",".join(hash) + " }"
+    hash.append("('content', output.get())")
+    file += ", Dict(%s)" % ", ".join(hash)
     return Code.format(
       "def _():",
       Code.indent,
         "output = Buffer()",
         block,
         "return context.include(%s)" % file,
+      Code.unindent,
+      "output.write(_())")
+
+  def multi_wrapper(self, file, hash, block):
+    hash.append("('content', output.get())")
+    return Code.format(
+      "def _():",
+      Code.indent,
+        "output = Buffer()",
+        block,
+        "for file in %s:" % ", ".join(reversed(file)),
+        " output.reset(context.include(file, Dict(%s)))" % ", ".join(hash),
+        "return output.get()",
       Code.unindent,
       "output.write(_())")
 

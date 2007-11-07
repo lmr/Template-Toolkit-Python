@@ -131,10 +131,8 @@ class Context(base.Base):
     return self.process(template, params, True)
 
   def process(self, template, params=None, localize=False):
-    if isinstance(template, util.PerlScalar):
-      template = template.value()
-    if isinstance(params, util.PerlScalar):
-      params = params.value()
+    template = util.unscalar(template)
+    params = util.unscalar(params)
     output = StringIO.StringIO()
     if not isinstance(template, list):
       template = [template]
