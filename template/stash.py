@@ -25,6 +25,11 @@ def _to_long(x):
     else:
       return 0L
 
+def _by_value(func):
+  def wrapper(x):
+    return func(x[1])
+  return wrapper
+
 def _slice(seq, items):
   if isinstance(items, str):
     raise TypeError
@@ -35,11 +40,6 @@ def _slice(seq, items):
     except KeyError:
       sliced.append(None)
   return sliced
-
-def _curry(func, *args):
-  def curried(*x):
-    return func(*(args + x))
-  return curried
 
 def increment(x):
   return x + 1
@@ -72,17 +72,20 @@ def scalar_defined(scalar):
 
 def scalar_match(scalar, search=None, matchall=False):
   if scalar is None or search is None:
-    return string
-  string = str(scalar)
+    return scalar
   if matchall:
-    matches = re.findall(search, string)
-    if matches and isinstance(matches[0], tuple):
+    matches = re.findall(search, str(scalar))
+    if not matches:
+      matches = None
+    elif isinstance(matches[0], tuple):
       matches = [item for group in matches for item in group]  # flatten
   else:
-    match = re.search(search, string)
+    match = re.search(search, str(scalar))
     if match:
-      matches = match.groups()
-  return matches or ""
+      matches = match.groups() or [1]
+    else:
+      matches = ""
+  return matches
 
 def scalar_search(scalar=None, pattern=None):
   if scalar is None or pattern is None:
@@ -92,21 +95,34 @@ def scalar_search(scalar=None, pattern=None):
 def scalar_repeat(scalar="", count=1):
   return str(scalar) * count
 
-def scalar_replace(scalar="", pattern="", replace="", replaceall=True):
+def scalar_replace(scalar="", pattern="", replace="", global_=True):
+  scalar = str(scalar)
+  pattern = str(pattern)
+  replace = str(replace)
   if re.search(r"\$\d+", replace):
-    # replacement string may contain backrefs
-    raise NotImplementedError("Backreferences in replace()")
+    def expand(match1):
+      def matched(match2):
+        escaped = match2.group(1)
+        if escaped:
+          return escaped
+        index = int(match2.group(2))
+        if 0 < index <= len(match1.groups()):
+          return match1.group(index)
+        else:
+          return ""
+      return re.sub(r"\\([\\$])|\$(\d+)", matched, replace)
   else:
-    return re.sub(pattern, replace, str(scalar), 1 - int(bool(replaceall)))
+    expand = lambda _: replace
+  return re.sub(pattern, expand, scalar, int(not global_))
 
 def scalar_remove(scalar=None, search=None):
   if scalar is None or search is None:
     return scalar
-  return re.sub(search, str(scalar), "")
+  return re.sub(search, "", str(scalar))
 
 def scalar_split(scalar="", split=None, limit=None):
   if limit is not None:
-    return str(scalar).split(split, limit)
+    return str(scalar).split(split, limit - 1)
   else:
     return str(scalar).split(split)
 
@@ -120,8 +136,17 @@ def scalar_chunk(scalar="", size=1):
     seq.reverse()
     return seq
 
-def scalar_substr(scalar="", offset=0, length=0):  # "replacement" arg ignored
-  return str(scalar)[offset:offset+length]
+def scalar_substr(scalar="", offset=0, length=None, replacement=None):
+  scalar = str(scalar)
+  if length is not None:
+    if replacement is not None:
+      return (scalar[:offset]
+              + str(replacement)
+              + scalar[offset + length:])
+    else:
+      return scalar[offset:offset + length]
+  else:
+    return scalar[offset:]
 
 
 def hash_item(hash, item=""):
@@ -179,10 +204,10 @@ def hash_import(hash, imp=None):
   return ""
 
 def hash_sort(hash):
-  return sorted(hash.keys(), key=_to_lower)
+  return [pair[0] for pair in sorted(hash.items(), key=_by_value(_to_lower))]
 
 def hash_nsort(hash):
-  return sorted(hash.keys(), key=_to_long)
+  return [pair[0] for pair in sorted(hash.items(), key=_by_value(_to_long))]
 
 def list_item(list, item=0):
   return list[item]
@@ -221,7 +246,7 @@ def list_defined(list, index=None):
   if index is None:
     return 1
   else:
-    return list[index] is not None
+    return 0 <= index < len(list) and list[index] is not None
 
 def list_first(list, count=None):
   if count is None:
@@ -270,15 +295,14 @@ def list_nsort(list, field=None):
   else:
     return sorted(list, key=_to_long)
 
-def list_unique(list):
-  seen = {}
-  return [item for item in list if seen.setdefault(item, 0) is not None]
+def list_unique(seq):
+  return list(set(seq))
 
-def list_import(list, *args):
+def list_import(seq, *args):
   for arg in args:
     if isinstance(arg, list):
-      list.extend(x for x in arg if x is not None)
-  return list
+      seq.extend(x for x in arg if x is not None)
+  return seq
 
 def list_merge(list_, *args):
   copy = list_[:]
@@ -288,27 +312,26 @@ def list_merge(list_, *args):
   return copy
 
 def list_slice(list, start=0, to=None):
-  if to is None:
+  if start < 0:
+    start = len(list) + start
+  if to is None or to < 0:
     return list[start:]
   else:
-    return list[start:to]
+    return list[start:to + 1]
 
-def list_splice(list, offset=None, length=None, *replace):
-  if replace:
-    raise NotImplementedError("list splice with replacement")
-  elif length is not None:
-    offset = offset or 0
-    removed = list[offset:length]
-    del list[offset:length]
-    return removed
-  elif offset is not None:
-    removed = list[offset:]
-    del list[offset:]
-    return removed
+def list_splice(seq, start=0, length=None, *replace):
+  if start < 0:
+    start = len(seq) + start
+  if length is not None:
+    stop = start + length
   else:
-    removed = list[:]
-    del list[:]
-    return removed
+    stop = len(seq)
+  if len(replace) == 1 and isinstance(replace[0], (list, tuple)):
+    replace = replace[0]
+  s = slice(start, stop)
+  removed = seq[s]
+  seq[s] = replace
+  return removed
 
 def _smartsort(field, coerce):
   def getkey(element):
@@ -381,7 +404,6 @@ HASH_OPS = {
   "sort": hash_sort,
   "nsort": hash_nsort,
   }
-
 
 
 class Stash:
@@ -640,3 +662,15 @@ class Stash:
 
   def undefined(self, ident, args):
     return ""
+
+  def define_vmethod(self, type, name, func):
+    type = type.lower()
+    if type in ("scalar", "item"):
+      op = SCALAR_OPS
+    elif type == "hash":
+      op = HASH_OPS
+    elif type in ("list", "array"):
+      op = LIST_OPS
+    else:
+      raise Error("invalid vethod type: %s\n" % type)
+    op[name] = func

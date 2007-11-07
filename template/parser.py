@@ -312,8 +312,9 @@ class Parser(base.Base):
             token = "scalar(%r)" % token
         else:
           toktype = "LITERAL"
-          # Remove escaped single quotes:
-          token = re.sub(r"\\(.)", lambda m: m.group(m.group(1) == "'"), token)
+          # Remove escaped single quotes and backslashes:
+          token = re.sub(r"\\(.)",
+                         lambda m: m.group(m.group(1) in "'\\"), token)
           token = "scalar(%r)" % token
       else:
         token = match.group(4)

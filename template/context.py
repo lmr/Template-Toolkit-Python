@@ -313,6 +313,9 @@ class Context(base.Base):
   def stash(self):
     return self.STASH
 
+  def define_vmethod(self, *args):
+    self.STASH.define_vmethod(*args)
+
   def visit(self, document, blocks):
     self.BLKSTACK.insert(0, blocks)
 
