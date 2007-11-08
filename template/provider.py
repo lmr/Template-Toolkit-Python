@@ -213,7 +213,7 @@ class Provider(base.Base):
       parsedoc["METADATA"].setdefault("name", data["name"])
       parsedoc["METADATA"].setdefault("modtime", data["time"])
       # write the Python code to the file compfile, if defined
-      if compfile is not None:
+      if compfile:
         basedir = os.path.dirname(compfile)
         if not os.path.isdir(basedir):
           try:
@@ -221,13 +221,16 @@ class Provider(base.Base):
           except IOError, e:
             error = ("failed to create compiled templates "
                      "directory: %s (%s)" % (basedir, e))
-          else:
-            docclass = self.DOCUMENT
-            if not docclass.write_python_file(compfile, parsedoc):
-              error = "cache failed to write %s: %s" % (
-                os.path.basename(compfile), docclass.error())
-          if error is None and data["time"] is not None:
-            os.utime(compfile, (ctime, ctime))
+        if not error:
+          docclass = self.DOCUMENT
+          if not docclass.write_python_file(compfile, parsedoc):
+            error = "cache failed to write %s: %s" % (
+              os.path.basename(compfile), docclass.Error())
+        if error is None and data.get("time") is not None:
+          if not compfile:
+            return "invalid null filename", constants.STATUS_ERROR
+          ctime = int(data.get("time"))
+          os.utime(compfile, (ctime, ctime))
 
       if not error:
         try:
@@ -365,13 +368,13 @@ class Provider(base.Base):
     return data, error
 
   def _load_compiled(self, file):
-    namespace = {}
+    namespace = document.PYEVAL_NAMESPACE.copy()
+    namespace["Document"] = document.Document
     try:
       execfile(file, namespace)
     except base.Exception, e:
       return self.error("compiled template %s: %s" % (file, e))
-    else:
-      return namespace["_"]
+    return namespace["document"]
 
   def _store(self, name, data, compfile=None):
     load = self._modified(name)
@@ -439,6 +442,9 @@ class Provider(base.Base):
       return self.error("INCLUDE_PATH exceeds %d directories" % MAX_DIRS)
 
     return opaths
+
+  def store(self, name, data):
+    return self._store(name, { "data": data, "load": 0 })
 
   def load(self, name, prefix=None):
     path = name

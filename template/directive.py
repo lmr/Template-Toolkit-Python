@@ -54,9 +54,9 @@ class Directive:
 
   def template(self, block):
     if not block or block.isspace():
-      return "def _(context):\n return ''\n"
+      return "def block(context):\n return ''\n"
     return Code.format(
-      "def _(context):",
+      "def block(context):",
       Code.indent,
         "stash = context.stash()",
         "output = Buffer()",

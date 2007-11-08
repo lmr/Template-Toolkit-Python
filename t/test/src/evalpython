@@ -1,0 +1,1 @@
+This file includes a [% PYTHON %]print "python",[% END %] block.

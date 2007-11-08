@@ -30,7 +30,7 @@ class DocumentTest(test.TestCase):
     self.assertEquals('some output', doc.block()())
     self.assertEquals('the foo block', doc.blocks()['foo']())
     self.assertEquals('the bar block', doc.blocks()['bar']())
-    
+
     tproc = template.Template({ 'INCLUDE_PATH': 'test/src' })
     self.Expect(DATA, tproc, { 'mydoc': doc })
 

@@ -131,11 +131,8 @@ class Context(base.Base):
     return self.process(template, params, True)
 
   def process(self, template, params=None, localize=False):
-    template = util.unscalar(template)
+    template = util.listify(util.unscalar(template))
     params = util.unscalar(params)
-    output = StringIO.StringIO()
-    if not isinstance(template, list):
-      template = [template]
     compileds = []
     for name in template:
       compileds.append(self.template(name))
@@ -144,6 +141,7 @@ class Context(base.Base):
     else:
       self.STASH.update(params)
 
+    output = StringIO.StringIO()
     error = None
     try:
       # save current component

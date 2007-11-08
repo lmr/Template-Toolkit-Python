@@ -118,7 +118,7 @@ more python generated output
 [% PYTHON %]
     output = "author: [% template.author %]\n"
     stash.set('a', 'The cat sat on the mat')
-    output += "more python generated output\n";
+    output += "more python generated output\n"
     print output,
 [% END %]
 a: [% a +%]
