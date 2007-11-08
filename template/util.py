@@ -1,6 +1,7 @@
 import cStringIO
 import operator
 import re
+import sys
 import types
 
 
@@ -178,6 +179,28 @@ class PerlScalar:
       return float(match.group(0))
     else:
       return long(match.group(0))
+
+
+def unindent(code):
+  try:
+    indent = min(len(match.group())
+                 for match in re.finditer(r"(?m)^\s+", code))
+    if indent:
+      code = re.sub(r"(?m)^.{%d}" % indent, "", code)
+  except ValueError:
+    pass
+  return code
+
+
+def EvaluateCode(code, context, stash):
+  code = unindent(code)
+  old_stdout = sys.stdout
+  sys.stdout = tmpbuf = cStringIO.StringIO()
+  try:
+    exec code in {"context": context, "stash": stash}
+  finally:
+    sys.stdout = old_stdout
+  return tmpbuf.getvalue()
 
 
 def unscalar(x):

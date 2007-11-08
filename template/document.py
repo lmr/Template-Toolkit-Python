@@ -15,6 +15,7 @@ PYEVAL_NAMESPACE = {
   "Concat":    util.Concatenate,
   "Continue":  util.Continue,
   "Break":     util.Break,
+  "Evaluate":  util.EvaluateCode,
   }
 
 class Document(base.Base):

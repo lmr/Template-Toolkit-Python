@@ -5,6 +5,7 @@ from template import util
 
 
 factory = None
+rawstart = None
 
 class Grammar:
   def __init__(self):
@@ -65,7 +66,7 @@ STATES = [
 	{#State 0
 		"ACTIONS":  {
 			'SET': 1,
-			'PERL': 40,
+			'PYTHON': 40,
 			'NOT': 38,
 			'IDENT': 2,
 			'CLEAR': 41,
@@ -80,7 +81,7 @@ STATES = [
 			'TRY': 10,
 			'LAST': 49,
 			'DEBUG': 51,
-			'RAWPERL': 13,
+			'RAWPYTHON': 13,
 			'META': 15,
 			'INCLUDE': 17,
 			"(": 53,
@@ -444,7 +445,7 @@ STATES = [
 	{#State 33
 		"ACTIONS":  {
 			'SET': 1,
-			'PERL': 40,
+			'PYTHON': 40,
 			'NOT': 38,
 			'IDENT': 2,
 			'CLEAR': 41,
@@ -459,7 +460,7 @@ STATES = [
 			'TRY': 10,
 			'LAST': 49,
 			'DEBUG': 51,
-			'RAWPERL': 13,
+			'RAWPYTHON': 13,
 			'META': 15,
 			'INCLUDE': 17,
 			"(": 53,
@@ -1083,7 +1084,7 @@ STATES = [
 	{#State 97
 		"ACTIONS":  {
 			'SET': 1,
-			'PERL': 40,
+			'PYTHON': 40,
 			'NOT': 38,
 			'IDENT': 2,
 			'CLEAR': 41,
@@ -1098,7 +1099,7 @@ STATES = [
 			'TRY': 10,
 			'LAST': 49,
 			'DEBUG': 51,
-			'RAWPERL': 13,
+			'RAWPYTHON': 13,
 			'META': 15,
 			'INCLUDE': 17,
 			"(": 53,
@@ -1213,7 +1214,7 @@ STATES = [
 	{#State 105
 		"ACTIONS":  {
 			'SET': 1,
-			'PERL': 40,
+			'PYTHON': 40,
 			'NOT': 38,
 			'IDENT': 2,
 			'CLEAR': 41,
@@ -1277,7 +1278,7 @@ STATES = [
 	{#State 107
 		"ACTIONS":  {
 			'SET': 1,
-			'PERL': 40,
+			'PYTHON': 40,
 			'NOT': 38,
 			'IDENT': 2,
 			'CLEAR': 41,
@@ -2083,7 +2084,7 @@ STATES = [
 	{#State 173
 		"ACTIONS":  {
 			'SET': 1,
-			'PERL': 40,
+			'PYTHON': 40,
 			'NOT': 38,
 			'IDENT': 2,
 			'CLEAR': 41,
@@ -2098,7 +2099,7 @@ STATES = [
 			'TRY': 10,
 			'LAST': 49,
 			'DEBUG': 51,
-			'RAWPERL': 13,
+			'RAWPYTHON': 13,
 			'META': 15,
 			'INCLUDE': 17,
 			"(": 53,
@@ -2299,7 +2300,7 @@ STATES = [
 	{#State 190
 		"ACTIONS":  {
 			'SET': 1,
-			'PERL': 40,
+			'PYTHON': 40,
 			'NOT': 38,
 			'IDENT': 2,
 			'CLEAR': 41,
@@ -2314,7 +2315,7 @@ STATES = [
 			'TRY': 10,
 			'LAST': 49,
 			'DEBUG': 51,
-			'RAWPERL': 13,
+			'RAWPYTHON': 13,
 			'META': 15,
 			'INCLUDE': 17,
 			"(": 53,
@@ -2557,7 +2558,7 @@ STATES = [
 	{#State 206
 		"ACTIONS":  {
 			'SET': 1,
-			'PERL': 40,
+			'PYTHON': 40,
 			'NOT': 38,
 			'IDENT': 2,
 			'CLEAR': 41,
@@ -2572,7 +2573,7 @@ STATES = [
 			'TRY': 10,
 			'LAST': 49,
 			'DEBUG': 51,
-			'RAWPERL': 13,
+			'RAWPYTHON': 13,
 			'META': 15,
 			'INCLUDE': 17,
 			"(": 53,
@@ -2653,7 +2654,7 @@ STATES = [
 	{#State 208
 		"ACTIONS":  {
 			'SET': 1,
-			'PERL': 40,
+			'PYTHON': 40,
 			'NOT': 38,
 			'IDENT': 2,
 			'CLEAR': 41,
@@ -2668,7 +2669,7 @@ STATES = [
 			'TRY': 10,
 			'LAST': 49,
 			'DEBUG': 51,
-			'RAWPERL': 13,
+			'RAWPYTHON': 13,
 			'META': 15,
 			'INCLUDE': 17,
 			"(": 53,
@@ -2823,7 +2824,7 @@ STATES = [
 	{#State 217
 		"ACTIONS":  {
 			'SET': 1,
-			'PERL': 40,
+			'PYTHON': 40,
 			'NOT': 38,
 			'IDENT': 2,
 			'CLEAR': 41,
@@ -2838,7 +2839,7 @@ STATES = [
 			'TRY': 10,
 			'LAST': 49,
 			'DEBUG': 51,
-			'RAWPERL': 13,
+			'RAWPYTHON': 13,
 			'META': 15,
 			'INCLUDE': 17,
 			"(": 53,
@@ -2903,7 +2904,7 @@ STATES = [
 	{#State 218
 		"ACTIONS":  {
 			'SET': 1,
-			'PERL': 40,
+			'PYTHON': 40,
 			'NOT': 38,
 			'IDENT': 2,
 			'CLEAR': 41,
@@ -2918,7 +2919,7 @@ STATES = [
 			'TRY': 10,
 			'LAST': 49,
 			'DEBUG': 51,
-			'RAWPERL': 13,
+			'RAWPYTHON': 13,
 			'META': 15,
 			'INCLUDE': 17,
 			"(": 53,
@@ -3043,7 +3044,7 @@ STATES = [
 	{#State 227
 		"ACTIONS":  {
 			'SET': 1,
-			'PERL': 40,
+			'PYTHON': 40,
 			'NOT': 38,
 			'IDENT': 2,
 			'CLEAR': 41,
@@ -3058,7 +3059,7 @@ STATES = [
 			'TRY': 10,
 			'LAST': 49,
 			'DEBUG': 51,
-			'RAWPERL': 13,
+			'RAWPYTHON': 13,
 			'META': 15,
 			'INCLUDE': 17,
 			"(": 53,
@@ -3123,7 +3124,7 @@ STATES = [
 	{#State 228
 		"ACTIONS":  {
 			'SET': 1,
-			'PERL': 40,
+			'PYTHON': 40,
 			'NOT': 38,
 			'IDENT': 2,
 			'CLEAR': 41,
@@ -3138,7 +3139,7 @@ STATES = [
 			'TRY': 10,
 			'LAST': 49,
 			'DEBUG': 51,
-			'RAWPERL': 13,
+			'RAWPYTHON': 13,
 			'META': 15,
 			'INCLUDE': 17,
 			"(": 53,
@@ -3493,7 +3494,7 @@ STATES = [
 	{#State 268
 		"ACTIONS":  {
 			'SET': 1,
-			'PERL': 40,
+			'PYTHON': 40,
 			'NOT': 38,
 			'IDENT': 2,
 			'CLEAR': 41,
@@ -3508,7 +3509,7 @@ STATES = [
 			'TRY': 10,
 			'LAST': 49,
 			'DEBUG': 51,
-			'RAWPERL': 13,
+			'RAWPYTHON': 13,
 			'META': 15,
 			'INCLUDE': 17,
 			"(": 53,
@@ -3600,7 +3601,7 @@ STATES = [
 	{#State 273
 		"ACTIONS":  {
 			'SET': 1,
-			'PERL': 40,
+			'PYTHON': 40,
 			'NOT': 38,
 			'IDENT': 2,
 			'CLEAR': 41,
@@ -3615,7 +3616,7 @@ STATES = [
 			'TRY': 10,
 			'LAST': 49,
 			'DEBUG': 51,
-			'RAWPERL': 13,
+			'RAWPYTHON': 13,
 			'META': 15,
 			'INCLUDE': 17,
 			"(": 53,
@@ -3729,7 +3730,7 @@ STATES = [
 	{#State 280
 		"ACTIONS":  {
 			'SET': 1,
-			'PERL': 40,
+			'PYTHON': 40,
 			'NOT': 38,
 			'IDENT': 2,
 			'CLEAR': 41,
@@ -3744,7 +3745,7 @@ STATES = [
 			'TRY': 10,
 			'LAST': 49,
 			'DEBUG': 51,
-			'RAWPERL': 13,
+			'RAWPYTHON': 13,
 			'META': 15,
 			'INCLUDE': 17,
 			"(": 53,
@@ -3865,7 +3866,7 @@ STATES = [
 	{#State 287
 		"ACTIONS":  {
 			'SET': 1,
-			'PERL': 40,
+			'PYTHON': 40,
 			'NOT': 38,
 			'IDENT': 2,
 			'CLEAR': 41,
@@ -3880,7 +3881,7 @@ STATES = [
 			'TRY': 10,
 			'LAST': 49,
 			'DEBUG': 51,
-			'RAWPERL': 13,
+			'RAWPYTHON': 13,
 			'META': 15,
 			'INCLUDE': 17,
 			"(": 53,
@@ -4006,7 +4007,7 @@ STATES = [
 	{#State 293
 		"ACTIONS":  {
 			'SET': 1,
-			'PERL': 40,
+			'PYTHON': 40,
 			'NOT': 38,
 			'IDENT': 2,
 			'CLEAR': 41,
@@ -4021,7 +4022,7 @@ STATES = [
 			'TRY': 10,
 			'LAST': 49,
 			'DEBUG': 51,
-			'RAWPERL': 13,
+			'RAWPYTHON': 13,
 			'META': 15,
 			'INCLUDE': 17,
 			"(": 53,
@@ -4095,7 +4096,7 @@ STATES = [
 	{#State 296
 		"ACTIONS":  {
 			'SET': 1,
-			'PERL': 40,
+			'PYTHON': 40,
 			'NOT': 38,
 			'IDENT': 2,
 			'CLEAR': 41,
@@ -4110,7 +4111,7 @@ STATES = [
 			'TRY': 10,
 			'LAST': 49,
 			'DEBUG': 51,
-			'RAWPERL': 13,
+			'RAWPYTHON': 13,
 			'META': 15,
 			'INCLUDE': 17,
 			"(": 53,
@@ -4199,7 +4200,7 @@ STATES = [
 	{#State 303
 		"ACTIONS":  {
 			'SET': 1,
-			'PERL': 40,
+			'PYTHON': 40,
 			'NOT': 38,
 			'IDENT': 2,
 			'CLEAR': 41,
@@ -4386,7 +4387,7 @@ STATES = [
 	{#State 318
 		"ACTIONS":  {
 			'SET': 1,
-			'PERL': 40,
+			'PYTHON': 40,
 			'NOT': 38,
 			'IDENT': 2,
 			'CLEAR': 41,
@@ -4401,7 +4402,7 @@ STATES = [
 			'TRY': 10,
 			'LAST': 49,
 			'DEBUG': 51,
-			'RAWPERL': 13,
+			'RAWPYTHON': 13,
 			'META': 15,
 			'INCLUDE': 17,
 			"(": 53,
@@ -4502,7 +4503,7 @@ STATES = [
 	{#State 323
 		"ACTIONS":  {
 			'SET': 1,
-			'PERL': 40,
+			'PYTHON': 40,
 			'NOT': 38,
 			'IDENT': 2,
 			'CLEAR': 41,
@@ -4517,7 +4518,7 @@ STATES = [
 			'TRY': 10,
 			'LAST': 49,
 			'DEBUG': 51,
-			'RAWPERL': 13,
+			'RAWPYTHON': 13,
 			'META': 15,
 			'INCLUDE': 17,
 			"(": 53,
@@ -4592,7 +4593,7 @@ STATES = [
 	{#State 325
 		"ACTIONS":  {
 			'SET': 1,
-			'PERL': 40,
+			'PYTHON': 40,
 			'NOT': 38,
 			'IDENT': 2,
 			'CLEAR': 41,
@@ -4607,7 +4608,7 @@ STATES = [
 			'TRY': 10,
 			'LAST': 49,
 			'DEBUG': 51,
-			'RAWPERL': 13,
+			'RAWPYTHON': 13,
 			'META': 15,
 			'INCLUDE': 17,
 			"(": 53,
@@ -4690,7 +4691,7 @@ STATES = [
 	{#State 332
 		"ACTIONS":  {
 			'SET': 1,
-			'PERL': 40,
+			'PYTHON': 40,
 			'NOT': 38,
 			'IDENT': 2,
 			'CLEAR': 41,
@@ -4705,7 +4706,7 @@ STATES = [
 			'TRY': 10,
 			'LAST': 49,
 			'DEBUG': 51,
-			'RAWPERL': 13,
+			'RAWPYTHON': 13,
 			'META': 15,
 			'INCLUDE': 17,
 			"(": 53,
@@ -4789,7 +4790,7 @@ STATES = [
 	{#State 338
 		"ACTIONS":  {
 			'SET': 1,
-			'PERL': 40,
+			'PYTHON': 40,
 			'NOT': 38,
 			'IDENT': 2,
 			'CLEAR': 41,
@@ -4804,7 +4805,7 @@ STATES = [
 			'TRY': 10,
 			'LAST': 49,
 			'DEBUG': 51,
-			'RAWPERL': 13,
+			'RAWPYTHON': 13,
 			'META': 15,
 			'INCLUDE': 17,
 			"(": 53,
@@ -4895,7 +4896,7 @@ STATES = [
 	{#State 343
 		"ACTIONS":  {
 			'SET': 1,
-			'PERL': 40,
+			'PYTHON': 40,
 			'NOT': 38,
 			'IDENT': 2,
 			'CLEAR': 41,
@@ -4910,7 +4911,7 @@ STATES = [
 			'TRY': 10,
 			'LAST': 49,
 			'DEBUG': 51,
-			'RAWPERL': 13,
+			'RAWPYTHON': 13,
 			'META': 15,
 			'INCLUDE': 17,
 			"(": 53,
@@ -4975,7 +4976,7 @@ STATES = [
 	{#State 344
 		"ACTIONS":  {
 			'SET': 1,
-			'PERL': 40,
+			'PYTHON': 40,
 			'NOT': 38,
 			'IDENT': 2,
 			'CLEAR': 41,
@@ -4990,7 +4991,7 @@ STATES = [
 			'TRY': 10,
 			'LAST': 49,
 			'DEBUG': 51,
-			'RAWPERL': 13,
+			'RAWPYTHON': 13,
 			'META': 15,
 			'INCLUDE': 17,
 			"(": 53,
@@ -5302,16 +5303,26 @@ def rule75(*args):
   return factory.view(*(args[2], args[5], args[0].pop_defblock()))
 
 def rule76(*args):
-  raise None  # PERL
+  args[0].INPYTHON += 1
 
 def rule77(*args):
-  raise None  # PERL
+  args[0].INPYTHON -= 1
+  if args[0].EVAL_PYTHON:
+    return factory.python(args[4])
+  else:
+    return factory.no_python()
 
 def rule78(*args):
-  raise None  # PERL
+  global rawstart
+  args[0].INPYTHON += 1
+  rawstart = args[0].LINE[0]
 
 def rule79(*args):
-  raise None  # PERL
+  args[0].INPYTHON -= 1
+  if args[0].EVAL_PYTHON:
+    return factory.rawpython(args[4], rawstart)
+  else:
+    return factory.no_python()
 
 def rule80(*args):
   return factory.filter_(*(args[2], args[4]))

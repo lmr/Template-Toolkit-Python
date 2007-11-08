@@ -11,7 +11,7 @@ ERROR_RETURN = 'return' # return a status code
 ERROR_FILE = 'file'   # file error: I/O, parse, recursion
 ERROR_VIEW = 'view'   # view error
 ERROR_UNDEF = 'undef'  # undefined variable value used
-ERROR_PERL = 'perl'   # error in [% PERL %] block
+ERROR_PYTHON = 'python'   # error in [% PYTHON %] block
 ERROR_FILTER = 'filter' # filter error
 ERROR_PLUGIN = 'plugin' # plugin error
 

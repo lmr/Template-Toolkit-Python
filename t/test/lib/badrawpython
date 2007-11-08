@@ -1,0 +1,5 @@
+This is some text
+[% RAWPYTHON %]
+This is some illegal python code which should cause a parse error
+[% END %]
+more stuff goes here

@@ -424,6 +424,26 @@ class Directive:
   def view(self, nameargs, block, defblocks):  # [% VIEW name args %]
     raise NotImplementedError("VIEW")
 
+  def python(self, block):
+    return Code.format(
+      "if not context.eval_python():",
+      " context.throw('python', 'EVAL_PYTHON not set')",
+      "def _():",
+      Code.indent,
+        "output = Buffer()",
+        block,
+        "return Evaluate(output.get(), context, stash)",
+      Code.unindent,
+      "output.write(_())")
+
+  def no_python(self):
+    return "context.throw('python', 'EVAL_PYTHON not set')"
+
+  def rawpython(self, block, line):
+    block = unindent(block)
+    line = line and " (starting line %s)" % line or ""
+    return "#line 1 'RAWPYTHON block%s'\n%s" % (line, block)
+
   def filter_(self, lnameargs, block):
     name, args, alias = unpack(lnameargs, 3)
     name = name[0]

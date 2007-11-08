@@ -30,7 +30,7 @@ DEFAULT_STYLE = {
   "PRE_CHOMP":   False,
   "POST_CHOMP":  False,
   "V1DOLLAR":    False,
-  # EVAL_PERL...
+  "EVAL_PYTHON": False,
 }
 
 QUOTED_ESCAPES = {"n": "\n", "r": "\r", "t": "\t"}
@@ -115,7 +115,7 @@ class Parser(base.Base):
     self.PRE_CHOMP   = CHOMP_NONE
     self.POST_CHOMP  = CHOMP_NONE
     self.V1DOLLAR    = False
-    # self.EVAL_PERL = ...
+    self.EVAL_PYTHON = False
     self.FILE_INFO   = 1
     self._ERROR      = ""
     self.INFOR = 0
@@ -357,6 +357,7 @@ class Parser(base.Base):
     text = None
     self.LINE = line
     self.FILE = info.get("name")
+    self.INPYTHON = 0
     value = None
 
     while True:

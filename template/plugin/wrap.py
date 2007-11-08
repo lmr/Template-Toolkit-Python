@@ -1,3 +1,4 @@
+import re
 import textwrap
 
 from template import plugin
@@ -6,7 +7,8 @@ from template import plugin
 def tt_wrap(text, width=72, itab="", ntab=""):
   return textwrap.fill(text, width,
                        initial_indent=itab,
-                       subsequent_indent=ntab)
+                       subsequent_indent=ntab,
+                       replace_whitespace=True)
 
 
 def wrap_filter_factory(context, *args):
