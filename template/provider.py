@@ -321,7 +321,8 @@ class Provider(base.Base):
       path = path.replace(":", "")
     compiled = "%s%s" % (path, self.COMPILE_EXT)
     if self.COMPILE_DIR:
-      compiled = os.path.join(self.COMPILED_DIR, compiled)
+      # Can't use os.path.join here; compiled may be absolute.
+      compiled = "%s%s%s" % (self.COMPILE_DIR, os.path.sep, compiled)
     return compiled
 
   def _modified(self, name, time=None):
