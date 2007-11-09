@@ -205,7 +205,8 @@ class Parser(base.Base):
         break
       text = text[match.end():]
       pre, dir = match.group(1), match.group(2)
-      prelines, dirlines = pre.count("\n"), dir.count("\n")
+      prelines = pre.count("\n")
+      dirlines = dir.count("\n")
       postlines = 0
       if dir.startswith("#"):
         # commment out entire directive except for any end chomp flag
@@ -238,7 +239,7 @@ class Parser(base.Base):
           match = re.match(r"[^\S\n]*\n", text)
           if match:
             text = text[match.end():]
-            postlines += match.group().count("\n")
+            postlines += 1
         elif chomp == CHOMP_COLLAPSE:
           match = re.match(r"\s+", text)
           if match:
@@ -273,7 +274,7 @@ class Parser(base.Base):
           else:
             line_range = str(line)
           tokens.append([dir, line_range, self.tokenise_directive(dir)])
-      line += dirlines
+      line += dirlines + postlines
 
     if text:
       if style["INTERPOLATE"]:
