@@ -17,6 +17,7 @@ STD_PLUGINS = {
   "table":     ("template.plugin.table", "Table"),
   "Table":     ("template.plugin.table", "Table"),
   "wrap":      ("template.plugin.wrap", "Wrap"),
+  "url":       ("template.plugin.url", "URL"),
 }
 
 class Plugins(base.Base):
@@ -46,9 +47,9 @@ class Plugins(base.Base):
       if callable(factory):
         plugin = factory(*args)
         if not plugin:
-          raise base.Exception("%s plugin failed" % name)
+          raise base.Exception(None, "%s plugin failed" % name)
       else:
-        raise base.Exception("%s plugin is not callable" % name)
+        raise base.Exception(None, "%s plugin is not callable" % name)
     except base.Exception, e:
       if self.TOLERANT:
         return None, constants.STATUS_DECLINED
