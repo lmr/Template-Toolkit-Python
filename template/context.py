@@ -211,8 +211,8 @@ class Context(base.Base):
     self.STASH = self.STASH.declone()
 
   def plugin(self, name, args=None):
+    args = util.unscalar_list(args)
     for provider in self.LOAD_PLUGINS:
-      args = util.unscalar_list(args)
       plugin, error = provider.fetch(name, args, self)
       if not error:
         return plugin

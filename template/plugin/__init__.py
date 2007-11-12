@@ -1,6 +1,6 @@
-from template import base
+from template.base import Base
 
-class Plugin(base.Base):
+class Plugin(Base):
   @classmethod
   def load(cls, context=None):
     return cls

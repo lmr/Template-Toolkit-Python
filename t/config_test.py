@@ -35,14 +35,14 @@ class ConfigTest(test.TestCase):
     # Plugins:
     plugins = factory.plugins({ 'PLUGIN_BASE': ('my.plugins', 'MyPlugins') })
     self.failUnless(plugins)
-    self.assertEquals([('my.plugins', 'MyPlugins'),
-                       ('template.plugin', 'Plugin')], plugins.PLUGIN_BASE)
+    self.assertEquals([('my.plugins', 'MyPlugins'), 'template.plugin'],
+                      plugins.PLUGIN_BASE)
     plugins = factory.plugins({ 'LOAD_PYTHON': True,
                                 'PLUGIN_BASE': ('my.plugins', 'NewPlugins') })
     self.failUnless(plugins)
     self.failUnless(plugins.LOAD_PYTHON)
-    self.assertEquals([('my.plugins', 'NewPlugins'),
-                       ('template.plugin', 'Plugin')], plugins.PLUGIN_BASE)
+    self.assertEquals([('my.plugins', 'NewPlugins'), 'template.plugin'],
+                      plugins.PLUGIN_BASE)
 
     # Filters:
     filters = factory.filters({ 'TOLERANT': True })

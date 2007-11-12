@@ -1,9 +1,9 @@
-import types
+from types import ClassType
 
 from template import base, constants, util
 
 
-PLUGIN_BASE = ("template.plugin", "Plugin")
+PLUGIN_BASE = "template.plugin"
 
 STD_PLUGINS = {
   "datafile":  ("template.plugin.datafile", "Datafile"),
@@ -30,14 +30,13 @@ class Plugins(base.Base):
     self.PLUGIN_BASE = pbase
     self.PLUGINS = STD_PLUGINS.copy()
     self.PLUGINS.update(plugins)
-    self.TOLERANT = params.get("TOLERANT") or False
-    self.LOAD_PYTHON = params.get("LOAD_PYTHON") or False
+    self.TOLERANT = bool(params.get("TOLERANT"))
+    self.LOAD_PYTHON = bool(params.get("LOAD_PYTHON"))
     self.FACTORY = factory or {}
     self.DEBUG = (params.get("DEBUG") or 0) & constants.DEBUG_PLUGINS
 
   def fetch(self, name, args=None, context=None):
-    if not args:
-      args = []
+    args = args or []
     args.insert(0, context)
     factory, error = self._load(name, context)
     if error:
@@ -64,19 +63,42 @@ class Plugins(base.Base):
       # plugin name is explicitly stated in PLUGIN_NAME
       module_name, class_name = impl
       try:
-        module = __import__(module_name, globals(), None, True)
-        ok = True
+        module = __import__(module_name, globals(), None, ["."])
       except Exception, e:
         error = e
-    else:
+      else:
+        ok = True
+    elif name:
       # Try each of the PLUGIN_BASE values to build module name
-      # ...Only it's not clear how this should work in Python,
-      # so we skip it for now.
-      pass
+      for pbase in self.PLUGIN_BASE:
+        module_name = "%s.%s" % (pbase, name[0].lower() + name[1:])
+        class_name = name[0].upper() + name[1:]
+        try:
+          module = __import__(module_name, globals(), None, ["."])
+        except ImportError, e:
+          pass
+        except Exception, e:
+          error = e
+        else:
+          ok = True
+          break
 
     if ok:
       try:
         factory = getattr(getattr(module, class_name), "load")(context)
+      except Exception, e:
+        error = e
+    elif self.LOAD_PYTHON:
+      dot = name.rfind(".")
+      if dot == -1:
+        module_name = class_name = name
+      else:
+        module_name = name[:dot+1] + name[dot+1].lower() + name[dot+2:]
+        class_name = name[dot+1:]
+      try:
+        module = __import__(module_name, globals(), None, ["."])
+        classobj = getattr(module, class_name)
+        factory = lambda context, *args: classobj(*args)
       except Exception, e:
         error = e
 
