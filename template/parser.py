@@ -1,5 +1,6 @@
 import re
 import sys
+from types import InstanceType
 
 from template import grammar, directive, base, util
 from template.constants import *
@@ -107,20 +108,19 @@ QUOTED_STRING = re.compile(r"""
 class Parser(base.Base):
   def __init__(self, param):
     base.Base.__init__(self)
-    self.START_TAG   = param.get("START_TAG") or DEFAULT_STYLE["START_TAG"]
-    self.END_TAG     = param.get("END_TAG")   or DEFAULT_STYLE["END_TAG"]
-    self.TAG_STYLE   = "default"
-    self.ANYCASE     = False
+    self.START_TAG = param.get("START_TAG") or DEFAULT_STYLE["START_TAG"]
+    self.END_TAG = param.get("END_TAG") or DEFAULT_STYLE["END_TAG"]
+    self.TAG_STYLE = "default"
+    self.ANYCASE = False
     self.INTERPOLATE = False
-    self.PRE_CHOMP   = CHOMP_NONE
-    self.POST_CHOMP  = CHOMP_NONE
-    self.V1DOLLAR    = False
+    self.PRE_CHOMP = CHOMP_NONE
+    self.POST_CHOMP = CHOMP_NONE
+    self.V1DOLLAR = False
     self.EVAL_PYTHON = False
-    self.FILE_INFO   = 1
-    self._ERROR      = ""
-    self.INFOR = 0
-    self.INWHILE = 0
-    self.STYLE = []
+    self.FILE_INFO = 1
+    self.GRAMMAR = None
+    self._ERROR = ""
+    self.FACTORY = directive.Directive
 
     for key in self.__dict__.keys():
       if key in param:
@@ -129,10 +129,20 @@ class Parser(base.Base):
     self.FILEINFO = []
     self.DEFBLOCKS = []
     self.DEFBLOCK_STACK = []
+    self.INFOR = 0
+    self.INWHILE = 0
+    self.STYLE = []
 
-    factory = param.get("FACTORY", directive.Directive)
-    self.GRAMMAR = grammar.Grammar()
-    self.FACTORY = factory({'NAMESPACE': param.get('NAMESPACE')})
+    if not self.GRAMMAR:
+      self.GRAMMAR = grammar.Grammar()
+
+    # Build a FACTORY object to include any NAMESPACE definitions,
+    # but only if FACTORY isn't already an object.
+    if not isinstance(self.FACTORY, InstanceType):
+      namespace = param.get("NAMESPACE")
+      if namespace:
+        self.FACTORY = self.FACTORY({ "NAMESPACE": namespace })
+
     self.LEXTABLE = self.GRAMMAR.LEXTABLE
     self.STATES = self.GRAMMAR.STATES
     self.RULES = self.GRAMMAR.RULES
@@ -175,7 +185,8 @@ class Parser(base.Base):
     line = re.sub(r"-.*", "", str(line))  # might be 'n-n'
     return '#line %s "%s"\n' % (line, file_)
 
-  def parse(self, text, info):
+  def parse(self, text, info=None):
+    info = info or {}
     self.DEFBLOCK = {}
     self.METADATA = {}
     self._ERROR = ""

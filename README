@@ -22,3 +22,5 @@ list of some of the many outstanding issues:
 
 *  Comments have been largely elided in the translation process.
 
+*  Bug in constants.t!  List context sometimes causes first arg to ok()
+   to go missing completely!

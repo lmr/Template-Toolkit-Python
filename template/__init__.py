@@ -4,6 +4,7 @@ import sys
 from template import util
 from template.base import Base
 from template.service import Service
+from template.config import Config
 
 
 DEBUG = False
@@ -19,8 +20,15 @@ class Template(Base):
     Base.__init__(self)
     if config is None:
       config = {}
-    # prepare a namespace handler for any CONSTANTS definition
-    # (later)
+    # Prepare a namespace handler for any CONSTANTS definition.
+    constants = config.get("CONSTANTS")
+    if constants:
+      if not config.get("NAMESPACE"):
+        config["NAMESPACE"] = {}
+      ns = config["NAMESPACE"]
+      cns = config.get("CONSTANTS_NAMESPACE") or "constants"
+      constants = Config.constants(constants)
+      ns[cns] = constants
     self.SERVICE = Service(config)
     self.OUTPUT = config.get("OUTPUT") or sys.stdout
     self.OUTPUT_PATH = config.get("OUTPUT_PATH")

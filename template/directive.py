@@ -103,11 +103,21 @@ class Directive:
       return "Concat(%s)" % ", ".join(items)
 
   def ident(self, ident):   # foo.bar(baz)
+    # Does the first element of the identifier have a NAMESPACE
+    # handler defined?
+    if ident and len(ident) > 2 and self.NAMESPACE:
+      key = ident[0]
+      if key.startswith("'") and key.endswith("'"):
+        key = key[1:-1]
+      ns = self.NAMESPACE.get(key)
+      if ns:
+        return ns.ident(ident)
+    return self.Ident(ident)
+
+  @classmethod
+  def Ident(cls, ident):
     if not ident:
       return "''"
-    # does the first element of the identifier have a NAMESPACE
-    # handler defined?
-    # WTF?  I'll handle this later.
     if len(ident) <= 2 and (len(ident) <= 1 or not ident[1]):
       ident = ident[0]
     else:
