@@ -1,20 +1,27 @@
 import errno
 import os
 import sys
-from template import base, service, util
+from template import util
+from template.base import Base
+from template.service import Service
 
+
+DEBUG = False
+
+BINMODE = False
 
 # Convenience alias.
 Literal = util.Literal
 
 
-class Template(base.Base):
+class Template(Base):
   def __init__(self, config=None):
+    Base.__init__(self)
     if config is None:
       config = {}
     # prepare a namespace handler for any CONSTANTS definition
     # (later)
-    self.SERVICE = service.Service(config)
+    self.SERVICE = Service(config)
     self.OUTPUT = config.get("OUTPUT") or sys.stdout
     self.OUTPUT_PATH = config.get("OUTPUT_PATH")
 
@@ -23,7 +30,12 @@ class Template(base.Base):
     in a Literal."""
     return self.process(Literal(template), *args, **kwargs)
 
-  def process(self, template, vars=None, outstream=None, **options):
+  def process(self, template, vars=None, outstream=None, options=None):
+    options = options or {}
+    if "binmode" not in options:
+      options["binmode"] = BINMODE
+    if DEBUG and options["binmode"]:
+      self.DEBUG("set binmode\n")
     output = self.SERVICE.process(template, vars)
     if output is not None:
       if outstream is None:
@@ -46,7 +58,7 @@ class Template(base.Base):
     return self.SERVICE
 
 
-def _output(where, textref, options=None):
+def _output(where, textref, options):
   error = None
   text  = textref.get()
   if callable(where):
@@ -65,7 +77,7 @@ def _output(where, textref, options=None):
       if e.errno != errno.EEXIST:
         error = e
     if not error:
-      mode = "w%s" % (options.get("binmode") and "b" or "")
+      mode = "w%s" % (options and options.get("binmode") and "b" or "")
       try:
         fp = open(where, mode)
         fp.write(text)

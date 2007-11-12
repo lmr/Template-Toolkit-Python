@@ -1,4 +1,5 @@
 import re
+import sys
 
 PyException = Exception
 
@@ -52,6 +53,11 @@ class Base:
       self._ERROR = self.__ErrorMessage(args)
     else:
       return self._ERROR
+
+  def DEBUG(self, *args):
+    sys.stderr.write("DEBUG: ")
+    for arg in args:
+      sys.stderr.write(str(arg))
 
   @classmethod
   def Error(cls, *args):
