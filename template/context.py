@@ -1,7 +1,8 @@
+import cStringIO
 import os
 import re
 import time
-import cStringIO as StringIO
+
 
 from template import stash, constants, document, provider, plugins, \
                      filters, base, util
@@ -23,10 +24,11 @@ class Context(base.Base):
     self.FILTER_CACHE = {}
     self.PREFIX_MAP = {}
     for key, value in prefix_map.items():
-      if isinstance(value, list):
+      if util.is_seq(value):
         self.PREFIX_MAP[key] = value
       elif isinstance(value, str):
-        self.PREFIX_MAP[key] = [providers[x] for x in re.split(r"\D+", value)]
+        self.PREFIX_MAP[key] = [providers[int(x)]
+                                for x in re.split(r"\D+", value)]
       else:
         self.PREFIX_MAP[key] = value
 
@@ -80,20 +82,25 @@ class Context(base.Base):
       return base.Exception("None", error, output)
 
   def insert(self, files):
-    files = util.unscalar_list(files)
+    # TODO: Clean this up; unify the way "files" is passed to this routine.
+    files = util.unscalar(files)
+    if util.is_seq(files):
+      files = util.unscalar_list(files)
+    else:
+      files = [util.unscalar(files)]
     prefix = None
     providers = None
     text = None
-    output = StringIO.StringIO()
+    output = cStringIO.StringIO()
     if not isinstance(files, list):
       files = [files]
     for f in files:  # FILE: {
       name = f
-      regex = r"\w{%d,}:" % (int(os.name == "nt") + 1)
+      regex = r"(\w{%d,}):" % (int(os.name == "nt") + 1)
       match = re.match(regex, name)
       if match:
-        prefix = match.group(0)
-        name = name[len(prefix):]
+        prefix = match.group(1)
+        name = name[len(prefix)+1:]
       if prefix:
         providers = self.PREFIX_MAP.get(prefix)
         if not providers:
@@ -141,7 +148,7 @@ class Context(base.Base):
     else:
       self.STASH.update(params)
 
-    output = StringIO.StringIO()
+    output = cStringIO.StringIO()
     error = None
     try:
       # save current component
@@ -262,10 +269,11 @@ class Context(base.Base):
           template = blocks.get(name)
           if template:
             return template
-      regex = "\w{%d,}:" % (int(os.name == "nt") + 1)
-      match = re.match(regex, name)
+      regex = "(\w{%d,}):" % (int(os.name == "nt") + 1)
+      match = re.match(regex, shortname)
       if match:
         prefix = match.group(1)
+        shortname = shortname[len(prefix)+1:]
       if prefix is not None:
         providers = self.PREFIX_MAP.get(prefix)
         if not providers:
