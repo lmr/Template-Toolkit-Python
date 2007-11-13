@@ -169,16 +169,19 @@ class PerlScalar:
       return str(self.__value)
 
   def __numify(self):
-    value = self.__value
-    if isinstance(value, (int, long, float)):
-      return value
-    match = NUMBER_RE.match(str(value))
-    if not match:
-      return 0
-    elif match.group(1) or match.group(2) or match.group(3):
-      return float(match.group(0))
-    else:
-      return long(match.group(0))
+    return numify(self.__value)
+
+
+def numify(value):
+  if isinstance(value, (int, long, float)):
+    return value
+  match = NUMBER_RE.match(str(value))
+  if not match:
+    return 0
+  elif match.group(1) or match.group(2) or match.group(3):
+    return float(match.group(0))
+  else:
+    return long(match.group(0))
 
 
 def unindent(code):
