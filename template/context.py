@@ -80,7 +80,7 @@ class Context(base.Base):
       return base.Exception("None", error, output)
 
   def insert(self, files):
-    files = util.unscalar(files)
+    files = util.unscalar_list(files)
     prefix = None
     providers = None
     text = None
