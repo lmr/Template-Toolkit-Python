@@ -139,9 +139,7 @@ class Parser(base.Base):
     # Build a FACTORY object to include any NAMESPACE definitions,
     # but only if FACTORY isn't already an object.
     if not isinstance(self.FACTORY, InstanceType):
-      namespace = param.get("NAMESPACE")
-      if namespace:
-        self.FACTORY = self.FACTORY({ "NAMESPACE": namespace })
+      self.FACTORY = self.FACTORY(param)
 
     self.LEXTABLE = self.GRAMMAR.LEXTABLE
     self.STATES = self.GRAMMAR.STATES

@@ -1,4 +1,4 @@
-import cStringIO as StringIO
+import cStringIO
 import re
 
 from template.util import *
@@ -21,8 +21,8 @@ class Code:
     return code.text()
 
   def __init__(self):
-    self.buffer = StringIO.StringIO()
-    self.depth  = 0
+    self.buffer = cStringIO.StringIO()
+    self.depth = 0
 
   def write(self, *args):
     for arg in args:
@@ -51,7 +51,6 @@ class Directive:
   def __init__(self, config):
     self.NAMESPACE = config.get("NAMESPACE")
 
-
   def template(self, block):
     if not block or block.isspace():
       return "def block(context):\n return ''\n"
@@ -72,7 +71,7 @@ class Directive:
 
   def anon_block(self, block):
     return Code.format(
-      "def _():",
+      "def block():",
       Code.indent,
         "output = Buffer()",
         "try:",
@@ -85,7 +84,7 @@ class Directive:
         "  raise error",
         "return output.get()",
       Code.unindent,
-      "_()")
+      "block()")
 
   def block(self, block=None):
     return "\n".join(block or [])
@@ -102,17 +101,17 @@ class Directive:
     else:
       return "Concat(%s)" % ", ".join(items)
 
-  def ident(self, ident):   # foo.bar(baz)
+  def ident(self, ident_):   # foo.bar(baz)
     # Does the first element of the identifier have a NAMESPACE
     # handler defined?
-    if ident and len(ident) > 2 and self.NAMESPACE:
-      key = ident[0]
+    if ident_ and len(ident_) > 2 and self.NAMESPACE:
+      key = ident_[0]
       if key.startswith("'") and key.endswith("'"):
         key = key[1:-1]
       ns = self.NAMESPACE.get(key)
       if ns:
-        return ns.ident(ident)
-    return self.Ident(ident)
+        return ns.ident(ident_)
+    return self.Ident(ident_)
 
   @classmethod
   def Ident(cls, ident):
@@ -226,7 +225,7 @@ class Directive:
                   " stash.get(['import', [value]])")
       loop_restore = "stash = context.delocalise()"
     return Code.format(
-      "def _(stash):",
+      "def block(stash):",
       Code.indent,
         "oldloop = None",
         "loop = Iterator(%s)" % list,
@@ -252,7 +251,7 @@ class Directive:
           loop_restore,
         Code.unindent,
       Code.unindent,
-      "_(stash)")
+      "block(stash)")
 
   def next(self, *args):
     return "raise Continue"
@@ -266,18 +265,18 @@ class Directive:
     hash.append("('content', output.get())")
     file += ", Dict(%s)" % ", ".join(hash)
     return Code.format(
-      "def _():",
+      "def block():",
       Code.indent,
         "output = Buffer()",
         block,
         "return context.include(%s)" % file,
       Code.unindent,
-      "output.write(_())")
+      "output.write(block())")
 
   def multi_wrapper(self, file, hash, block):
     hash.append("('content', output.get())")
     return Code.format(
-      "def _():",
+      "def block():",
       Code.indent,
         "output = Buffer()",
         block,
@@ -285,11 +284,11 @@ class Directive:
         " output.reset(context.include(file, Dict(%s)))" % ", ".join(hash),
         "return output.get()",
       Code.unindent,
-      "output.write(_())")
+      "output.write(block())")
 
   def while_(self, expr, block):  # [% WHILE x < 10 %] ... [% END %]
     return Code.format(
-      "def _():",
+      "def block():",
       Code.indent,
         "failsafe = %d" % (WHILE_MAX - 1),
         "while failsafe and (%s):" % expr,
@@ -308,11 +307,11 @@ class Directive:
         " raise Error(None, 'WHILE loop terminated (> %d iterations)')"
           % WHILE_MAX,
       Code.unindent,
-      "_()")
+      "block()")
 
   def switch(self, expr, cases):  # [% SWITCH %] [% CASE foo %] ... [% END %]
     code = Code()
-    code.write("def _():",
+    code.write("def block():",
                code.indent,
                  "result = Regex(str(%s) + '$')" % expr)
     default = cases.pop()
@@ -327,7 +326,7 @@ class Directive:
                  code.unindent)
     if default is not None:
       code.write(default)
-    code.write(code.unindent, "_()")
+    code.write(code.unindent, "block()")
     return code.text()
 
   def try_(self, block, catches):  # [% TRY %] ... [% CATCH %] ... [% END %]
@@ -358,7 +357,7 @@ class Directive:
     handlers = ", ".join(handlers)
 
     return Code.format(
-      "def _():",
+      "def block():",
       Code.indent,
         "output = Buffer()",
         "error = None",
@@ -385,7 +384,7 @@ class Directive:
         " raise error",
         "return output.get()",
       Code.unindent,
-      "output.write(_())")
+      "output.write(block())")
 
   def throw(self, nameargs):  # [% THROW foo "bar error" %]
     type_, args = nameargs
@@ -438,13 +437,13 @@ class Directive:
     return Code.format(
       "if not context.eval_python():",
       " context.throw('python', 'EVAL_PYTHON not set')",
-      "def _():",
+      "def block():",
       Code.indent,
         "output = Buffer()",
         block,
         "return Evaluate(output.get(), context, stash)",
       Code.unindent,
-      "output.write(_())")
+      "output.write(block())")
 
   def no_python(self):
     return "context.throw('python', 'EVAL_PYTHON not set')"
@@ -466,7 +465,7 @@ class Directive:
     if args:
       name += ", %s" % args
     return Code.format(
-      "def _():",
+      "def block():",
       Code.indent,
         "output = Buffer()",
         "filter = context.filter(%s) or "
@@ -474,7 +473,7 @@ class Directive:
         block,
         "return filter(output.get())",
       Code.unindent,
-      "output.write(_())")
+      "output.write(block())")
 
   def capture(self, name, block):
     if isinstance(name, list):
@@ -483,30 +482,28 @@ class Directive:
       else:
         name = "[" + ", ".join(name) + "]"
     return Code.format(
-      "def _():",
+      "def block():",
       Code.indent,
         "output = Buffer()",
         block,
         "return output.get()",
       Code.unindent,
-      "stash.set(%s, _())" % name)
+      "stash.set(%s, block())" % name)
 
   def macro(self, ident, block, args=None):
     code = Code()
     if args:
-      nargs = len(args)
-      proto = ", ".join("arg%d=None" % i for i in range(1, nargs + 1))
-      formal = ", ".join("arg%d" % i for i in range(1, nargs + 1))
-      argstr = ", ".join("'%s'" % x for x in args)
+      proto = ("arg%d=None" % n for n in range(len(args)))
+      params = ("%r: arg%d" % (arg, n) for n, arg in enumerate(args))
       code.write(
-        "def _(%s, extra=None):" % proto,
+        "def block(%s, extra=None):" % ", ".join(proto),
         code.indent,
-          "params = dict(zip((%s,), (%s,)))" % (argstr, formal),
+          "params = { %s }" % ", ".join(params),
           "if extra:",
           " params.update(extra)")
     else:
       code.write(
-        "def _(params=None):",
+        "def block(params=None):",
         code.indent,
           "if params is None:",
           " params = {}")
@@ -520,5 +517,5 @@ class Directive:
       "finally:",
       " stash = context.delocalise()",
       "return output.get()")
-    code.write(code.unindent, "stash.set('%s', _)" % ident)
+    code.write(code.unindent, "stash.set(%r, block)" % str(ident))
     return code.text()

@@ -9,7 +9,6 @@ class DirectoryTest(test.TestCase):
              'dir': 'test/dir',
              'dot': '../..' }
     self.Expect(DATA, None, vars)
-    
 
 # The final test is commented out, due to lack of VIEW support.
 

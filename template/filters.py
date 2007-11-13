@@ -54,15 +54,15 @@ def collapse(text):
 # Dynamic filter factories:
 
 def html_entity_filter_factory(context):
-  try:
-    import htmlentitydefs
-  except:
-    return None, base.Exception("html_entity", "cannot import htmlentitydefs")
+  from htmlentitydefs import codepoint2name
   def encode(char):
-    return (htmlentitydefs.codepoint2name.get(char)
-            or "%%%02X" % char)
+    name = codepoint2name.get(char)
+    if name is not None:
+      return "&%s;" % name
+    else:
+      return "%%%02X" % char
   def filter(text=""):
-    return re.sub(r"[^\n\r\t !\#\$%\'-;=?-~]",
+    return re.sub(r"[^\n\r\t !#$%'-;=?-~]",
                   lambda m: encode(ord(m.group(0))), text)
   return filter
 
