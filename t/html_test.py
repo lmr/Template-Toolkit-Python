@@ -1,10 +1,12 @@
 # coding: latin-1
+import os
+
 from template.test import TestCase, main
 
 
 class HtmlTest(TestCase):
   def testHtml(self):
-    cfg= { "INCLUDE_PATH": "../templates/html" }
+    cfg = { "INCLUDE_PATH": os.path.join(os.pardir, "templates", "html") }
     vars = { "entities": True }
     self.Expect(DATA, cfg, vars)
 

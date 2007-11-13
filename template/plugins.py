@@ -12,6 +12,7 @@ STD_PLUGINS = {
   "file":      ("template.plugin.file", "File"),
   "format":    ("template.plugin.format", "Format"),
   "html":      ("template.plugin.html", "Html"),
+  "image":     ("template.plugin.image", "Image"),
   "iterator":  ("template.plugin.iterator", "Iterator"),
   "math":      ("template.plugin.math", "Math"),
   "string":    ("template.plugin.string", "String"),
