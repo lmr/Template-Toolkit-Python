@@ -1,7 +1,7 @@
-from template import test
+from template.test import TestCase, main
 
 
-class DatafileTest(test.TestCase):
+class DatafileTest(TestCase):
   def testDatafile(self):
     params = { 'datafile': [ 'test/lib/udata1', 'test/lib/udata2' ] }
     self.Expect(DATA, { 'INTERPOLATE': True, 'POST_CHOMP': 1 }, params)
@@ -41,4 +41,4 @@ size: 3
 
 """
 
-test.main()
+main()

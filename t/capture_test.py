@@ -1,6 +1,6 @@
-from template import test
+from template.test import TestCase, main
 
-class CaptureTest(test.TestCase):
+class CaptureTest(TestCase):
   def testCapture(self):
     config = { 'POST_CHOMP': 1 }
     replace = { 'a': 'alpha', 'b': 'bravo' }
@@ -66,4 +66,4 @@ name: larry
 
 """
 
-test.main()
+main()

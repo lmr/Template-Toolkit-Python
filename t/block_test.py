@@ -1,6 +1,6 @@
-from template import test
+from template.test import TestCase, main
 
-class BlockTest(test.TestCase):
+class BlockTest(TestCase):
   def testBlock(self):
     ttcfg = {
       'INCLUDE_PATH': [ 'test/lib' ],
@@ -103,5 +103,5 @@ This is an anonymous block
 
 """
 
-test.main()
+main()
 

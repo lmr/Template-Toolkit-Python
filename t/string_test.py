@@ -1,7 +1,7 @@
-from template import test
+from template.test import TestCase, main
 
 
-class StringTest(test.TestCase):
+class StringTest(TestCase):
   def testString(self):
     self.Expect(DATA)
 
@@ -385,4 +385,4 @@ d: FOO wiz waz woz
 
 """
 
-test.main()
+main()

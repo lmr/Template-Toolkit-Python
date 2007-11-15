@@ -1,7 +1,7 @@
-from template import test
+from template.test import TestCase, main
 
 
-class SwitchTest(test.TestCase):
+class SwitchTest(TestCase):
   def testSwitch(self):
     ttcfg = { 'POST_CHOMP': 1 }
     self.Expect(DATA, ttcfg, self._callsign())
@@ -253,9 +253,4 @@ after
 
 """
 
-test.main()
-
-
-
-
-
+main()

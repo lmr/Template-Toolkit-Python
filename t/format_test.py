@@ -1,7 +1,7 @@
-from template import test
+from template.test import TestCase, main
 
 
-class FormatTest(test.TestCase):
+class FormatTest(TestCase):
   def testFormat(self):
     params = { 'a': 'alpha',
                'b': 'bravo',
@@ -56,4 +56,4 @@ alpha     -     bravo
 
 """
 
-test.main()
+main()

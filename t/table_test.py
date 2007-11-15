@@ -1,9 +1,9 @@
 import string
 
-from template import test
+from template.test import TestCase, main
 
 
-class TableTest(test.TestCase):
+class TableTest(TestCase):
   def testTable(self):
     params = { "alphabet": [ c for c in string.lowercase ], "empty": [ ] }
     self.Expect(DATA, { 'POST_CHOMP': 1 }, params)
@@ -130,5 +130,5 @@ item: [% item -%]
 <
 """
 
-test.main()
+main()
 

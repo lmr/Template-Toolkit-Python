@@ -1,13 +1,13 @@
-import template
-from template import test
+from template import Template
+from template.test import TestCase, main
 
-class DirectiveTest(test.TestCase):
+
+class DirectiveTest(TestCase):
   def testDirectives(self):
-    ttobjs = (('tt', template.Template()),
-              ('pre', template.Template({ 'PRE_CHOMP': 1 })),
-              ('post', template.Template({ 'POST_CHOMP': 1 })),
-              ('trim', template.Template({ 'INCLUDE_PATH': 'test/lib',
-                                           'TRIM': 1 })))
+    ttobjs = (('tt', Template()),
+              ('pre', Template({ 'PRE_CHOMP': 1 })),
+              ('post', Template({ 'POST_CHOMP': 1 })),
+              ('trim', Template({ 'INCLUDE_PATH': 'test/lib', 'TRIM': 1 })))
     self.Expect(DATA, ttobjs, self._callsign())
 
 
@@ -358,4 +358,4 @@ bravo
 
 """
 
-test.main()
+main()

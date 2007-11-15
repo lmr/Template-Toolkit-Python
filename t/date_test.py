@@ -2,8 +2,9 @@ import locale as Locale
 import re
 import time as Time
 
-from template import base, test
+from template.base import TemplateException
 from template.plugin import date as date_plugin
+from template.test import TestCase, main
 
 
 def time_locale(time, format, locale):
@@ -28,7 +29,7 @@ def time_locale(time, format, locale):
 def date_locale(time, format, locale):
   date = re.split(r"[-/ :]", time)
   if len(date) < 6:
-    return None, base.Exception(
+    return None, TemplateException(
       "date", "bad time/date string:  expects 'h:m:s d:m:y'  got: '%s'"
       % time)
   date = [str(int(x)) for x in date[:6]]
@@ -36,7 +37,7 @@ def date_locale(time, format, locale):
   return time_locale(date, format, locale)
 
 
-class DateTest(test.TestCase):
+class DateTest(TestCase):
   def testDate(self):
     format = { "default": date_plugin.FORMAT,
                "time": "%H:%M:%S",
@@ -204,4 +205,4 @@ not testing
 
 """
 
-test.main()
+main()

@@ -1,13 +1,13 @@
-import template
-from template import document, test
-from template.plugin import table
+from template import document, Template
+from template.test import TestCase, main
+from template.plugin.table import Table
 
 
-class ContextTest(test.TestCase):
+class ContextTest(TestCase):
   def testContext(self):
-    tt = template.Template({ 'INCLUDE_PATH': 'test/src:test/lib',
-                             'TRIM': True,
-                             'POST_CHOMP': True })
+    tt = Template({ 'INCLUDE_PATH': 'test/src:test/lib',
+                    'TRIM': True,
+                    'POST_CHOMP': 1 })
     ttperl = tt
 
     context = tt.service().context()
@@ -88,7 +88,7 @@ class ContextTest(test.TestCase):
 
     plugin = context.plugin('Table', [ [ 1, 2, 3, 4 ], { 'rows': 2 } ])
     self.failUnless(plugin)
-    self.failUnless(isinstance(plugin, table.Table))
+    self.failUnless(isinstance(plugin, Table))
 
     row = plugin.row(0)
     self.failUnless(row and isinstance(row, list))
@@ -144,4 +144,4 @@ class ContextTest(test.TestCase):
     self.assertEquals('charlie', stash.get('a').value())
 
 
-test.main()
+main()

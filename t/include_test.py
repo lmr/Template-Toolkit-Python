@@ -1,37 +1,36 @@
 import os
-import template
-from template import test, util
+
+from template import Template
+from template.test import TestCase, main
 
 
-class IncludeTest(test.TestCase):
+class IncludeTest(TestCase):
   def testInclude(self):
     callsign = self._callsign()
-    replace = { 'a': callsign['a'],
-                'b': callsign['b'],
-                'c': { 'd': callsign['d'],
-                       'e': callsign['e'],
-                       'f': { 'g': callsign['g'],
-                              'h': callsign['h'] } },
-                'r': callsign['r'],
-                's': callsign['s'],
-                't': callsign['t'] }
-    tproc = template.Template({ 'INTERPOLATE': True,
-                                'INCLUDE_PATH': 'test/src:test/lib',
-                                'TRIM': True,
-                                'AUTO_RESET': False,
-                                'DEFAULT': 'default' })
-    incpath = [ 'test/src', '/nowhere' ]
-    tt_reset = template.Template({ 'INTERPOLATE': True,
-                                   'INCLUDE_PATH': incpath,
-                                   'TRIM': True,
-                                   'RECURSION': True,
-                                   'DEFAULT': 'bad_default' })
-    incpath[1] = 'test/lib'
+    replace = { "a": callsign["a"],
+                "b": callsign["b"],
+                "c": { "d": callsign["d"],
+                       "e": callsign["e"],
+                       "f": { "g": callsign["g"],
+                              "h": callsign["h"] } },
+                "r": callsign["r"],
+                "s": callsign["s"],
+                "t": callsign["t"] }
+    tproc = Template({ "INTERPOLATE": True,
+                       "INCLUDE_PATH": "test/src:test/lib",
+                       "TRIM": True,
+                       "AUTO_RESET": False,
+                       "DEFAULT": "default" })
+    incpath = [ "test/src", "/nowhere" ]
+    tt_reset = Template({ "INTERPOLATE": True,
+                          "INCLUDE_PATH": incpath,
+                          "TRIM": True,
+                          "RECURSION": True,
+                          "DEFAULT": "bad_default" })
+    incpath[1] = "test/lib"
 
-    output = util.Reference("")
-    tproc.process('metadata', replace, output)
-    replace['metaout'] = output.get()
-    replace['metamod'] = os.stat('test/src/metadata')[9]
+    replace["metaout"] = tproc.process("metadata", replace)
+    replace["metamod"] = os.stat("test/src/metadata")[9]
 
     self.Expect(DATA, (('default', tproc), ('reset', tt_reset)), replace)
 
@@ -256,5 +255,5 @@ import()
 -- test --
 """
 
-test.main()
+main()
 

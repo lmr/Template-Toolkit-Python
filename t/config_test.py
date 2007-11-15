@@ -1,9 +1,11 @@
-from template import config, test, util
+from template.config import Config
+from template.test import TestCase, main
+from template.util import Literal
 
 
-class ConfigTest(test.TestCase):
+class ConfigTest(TestCase):
   def testConfig(self):
-    factory = config.Config
+    factory = Config
 
     # Parser:
     parser = factory.parser({ 'PRE_CHOMP': 1, 'INTERPOLATE': True })
@@ -28,7 +30,7 @@ class ConfigTest(test.TestCase):
     # Force the provider to instantiate a parser and check it uses the
     # correct parameters.
     text = 'The cat sat on the mat'
-    self.failUnless(provider.fetch(util.Literal(text)))
+    self.failUnless(provider.fetch(Literal(text)))
     self.failUnless(provider.PARSER.ANYCASE)
     self.failUnless(provider.PARSER.INTERPOLATE)
 
@@ -95,4 +97,4 @@ class ConfigTest(test.TestCase):
     # (later)
 
 
-test.main()
+main()

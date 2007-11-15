@@ -1,12 +1,12 @@
-import template
-from template import test
+from template import Template
+from template.test import TestCase, main
 
 
 def format(fmt="%s"):
   return lambda x: fmt % x
 
 
-class ForeachTest(test.TestCase):
+class ForeachTest(TestCase):
   def testForeach(self):
     a = 'alpha'
     b = 'bravo'
@@ -60,11 +60,11 @@ class ForeachTest(test.TestCase):
         'four': 'Section Four' },
       'nested': [ [ 'a', 'b', 'c' ], [ 'x', 'y', 'z' ] ]
       }
-    tmpl = template.Template({ 'INTERPOLATE': True,
-                               'POST_CHOMP': 1,
-                               'ANYCASE': False })
-    ttdebug = template.Template({ 'DEBUG': True,
-                                  'DEBUG_FORMAT': '' })
+    tmpl = Template({ 'INTERPOLATE': True,
+                      'POST_CHOMP': 1,
+                      'ANYCASE': False })
+    ttdebug = Template({ 'DEBUG': True,
+                         'DEBUG_FORMAT': '' })
     self.Expect(DATA, (('default', tmpl), ('debug', ttdebug)), params)
 
 DATA = r"""
@@ -597,5 +597,5 @@ last outer
 13
 """
 
-test.main()
+main()
 

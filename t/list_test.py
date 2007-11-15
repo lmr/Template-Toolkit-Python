@@ -1,6 +1,7 @@
-from template import test
+from template.test import TestCase, main
 
-class ListTest(test.TestCase):
+
+class ListTest(TestCase):
   def testList(self):
     callsign = self._callsign()
     vars = {
@@ -18,6 +19,7 @@ class ListTest(test.TestCase):
     for char in "abcde":
       vars[char] = callsign[char]
     self.Expect(DATA, {}, vars)
+
 
 DATA = r"""
 
@@ -162,4 +164,4 @@ romeo, sierra, foxtrot
 romeo
 """
 
-test.main()
+main()

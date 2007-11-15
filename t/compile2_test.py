@@ -15,9 +15,8 @@ class CompileTest(TestCase):
     self.assert_(os.path.exists("test/src/complex.ttc"))
 
     # Ensure template metadata is saved in compiled file.
-    ref = Reference("")
-    Template(ttcfg).process("baz", { "showname": 1 }, ref)
-    self.assert_(ref.value.find("name: baz") != -1)
+    output = Template(ttcfg).process("baz", { "showname": 1 })
+    self.assertNotEqual(-1, output.find("name: baz"))
 
     # We're going to hack on the foo.ttc file to change some key text.
     # This way we can tell that the template was loaded from the compiled

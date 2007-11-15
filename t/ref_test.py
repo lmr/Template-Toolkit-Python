@@ -1,4 +1,4 @@
-from template import test
+from template.test import TestCase, main
 
 
 def comma_list(format):
@@ -7,7 +7,7 @@ def comma_list(format):
   return func
 
 
-class RefTest(test.TestCase):
+class RefTest(TestCase):
   def testRef(self):
     replace = {
       "a": comma_list("a sub [%s]"),
@@ -71,5 +71,5 @@ f(11): nsub [11]
 
 """
 
-test.main()
+main()
 

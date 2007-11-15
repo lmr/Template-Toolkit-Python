@@ -137,6 +137,11 @@ class Context(base.Base):
   def include(self, template, params=None):
     return self.process(template, params, True)
 
+  def view(self, *args, **kwargs):
+    """Create a new View object bound to this context."""
+    from template.view import View
+    return View(self, *args, **kwargs)
+
   def process(self, template, params=None, localize=False):
     template = util.listify(util.unscalar(template))
     params = util.unscalar(params)

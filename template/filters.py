@@ -1,3 +1,5 @@
+import errno
+import os
 import re
 import sys
 
@@ -137,10 +139,19 @@ def redirect_filter_factory(context, file, options=None):
     outpath = context.config().get("OUTPUT_PATH")
     if not outpath:
       return ""
-    outpath += "/" + str(file)
-    error = template._output(outpath, util.Reference(text), options)
-    if error:
-      raise base.Exception("redirect", error)
+    try:
+      try:
+        os.makedirs(outpath)
+      except OSError, e:
+        if e.errno != errno.EEXIST:
+          raise
+      outpath += "/" + str(file)
+      mode = "w%s" % (options.get("binmode") and "b" or "")
+      fh = open(outpath, mode)
+      fh.write(text)
+      fh.close()
+    except Exception, e:
+      raise base.Exception("redirect", e)
     return ""
   return redirect
 

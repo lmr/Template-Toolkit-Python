@@ -1,21 +1,21 @@
-import template
-from template import test
+from template import Template
+from template.test import TestCase, main
 
 
-class ProcessTest(test.TestCase):
+class ProcessTest(TestCase):
   def testProcess(self):
     config = { "INCLUDE_PATH": "test/src:test/lib",
                "PROCESS": "content",
                "TRIM": 1 }
-    tt1 = template.Template(config)
+    tt1 = Template(config)
     config["PRE_PROCESS"] = "config"
     config["PROCESS"] = "header:content"
     config["POST_PROCESS"] = "footer"
     config["TRIM"] = 0
-    tt2 = template.Template(config)
+    tt2 = Template(config)
     config["PRE_PROCESS"] = "config:header.tt2"
     config["PROCESS"] = ""
-    tt3 = template.Template(config)
+    tt3 = Template(config)
     replace = { "title": "Joe Random Title" }
     self.Expect(DATA, (("tt1", tt1), ("tt2", tt2), ("tt3", tt3)), replace)
 
@@ -62,5 +62,5 @@ footer
 
 """
 
-test.main()
+main()
 

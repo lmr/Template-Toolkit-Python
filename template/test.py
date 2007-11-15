@@ -1,7 +1,7 @@
 import re
 import unittest
 
-import template
+from template import Template, TemplateException
 from template import util
 
 main = unittest.main
@@ -34,12 +34,12 @@ class TestCase(unittest.TestCase):
       tests.pop(0)
     ttprocs = None
     if isinstance(tproc, dict):
-      tproc = template.Template(tproc)
+      tproc = Template(tproc)
     elif isinstance(tproc, (tuple, list)):
       ttprocs = dict(tproc)
       tproc = tproc[0][1]
-    elif not isinstance(tproc, template.Template):
-      tproc = template.Template()
+    elif not isinstance(tproc, Template):
+      tproc = Template()
     for count, test in enumerate(tests):
       match = re.search(r"(?mi)^\s*-- name:? (.*?) --\s*\n", test)
       if match:
@@ -61,19 +61,22 @@ class TestCase(unittest.TestCase):
         else:
           self.fail("no such template object to use: %s\n" % ttname)
         input = input[:match.start()] + input[match.end():]
-      out = util.Reference("")
-      if not tproc.processString(input, vars, out):
-        self.fail("Test #%d: %s process FAILED: %s\n%s" %
-                  (count + 1, name, subtext(input), tproc.error()))
+
+      try:
+        out = tproc.processString(input, vars)
+      except TemplateException, e:
+        self.fail("Test #%d: %s process FAILED: %s\n%s" % (
+          count + 1, name, subtext(input), e))
+
       match = re.match(r"(?i)\s*--+\s*process\s*--+\s*\n", expect)
       if match:
-        out2 = util.Reference("")
         expect = expect[match.end():]
-        if not tproc.processString(expect, vars, out2):
+        try:
+          expect = tproc.processString(expect, vars)
+        except TemplateException, e:
           self.fail("Test #%d: Template process failed (expect): %s" % (
-            count + 1, tproc.error()))
-        expect = out2.get()
-      out = out.get().rstrip("\n")
+            count + 1, e))
+      out = out.rstrip("\n")
       stripped = expect.rstrip("\n")
       self.assertEqual(stripped, out, "Test #%d:\n%s\n%r != %r" %
                        (count + 1, test, stripped, out))

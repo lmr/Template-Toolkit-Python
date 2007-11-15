@@ -1,11 +1,13 @@
-from template import constants, iterator, test
+from template import constants
+from template.iterator import Iterator
+from template.test import TestCase, main
 
 
-class IteratorTest(test.TestCase):
+class IteratorTest(TestCase):
   def testIterator(self):
     data = ("foo", "bar", "baz", "qux", "wiz", "woz", "waz")
     vars = { "data": data }
-    i1 = iterator.Iterator(data)
+    i1 = Iterator(data)
     self.assertEquals("foo", i1.get_first())
     self.assertEquals("bar", i1.get_next())
     self.assertEquals("baz", i1.get_next())
@@ -109,4 +111,4 @@ bar<-[baz]->qux
 baz<-[qux]
 """
 
-test.main()
+main()

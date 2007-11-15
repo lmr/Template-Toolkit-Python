@@ -1,6 +1,7 @@
-import template
-from template import test, util
+from template import util, Template
+from template.test import TestCase, main
 from template.constants import *
+
 
 foo = "\n[% foo %]\n"
 bar = "\n[%- bar -%]\n"
@@ -13,14 +14,13 @@ blocks = {"foo": foo, "bar": bar, "baz": baz,
 vars = {'foo': 3.14, 'bar': 2.718, 'baz': 1.618,
         'ding': 'Hello', 'dong': 'World'}
 
-class ChompTest(test.TestCase):
+
+class ChompTest(TestCase):
   def AssertExpectedOutput(self, tmpl, block, vars, expected):
-    out = util.Reference("")
-    self.failUnless(tmpl.process(block, vars, out))
-    self.assertEquals(expected, out.value)
-    
+    self.assertEquals(expected, tmpl.process(block, vars))
+
   def testNoChomp(self):
-    tmpl = template.Template({ "BLOCKS": blocks })
+    tmpl = Template({ "BLOCKS": blocks })
     self.AssertExpectedOutput(tmpl, "foo", vars, "\n3.14\n")
     self.AssertExpectedOutput(tmpl, "bar", vars, "2.718")
     self.AssertExpectedOutput(tmpl, "baz", vars, "\n1.618\n")
@@ -29,7 +29,7 @@ class ChompTest(test.TestCase):
     self.AssertExpectedOutput(tmpl, "dang", vars, "Hello!")
 
   def testPreChomp(self):
-    tmpl = template.Template({ "PRE_CHOMP": 1, "BLOCKS": blocks })
+    tmpl = Template({ "PRE_CHOMP": 1, "BLOCKS": blocks })
     self.AssertExpectedOutput(tmpl, "foo", vars, "3.14\n")
     self.AssertExpectedOutput(tmpl, "bar", vars, "2.718")
     self.AssertExpectedOutput(tmpl, "baz", vars, "\n1.618\n")
@@ -37,7 +37,7 @@ class ChompTest(test.TestCase):
     self.AssertExpectedOutput(tmpl, "dong", vars, "! World !")
 
   def testPostChomp(self):
-    tmpl = template.Template({ 'POST_CHOMP': 1, 'BLOCKS': blocks })
+    tmpl = Template({ 'POST_CHOMP': 1, 'BLOCKS': blocks })
     self.AssertExpectedOutput(tmpl, "foo", vars, "\n3.14")
     self.AssertExpectedOutput(tmpl, "bar", vars, "2.718")
     self.AssertExpectedOutput(tmpl, "baz", vars, "\n1.618\n")
@@ -45,14 +45,14 @@ class ChompTest(test.TestCase):
     self.AssertExpectedOutput(tmpl, "dong", vars, "! World !")
 
   def testChomp(self):
-    tt = (('tt_pre_none', template.Template({ 'PRE_CHOMP': CHOMP_NONE })),
-          ('tt_pre_one', template.Template({ 'PRE_CHOMP': CHOMP_ONE })),
-          ('tt_pre_all', template.Template({ 'PRE_CHOMP': CHOMP_ALL })),
-          ('tt_pre_coll', template.Template({ 'PRE_CHOMP': CHOMP_COLLAPSE })),
-          ('tt_post_none', template.Template({ 'POST_CHOMP': CHOMP_NONE })),
-          ('tt_post_one', template.Template({ 'POST_CHOMP': CHOMP_ONE })),
-          ('tt_post_all', template.Template({ 'POST_CHOMP': CHOMP_ALL })),
-          ('tt_post_coll', template.Template({ 'POST_CHOMP': CHOMP_COLLAPSE })))
+    tt = (('tt_pre_none', Template({ 'PRE_CHOMP': CHOMP_NONE })),
+          ('tt_pre_one', Template({ 'PRE_CHOMP': CHOMP_ONE })),
+          ('tt_pre_all', Template({ 'PRE_CHOMP': CHOMP_ALL })),
+          ('tt_pre_coll', Template({ 'PRE_CHOMP': CHOMP_COLLAPSE })),
+          ('tt_post_none', Template({ 'POST_CHOMP': CHOMP_NONE })),
+          ('tt_post_one', Template({ 'POST_CHOMP': CHOMP_ONE })),
+          ('tt_post_all', Template({ 'POST_CHOMP': CHOMP_ALL })),
+          ('tt_post_coll', Template({ 'POST_CHOMP': CHOMP_COLLAPSE })))
     self.Expect(DATA, tt)
 
 
@@ -171,4 +171,4 @@ begin 10 20 end
 
 """
 
-test.main()
+main()

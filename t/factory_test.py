@@ -1,16 +1,17 @@
-from template import directive, test
+from template.directive import Directive
+from template.test import TestCase, main
 
 
-class MyDirective(directive.Directive):
+class MyDirective(Directive):
   constants = { 'pi': 3.14, 'e': 2.718 }
   def ident(self, ident):
     if isinstance(ident, (tuple, list)) and ident[0] == "'constant'":
       key = ident[2].replace("'", "")
       return self.constants.get(key, "")
-    return directive.Directive.ident(self, ident)
+    return Directive.ident(self, ident)
 
 
-class FactoryTest(test.TestCase):
+class FactoryTest(TestCase):
   def testFactory(self):
     cfg = { 'FACTORY': MyDirective }
     vars = { 'foo': { 'bar': 'Place to purchase drinks',
@@ -30,4 +31,4 @@ Place to purchase drinks
 3.14
 """
 
-test.main()
+main()

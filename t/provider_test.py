@@ -1,8 +1,9 @@
 import os
 import time
 
-import template
-from template import config, constants, provider, test
+from template import constants, provider, Template
+from template.config import Config
+from template.test import TestCase, main
 
 # To test the $MAX_DIRS runaway limit:
 provider.MAX_DIRS = 42
@@ -31,7 +32,7 @@ class DynamicPaths:
     return list(self.__paths)
 
 
-class ProviderTest(test.TestCase):
+class ProviderTest(TestCase):
   def testProvider(self):
     dir = "test/src"
     lib = "test/lib"
@@ -60,12 +61,12 @@ class ProviderTest(test.TestCase):
     # to work fetching some files and check they respond as expected
     #------------------------------------------------------------------------
 
-    parser = config.Config.parser({"POST_CHOMP": 1})
-    provinc = config.Config.provider(
+    parser = Config.parser({"POST_CHOMP": 1})
+    provinc = Config.provider(
       { "INCLUDE_PATH": dir, "PARSER": parser, "TOLERANT": 1 })
-    provabs = config.Config.provider(
+    provabs = Config.provider(
       { "ABSOLUTE": 1, "PARSER": parser })
-    provrel = config.Config.provider(
+    provrel = Config.provider(
       { "RELATIVE": 1, "PARSER": parser })
     self.assert_(provinc.PARSER is provabs.PARSER)
     self.assert_(provabs.PARSER is provrel.PARSER)
@@ -85,9 +86,9 @@ class ProviderTest(test.TestCase):
     # we can pass to text_expect() to do some template driven testing
     #------------------------------------------------------------------------
 
-    ttinc = template.Template({ "LOAD_TEMPLATES": [provinc] })
-    ttabs = template.Template({ "LOAD_TEMPLATES": [provabs] })
-    ttrel = template.Template({ "LOAD_TEMPLATES": [provrel] })
+    ttinc = Template({ "LOAD_TEMPLATES": [provinc] })
+    ttabs = Template({ "LOAD_TEMPLATES": [provabs] })
+    ttrel = Template({ "LOAD_TEMPLATES": [provrel] })
 
     def dpaths():
       return [os.path.join(lib, x) for x in "one", "two"]
@@ -95,14 +96,12 @@ class ProviderTest(test.TestCase):
     def badpaths():
       return [badpaths]
 
-    ttd1 = template.Template(
-      { "INCLUDE_PATH": [dpaths, dir], "PARSER": parser })
-    ttd2 = template.Template(
+    ttd1 = Template({ "INCLUDE_PATH": [dpaths, dir], "PARSER": parser })
+    ttd2 = Template(
       { "INCLUDE_PATH": [DynamicPaths(os.path.join(lib, "two"),
                                       os.path.join(lib, "one")), dir],
         "PARSER": parser })
-    ttd3 = template.Template(
-      { "INCLUDE_PATH": [ badpaths ], "PARSER": parser })
+    ttd3 = Template({ "INCLUDE_PATH": [ badpaths ], "PARSER": parser })
     uselist = (("ttinc", ttinc),
                ("ttabs", ttabs),
                ("ttrel", ttrel),
@@ -282,4 +281,4 @@ bar: This is two/bar
 file error - INCLUDE_PATH exceeds 42 directories
 """
 
-test.main()
+main()

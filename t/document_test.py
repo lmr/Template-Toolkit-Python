@@ -1,5 +1,6 @@
-import template
-from template import document, test
+from template import Template
+from template.document import Document
+from template.test import TestCase, main
 
 
 #  Define a dummy object for runtime processing
@@ -10,10 +11,10 @@ class DummyContext:
     pass
 
 
-class DocumentTest(test.TestCase):
+class DocumentTest(TestCase):
   def testDocument(self):
     # Create a document and check accessor methods for blocks and metadata
-    doc = document.Document(
+    doc = Document(
       { 'BLOCK': lambda *_: 'some output',
         'DEFBLOCKS': { 'foo': lambda *_: 'the foo block',
                        'bar': lambda *_: 'the bar block' },
@@ -31,7 +32,7 @@ class DocumentTest(test.TestCase):
     self.assertEquals('the foo block', doc.blocks()['foo']())
     self.assertEquals('the bar block', doc.blocks()['bar']())
 
-    tproc = template.Template({ 'INCLUDE_PATH': 'test/src' })
+    tproc = Template({ 'INCLUDE_PATH': 'test/src' })
     self.Expect(DATA, tproc, { 'mydoc': doc })
 
 DATA = r"""
@@ -116,4 +117,4 @@ one, three
 two, three
 """
 
-test.main()
+main()

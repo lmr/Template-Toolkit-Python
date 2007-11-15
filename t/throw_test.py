@@ -1,7 +1,7 @@
-from template import test
+from template.test import TestCase, main
 
 
-class ThrowTest(test.TestCase):
+class ThrowTest(TestCase):
   def testThrow(self):
     self.Expect(DATA, None)
 
@@ -79,4 +79,4 @@ foo: pi=3.14  e=2.718
 
 """
 
-test.main()
+main()

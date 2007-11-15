@@ -1,7 +1,8 @@
-from template import base, test
+from template.test import TestCase, main
+from template.base import Base
 
 
-class MyObj(base.Base):
+class MyObj(Base):
   def foo(self, *arg):
     return "object:\n" + self.args(*arg)
   def args(self, *arg):
@@ -15,7 +16,7 @@ class MyObj(base.Base):
       ", ".join("%s => %s" % (key, named[key]) for key in sorted(named.keys())))
 
 
-class ArgsTest(test.TestCase):
+class ArgsTest(TestCase):
   def testArgs(self):
     replace = self._callsign()
     o = MyObj()
@@ -69,4 +70,4 @@ object:
 
 """
 
-test.main()
+main()

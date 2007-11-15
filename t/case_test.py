@@ -1,12 +1,14 @@
-import template
-from template import test
+from template import Template
+from template.test import TestCase, main
 
-class CaseTest(test.TestCase):
+
+class CaseTest(TestCase):
   def testCase(self):
-    ttdef = template.Template({ 'POST_CHOMP': 1 })
-    ttanycase = template.Template({ 'ANYCASE': 1, 'POST_CHOMP': 1 })
+    ttdef = Template({ 'POST_CHOMP': 1 })
+    ttanycase = Template({ 'ANYCASE': 1, 'POST_CHOMP': 1 })
     tts = (('default', ttdef), ('anycase', ttanycase))
     self.Expect(DATA, tts, self._callsign())
+
 
 DATA = r"""
 -- test --
@@ -59,4 +61,4 @@ this is foo, bar = baz
 1 1
 """
 
-test.main()
+main()

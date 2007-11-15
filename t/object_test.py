@@ -1,4 +1,4 @@
-from template import test, util
+from template.test import TestCase, main
 
 
 class T1:
@@ -69,7 +69,7 @@ class Stringy:
   stringify = __str__
 
 
-class ObjectTest(test.TestCase):
+class ObjectTest(TestCase):
   def testObject(self):
     objconf = { "a": "alpha",
                 "b": "bravo",
@@ -218,4 +218,4 @@ foo stringified 'Test String' bar
 .
 """
 
-test.main()
+main()

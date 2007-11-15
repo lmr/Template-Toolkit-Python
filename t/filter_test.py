@@ -2,13 +2,16 @@ import cStringIO
 import os
 import re
 import sys
-import template
-from template import base, test
+
+from template import Template, TemplateException
+from template.test import TestCase, main
+from template import base
 
 old_stderr = sys.stderr
 sys.stderr = cStringIO.StringIO()
 
-class FilterTest(test.TestCase):
+
+class FilterTest(TestCase):
   def testFilter(self):
     dir = 'test/tmp'
     file = 'xyz'
@@ -40,8 +43,8 @@ class FilterTest(test.TestCase):
     path = os.path.join(dir, file)
     if os.path.exists(path):
       os.remove(path)
-    tt1 = template.Template(config1)
-    tt2 = template.Template(config2)
+    tt1 = Template(config1)
+    tt2 = Template(config2)
     tt2.context().define_filter('another', another, True)
     self.Expect(DATA, (('default', tt1), ('evalpython', tt2)), params)
     self.failUnless(os.path.exists(path))
@@ -71,11 +74,11 @@ def barf_up(context, foad=0):
   if foad == 0:
     return None, 'barfed'
   elif foad == 1:
-    return None, base.Exception('dead', 'deceased')
+    return None, TemplateException('dead', 'deceased')
   elif foad == 2:
     raise Error("keeled over")
   else:
-    raise base.Exception('unwell', 'sick as a parrot')
+    raise TemplateException('unwell', 'sick as a parrot')
 
 def despace(text):
   return re.sub(r'\s+', '_', text)
@@ -838,6 +841,6 @@ fOOBAR
 
 """
 
-test.main()
+main()
 
 sys.stderr = old_stderr

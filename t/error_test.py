@@ -1,17 +1,16 @@
-import template
-from template import base, test
+from template import Template, TemplateException
+from template.test import TestCase, main
 
 
-class ErrorTest(test.TestCase):
+class ErrorTest(TestCase):
   def testError(self):
-    tmpl = template.Template(
-      { 'BLOCKS': { 'badinc': '[% INCLUDE nosuchfile %]' } })
-    self.assert_(not tmpl.process('badinc'))
-    error = tmpl.error()
-    self.assert_(error)
-    self.assert_(isinstance(error, base.Exception))
-    self.assertEquals('file', error.type())
-    self.assertEquals('nosuchfile: not found', error.info())
+    tmpl = Template({ 'BLOCKS': { 'badinc': '[% INCLUDE nosuchfile %]' } })
+    try:
+      tmpl.process("badinc")
+      self.fail("Failed to raise exception")
+    except TemplateException, e:
+      self.assertEquals('file', e.type())
+      self.assertEquals('nosuchfile: not found', e.info())
 
 
-test.main()
+main()

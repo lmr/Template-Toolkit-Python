@@ -1,7 +1,7 @@
-import template
-from template import test
+from template import Template
+from template.test import TestCase, main
 
-class BinopTest(test.TestCase):
+class BinopTest(TestCase):
   def testBinop(self):
     counter = [0]
     def alpha(): counter[0] += 1; return counter[0]
@@ -22,7 +22,7 @@ class BinopTest(test.TestCase):
       'count': count,
       'reset': reset,
       }
-    tmpl = template.Template({ 'INTERPOLATE': 1, 'POST_CHOMP': 1 })
+    tmpl = Template({ 'INTERPOLATE': 1, 'POST_CHOMP': 1 })
     self.Expect(DATA, tmpl, params)
 
 DATA = r"""maybe
@@ -314,4 +314,4 @@ ERROR!
 one is less than two
 """
 
-test.main()
+main()

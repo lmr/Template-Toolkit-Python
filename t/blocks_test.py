@@ -1,19 +1,20 @@
 import os
 
-import template
-from template import test
+from template import Template
+from template.test import TestCase, main
 
 
-class BlocksTest(test.TestCase):
+class BlocksTest(TestCase):
   def testBlocks(self):
     dir = os.getcwd() + "/test/lib"
-    tt1 = template.Template({ 'INCLUDE_PATH': ['test/lib'],
-                              'ABSOLUTE': True })
-    tt2 = template.Template({ 'INCLUDE_PATH': ['test/lib'],
-                              'EXPOSE_BLOCKS': True,
-                              'ABSOLUTE': True })
+    tt1 = Template({ 'INCLUDE_PATH': ['test/lib'],
+                     'ABSOLUTE': True })
+    tt2 = Template({ 'INCLUDE_PATH': ['test/lib'],
+                     'EXPOSE_BLOCKS': True,
+                     'ABSOLUTE': True })
     vars = { 'a': 'alpha', 'b': 'bravo', 'dir': dir }
     self.Expect(DATA, (('off', tt1), ('on', tt2)), vars)
+
 
 DATA = r"""
 -- test --
@@ -68,5 +69,5 @@ end of block one
 this is block two, b is brazen
 """
 
-test.main()
+main()
 

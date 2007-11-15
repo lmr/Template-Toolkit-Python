@@ -1,10 +1,10 @@
 import os
 
-from template import test
+from template.test import TestCase, main
 from template.plugin import file as file_plugin
 
 
-class FileTest(test.TestCase):
+class FileTest(TestCase):
   def testFile(self):
     vars = { 'dir': 'test', 'file': 'test/src/foo' }
     stat = os.stat(vars['file'])
@@ -153,5 +153,5 @@ Drat, there was a File error.
 
 """
 
-test.main()
+main()
 

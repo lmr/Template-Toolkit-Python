@@ -1,9 +1,9 @@
 import os
 
-from template import test
+from template.test import TestCase, main
 
 
-class DirectoryTest(test.TestCase):
+class DirectoryTest(TestCase):
   def testDirectory(self):
     vars = { 'cwd': os.getcwd(),
              'dir': 'test/dir',
@@ -247,4 +247,4 @@ xyzfile
 # 
 """
 
-test.main()
+main()

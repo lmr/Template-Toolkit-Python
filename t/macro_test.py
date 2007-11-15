@@ -1,7 +1,7 @@
-from template import test
+from template.test import TestCase, main
 
 
-class MacroTest(test.TestCase):
+class MacroTest(TestCase):
   def testMacro(self):
     config = { "INCLUDE_PATH": "test/src",
                "TRIM": 1 }
@@ -144,4 +144,4 @@ two: 2[The Title] -> one: 2[The Title]
 # 30
 """
 
-test.main()
+main()

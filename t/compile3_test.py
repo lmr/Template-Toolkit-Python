@@ -2,7 +2,7 @@ import os
 import shutil
 import time
 
-from template import Template
+from template import Template, TemplateException
 from template.test import TestCase, main
 from template.util import Reference
 
@@ -21,16 +21,16 @@ class CompileTest(TestCase):
               "COMPILE_EXT": ".ttc" }
 
     # Test process fails when EVAL_PYTHON not set.
-    tt = Template(ttcfg)
-    ref = Reference("")
-    self.assert_(not tt.process("evalpython", {}, ref))
-    self.assertEquals("python", tt.error().type())
-    self.assertEquals("EVAL_PYTHON not set", tt.error().info())
+    try:
+      Template(ttcfg).process("evalpython", {})
+      self.fail("did not raise exception")
+    except TemplateException, e:
+      self.assertEquals("python", e.type())
+      self.assertEquals("EVAL_PYTHON not set", e.info())
 
-    # Ensure we can run compiled templates withing loading parser.
+    # Ensure we can run compiled templates without loading parser.
     ttcfg["EVAL_PYTHON"] = 1
-    tt = Template(ttcfg)
-    self.assert_(tt.process("evalpython", {}, ref) or tt.error() == "")
+    Template(ttcfg).process("evalpython", {})
 
     # Check that compiled template file exists and grab modification time.
     path = "test/src/complex"

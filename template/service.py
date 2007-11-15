@@ -1,14 +1,17 @@
-import cStringIO as StringIO
+import cStringIO
 import re
 import sys
 
-from template import base, context, config, constants, util
+from template import base
+from template.base import Base
+from template.config import Config
+from template.constants import DEBUG_SERVICE
 
-class Service(base.Base):
-  _NewContext = config.Config.context
+class Service(Base):
+  _NewContext = Config.context
 
   def __init__(self, config=None):
-    base.Base.__init__(self)
+    Base.__init__(self)
     if config is None:
       config = {}
     delim = config.get("DELIMITER", ":")
@@ -33,7 +36,7 @@ class Service(base.Base):
       self.AUTO_RESET = config["AUTO_RESET"]
     else:
       self.AUTO_RESET = True
-    self.DEBUG = config.get("DEBUG", 0) & constants.DEBUG_SERVICE
+    self.DEBUG = config.get("DEBUG", 0) & DEBUG_SERVICE
     self.CONTEXT = config.get("CONTEXT") or self._NewContext(config)
     if not self.CONTEXT:
       raise base.Exception()
@@ -43,8 +46,8 @@ class Service(base.Base):
 
   def process(self, template, params=None):
     context = self.CONTEXT
-    output  = StringIO.StringIO()
-    procout = StringIO.StringIO()
+    output  = cStringIO.StringIO()
+    procout = cStringIO.StringIO()
     error   = None
     procout_ok = False
 
@@ -106,7 +109,7 @@ class Service(base.Base):
         else:
           error = None
         output.write(procout)
-        procout = StringIO.StringIO()
+        procout = cStringIO.StringIO()
 
       try:
         for name in self.POST_PROCESS:

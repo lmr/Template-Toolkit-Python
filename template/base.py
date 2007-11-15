@@ -44,6 +44,9 @@ class Exception(PyException):
     return "%s error - %s" % (self.__type or "", self.__info)
 
 
+TemplateException = Exception
+
+
 class Base:
   def __init__(self):
     self._ERROR = None
