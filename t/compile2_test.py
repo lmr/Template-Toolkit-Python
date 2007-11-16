@@ -2,7 +2,6 @@ import os
 
 from template import Template
 from template.test import TestCase, main
-from template.util import Reference
 
 
 class CompileTest(TestCase):

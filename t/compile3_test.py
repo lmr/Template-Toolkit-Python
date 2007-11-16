@@ -4,7 +4,6 @@ import time
 
 from template import Template, TemplateException
 from template.test import TestCase, main
-from template.util import Reference
 
 
 def append_file(path, text):
