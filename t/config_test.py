@@ -84,7 +84,7 @@ class ConfigTest(TestCase):
     service = factory.service({ 'INCLUDE_PATH': 'amsterdam' })
     self.failUnless(service)
     self.assertEquals(['amsterdam'],
-                      service.CONTEXT.LOAD_TEMPLATES[0].INCLUDE_PATH)
+                      service.context().LOAD_TEMPLATES[0].INCLUDE_PATH)
 
     # Iterator:
     iterator = factory.iterator(['foo', 'bar', 'baz'])

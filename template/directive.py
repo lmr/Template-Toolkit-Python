@@ -354,7 +354,7 @@ class Directive:
       default = Code.format("else:", Code.indent, default, "error = ''")
     else:
       default = "# NO DEFAULT"
-    handlers = ", ".join(handlers)
+    handlers = "[%s]" % ", ".join(handlers)
 
     return Code.format(
       "def block():",

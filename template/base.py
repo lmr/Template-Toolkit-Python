@@ -22,7 +22,7 @@ class Exception(PyException):
     else:
       return ""
 
-  def select_handler(self, *options):
+  def select_handler(self, options):
     type = str(self.__type)
     hlut = dict((str(option), True) for option in options)
     while type:

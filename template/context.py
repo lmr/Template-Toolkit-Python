@@ -4,15 +4,17 @@ import re
 import time
 
 
+from template import TemplateException
+from template.base import Base
 from template import stash, constants, document, provider, plugins, \
-                     filters, base, util
+                     filters, util
 
 DEBUG = None
 
 
-class Context(base.Base):
+class Context(Base):
   def __init__(self, config):
-    base.Base.__init__(self)
+    Base.__init__(self)
     self.LOAD_TEMPLATES = util.listify(config.get("LOAD_TEMPLATES")
                                        or provider.Provider(config))
     self.LOAD_PLUGINS   = util.listify(config.get("LOAD_PLUGINS")
@@ -74,12 +76,12 @@ class Context(base.Base):
     return self.CONFIG
 
   def catch(self, error, output=None):
-    if isinstance(error, base.Exception):
+    if isinstance(error, TemplateException):
       if output:
         error.text(output)
       return error
     else:
-      return base.Exception("None", error, output)
+      return TemplateException("None", error, output)
 
   def insert(self, files):
     # TODO: Clean this up; unify the way "files" is passed to this routine.
@@ -127,12 +129,12 @@ class Context(base.Base):
   def throw(self, error, info=None, output=None):
     error = util.unscalar(error)
     info = util.unscalar(info)
-    if isinstance(error, base.Exception):
+    if isinstance(error, TemplateException):
       raise error
     elif info is not None:
-      raise base.Exception(error, info, output)
+      raise TemplateException(error, info, output)
     else:
-      raise base.Exception("None", error or "", output)
+      raise TemplateException("None", error or "", output)
 
   def include(self, template, params=None):
     return self.process(template, params, True)
@@ -203,7 +205,7 @@ class Context(base.Base):
           else:
             element.callers.pop()
       self.STASH.set("component", component)
-    except base.Exception, e:
+    except TemplateException, e:
       error = e
 
     if localize:
@@ -293,7 +295,7 @@ class Context(base.Base):
         template, error = provider.fetch(shortname, prefix)
         if error:
           if error == constants.STATUS_ERROR:
-            if (isinstance(template, base.Exception)
+            if (isinstance(template, TemplateException)
                 and template.type == constants.ERROR_FILE):
               self.throw(template)
             else:
