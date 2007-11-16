@@ -69,22 +69,22 @@ class ConfigTest(TestCase):
     self.failUnless(context)
     context = factory.context({ 'INCLUDE_PATH': 'anywhere' })
     self.failUnless(context)
-    self.assertEquals('anywhere', context.LOAD_TEMPLATES[0].INCLUDE_PATH[0])
+    self.assertEquals('anywhere', context.load_templates()[0].INCLUDE_PATH[0])
     context = factory.context({ 'LOAD_TEMPLATES': [ provider ],
                                 'LOAD_PLUGINS': [ plugins ],
                                 'LOAD_FILTERS': [ filters ],
                                 'STASH': stash })
     self.failUnless(context)
     self.assertEquals(30, context.stash().get('foo').value())
-    self.failUnless(context.LOAD_TEMPLATES[0].PARSER.INTERPOLATE)
-    self.failUnless(context.LOAD_PLUGINS[0].LOAD_PYTHON)
-    self.failUnless(context.LOAD_FILTERS[0].TOLERANT)
+    self.failUnless(context.load_templates()[0].PARSER.INTERPOLATE)
+    self.failUnless(context.load_plugins()[0].LOAD_PYTHON)
+    self.failUnless(context.load_filters()[0].TOLERANT)
 
     # Service:
     service = factory.service({ 'INCLUDE_PATH': 'amsterdam' })
     self.failUnless(service)
     self.assertEquals(['amsterdam'],
-                      service.context().LOAD_TEMPLATES[0].INCLUDE_PATH)
+                      service.context().load_templates()[0].INCLUDE_PATH)
 
     # Iterator:
     iterator = factory.iterator(['foo', 'bar', 'baz'])

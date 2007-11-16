@@ -470,3 +470,14 @@ def is_seq(obj):
     return not isinstance(obj, basestring)
 
 
+def slice(seq, indices):
+  """Performs a Perl-style slice, substituting None for out-of-range
+  indices rather than raising an exception.
+  """
+  sliced = []
+  for index in indices:
+    try:
+      sliced.append(seq[int(index)])
+    except IndexError:
+      sliced.append(None)
+  return sliced

@@ -1,4 +1,4 @@
-from template import document, Template
+from template import document, context, Template
 from template.test import TestCase, main
 from template.plugin.table import Table
 
@@ -10,10 +10,10 @@ class ContextTest(TestCase):
                     'POST_CHOMP': 1 })
     ttperl = tt
 
-    context = tt.service().context()
-    self.failUnless(context)
-    self.assertEquals(context, tt.context())
-    self.failUnless(context.trim())
+    ctx = tt.service().context()
+    self.failUnless(ctx)
+    self.assertEquals(ctx, tt.context())
+    self.failUnless(ctx.trim())
     # self.failUnless(not context.eval_perl())
     # context = ttperl.service().context()
     # self.failUnless(context)
@@ -23,14 +23,14 @@ class ContextTest(TestCase):
     # template()
 
     # Test that we can fetch a template via template()
-    tmpl = context.template('header')
+    tmpl = ctx.template('header')
     self.failUnless(tmpl)
     self.failUnless(isinstance(tmpl, document.Document))
 
     # Test that non-existence of a template is reported
     error = None
     try:
-      tmpl = context.template('no_such_template')
+      tmpl = ctx.template('no_such_template')
     except Exception, e:
       error = e
     self.failUnless(error)
@@ -39,19 +39,19 @@ class ContextTest(TestCase):
     # Check that template() returns subroutine and template.document.Document
     # refs intact
     code = lambda *_: "this is a hard-coded template"
-    tmpl = context.template(code)
+    tmpl = ctx.template(code)
     self.assertEquals(code, tmpl)
 
     class FakeDocument:
       def __init__(self, text):
         self.text = text
-    old_document = document.Document
-    document.Document = FakeDocument
+    old_document = context.Document
+    context.Document = FakeDocument
     doc = FakeDocument("this is a document")
     try:
-      tmpl = context.template(doc)
+      tmpl = ctx.template(doc)
     finally:
-      document.Document = old_document
+      context.Document = old_document
     self.assertEquals(doc, tmpl)
     self.assertEquals("this is a document", doc.text)
 
@@ -59,34 +59,34 @@ class ContextTest(TestCase):
     # tables to the context's search space
     blocks1 = { 'some_block_1': 'hello' }
     blocks2 = { 'some_block_2': 'world' }
-    self.assertRaises(Exception, context.template, 'some_block_1')
-    context.visit('no doc', blocks1)
-    self.assertEquals('hello', context.template('some_block_1'))
-    self.assertRaises(Exception, context.template, 'some_block_2')
-    context.visit('no doc', blocks2)
-    self.assertEquals('hello', context.template('some_block_1'))
-    self.assertEquals('world', context.template('some_block_2'))
-    context.leave()
-    self.assertEquals('hello', context.template('some_block_1'))
-    self.assertRaises(Exception, context.template, 'some_block_2')
-    context.leave()
-    self.assertRaises(Exception, context.template, 'some_block_1')
-    self.assertRaises(Exception, context.template, 'some_block_2')
+    self.assertRaises(Exception, ctx.template, 'some_block_1')
+    ctx.visit('no doc', blocks1)
+    self.assertEquals('hello', ctx.template('some_block_1'))
+    self.assertRaises(Exception, ctx.template, 'some_block_2')
+    ctx.visit('no doc', blocks2)
+    self.assertEquals('hello', ctx.template('some_block_1'))
+    self.assertEquals('world', ctx.template('some_block_2'))
+    ctx.leave()
+    self.assertEquals('hello', ctx.template('some_block_1'))
+    self.assertRaises(Exception, ctx.template, 'some_block_2')
+    ctx.leave()
+    self.assertRaises(Exception, ctx.template, 'some_block_1')
+    self.assertRaises(Exception, ctx.template, 'some_block_2')
 
     # Test that reset() clears all blocks
-    context.visit('no doc', blocks1)
-    self.assertEquals('hello', context.template('some_block_1'))
-    self.assertRaises(Exception, context.template, 'some_block_2')
-    context.visit('no doc', blocks2)
-    self.assertEquals('hello', context.template('some_block_1'))
-    self.assertEquals('world', context.template('some_block_2'))
-    context.reset()
-    self.assertRaises(Exception, context.template, 'some_block_1')
-    self.assertRaises(Exception, context.template, 'some_block_2')
+    ctx.visit('no doc', blocks1)
+    self.assertEquals('hello', ctx.template('some_block_1'))
+    self.assertRaises(Exception, ctx.template, 'some_block_2')
+    ctx.visit('no doc', blocks2)
+    self.assertEquals('hello', ctx.template('some_block_1'))
+    self.assertEquals('world', ctx.template('some_block_2'))
+    ctx.reset()
+    self.assertRaises(Exception, ctx.template, 'some_block_1')
+    self.assertRaises(Exception, ctx.template, 'some_block_2')
 
     # plugin()
 
-    plugin = context.plugin('Table', [ [ 1, 2, 3, 4 ], { 'rows': 2 } ])
+    plugin = ctx.plugin('Table', [ [ 1, 2, 3, 4 ], { 'rows': 2 } ])
     self.failUnless(plugin)
     self.failUnless(isinstance(plugin, Table))
 
@@ -96,7 +96,7 @@ class ContextTest(TestCase):
     self.assertEquals(3, row[1])
     error = None
     try:
-      plugin = context.plugin('no_such_plugin')
+      plugin = ctx.plugin('no_such_plugin')
     except Exception, e:
       error = e
     self.failUnless(error)
@@ -105,41 +105,41 @@ class ContextTest(TestCase):
 
     # filter()
 
-    filter = context.filter('html')
+    filter = ctx.filter('html')
     self.failUnless(filter)
     self.failUnless(callable(filter))
     self.assertEquals('&lt;input/&gt;', filter('<input/>'))
 
-    filter = context.filter('replace', [ 'foo', 'bar' ], 'repsave')
+    filter = ctx.filter('replace', [ 'foo', 'bar' ], 'repsave')
     self.failUnless(filter)
     self.failUnless(callable(filter))
     self.assertEquals('this is bar, so it is', filter('this is foo, so it is'))
 
     # Check that filter got cached
-    filter = context.filter('repsave')
+    filter = ctx.filter('repsave')
     self.failUnless(filter)
     self.failUnless(callable(filter))
     self.assertEquals('this is bar, so it is', filter('this is foo, so it is'))
 
     # include() and process()
 
-    context = tt.context()
-    self.failUnless(context)
-    stash = context.stash()
+    ctx = tt.context()
+    self.failUnless(ctx)
+    stash = ctx.stash()
     self.failUnless(stash)
     stash.set('a', 'alpha')
     self.assertEquals('alpha', stash.get('a').value())
-    text = context.include('baz')
+    text = ctx.include('baz')
     self.assertEquals('This is the baz file, a: alpha', text)
-    text = context.include('baz', { 'a': 'bravo' })
+    text = ctx.include('baz', { 'a': 'bravo' })
     self.assertEquals('This is the baz file, a: bravo', text)
     # Check that the stash hasn't been altered
     self.assertEquals('alpha', stash.get('a').value())
-    text = context.process('baz')
+    text = ctx.process('baz')
     self.assertEquals('This is the baz file, a: alpha', text)
     # Check that stash *has* been altered
     self.assertEquals('charlie', stash.get('a').value())
-    text = context.process('baz', { 'a': 'bravo' })
+    text = ctx.process('baz', { 'a': 'bravo' })
     self.assertEquals('This is the baz file, a: bravo', text)
     self.assertEquals('charlie', stash.get('a').value())
 

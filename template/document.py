@@ -63,7 +63,7 @@ class Document(base.Base):
     return self._DEFBLOCKS
 
   def process(self, context):
-    if self._HOT and not context.RECURSION:
+    if self._HOT and not context.recursion():
       return context.throw(constants.ERROR_FILE,
                            "recursion into '%s'" % self.name)
     context.visit(self, self._DEFBLOCKS)
