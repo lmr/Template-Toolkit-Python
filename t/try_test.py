@@ -1,16 +1,17 @@
-from template.base import PyException, Exception
+from template.base import TemplateException
 from template.test import TestCase, main
 
 
-class Error(PyException):
+class Error(Exception):
   pass
+
 
 class TryTest(TestCase):
   def testTry(self):
     ttcfg = { "INCLUDE_PATH": "test/lib", "POST_CHOMP": 1 }
     replace = self._callsign()
     def throw_egg(*_):
-      raise Exception("egg", "scrambled")
+      raise TemplateException("egg", "scrambled")
     replace["throw_egg"] = throw_egg
     def throw_any(*_):
       raise Error("undefined error\n")

@@ -5,7 +5,12 @@ import stat
 import time
 import types
 
-from template import config, constants, document, util, base
+from template import util
+from template.base import Base, TemplateException
+from template.config import Config
+from template.constants import *
+from template.document import Document
+
 
 PREV = 0
 NAME = 1
@@ -20,15 +25,10 @@ DEBUG = 0
 
 RELATIVE_PATH = re.compile(r"(?:^|/)\.+/")
 
-def statfile(path):
-  try:
-    return os.stat(path)
-  except OSError:
-    return None
 
-class Provider(base.Base):
+class Provider(Base):
   def __init__(self, params):
-    base.Base.__init__(self)
+    Base.__init__(self)
     size = params.get("CACHE_SIZE")
     path = params.get("INCLUDE_PATH") or "."
     cdir = params.get("COMPILE_DIR") or ""
@@ -45,7 +45,7 @@ class Provider(base.Base):
       size = 2
     debug = params.get("DEBUG")
     if debug is not None:
-      self.DEBUG = debug & (constants.DEBUG_PROVIDER & constants.DEBUG_FLAGS)
+      self.DEBUG = debug & (DEBUG_PROVIDER & DEBUG_FLAGS)
     else:
       self.DEBUG = DEBUG
     if cdir:
@@ -68,7 +68,7 @@ class Provider(base.Base):
     self.ABSOLUTE = params.get("ABSOLUTE") or 0
     self.RELATIVE = params.get("RELATIVE") or 0
     self.TOLERANT = params.get("TOLERANT") or 0
-    self.DOCUMENT = params.get("DOCUMENT") or document.Document
+    self.DOCUMENT = params.get("DOCUMENT") or Document
     self.PARSER   = params.get("PARSER")
     self.DEFAULT  = params.get("DEFAULT")
     self.ENCODING = params.get("ENCODING")
@@ -87,23 +87,23 @@ class Provider(base.Base):
       if self.ABSOLUTE:
         data, error = self._fetch(name)
       elif self.TOLERANT:
-        data, error = None, constants.STATUS_DECLINED
+        data, error = None, STATUS_DECLINED
       else:
         data, error = ("%s: absolute paths are not allowed "
-                       "(set ABSOLUTE option)" % name, constants.STATUS_ERROR)
+                       "(set ABSOLUTE option)" % name, STATUS_ERROR)
     elif RELATIVE_PATH.search(name):
       if self.RELATIVE:
         data, error = self._fetch(name)
       elif self.TOLERANT:
-        data, error = None, constants.STATUS_DECLINED
+        data, error = None, STATUS_DECLINED
       else:
         data, error = ("%s: relative paths are not allowed "
-                       "(set RELATIVE option)" % name, constants.STATUS_ERROR)
+                       "(set RELATIVE option)" % name, STATUS_ERROR)
     else:
       if self.INCLUDE_PATH:
         data, error = self._fetch_path(name)
       else:
-        data, error = None, constants.STATUS_DECLINED
+        data, error = None, STATUS_DECLINED
 
     return data, error
 
@@ -137,9 +137,9 @@ class Provider(base.Base):
         fh = open(name)
       except IOError, e:
         if self.TOLERANT:
-          data, error = None, constants.STATUS_DECLINED
+          data, error = None, STATUS_DECLINED
         else:
-          data, error = "%s: %s" % (alias, e), constants.STATUS_ERROR
+          data, error = "%s: %s" % (alias, e), STATUS_ERROR
       else:
         data = {"name": alias,
                 "path": name,
@@ -148,7 +148,7 @@ class Provider(base.Base):
                 "load": now}
         fh.close()
     else:
-      data, error = None, constants.STATUS_DECLINED
+      data, error = None, STATUS_DECLINED
 
     if data and isinstance(data, dict) and data.get("path") is None:
       data["path"] = data["name"]
@@ -162,7 +162,7 @@ class Provider(base.Base):
       if (compiled
           and os.path.isfile(compiled)
           and not self._modified(name, os.stat(compiled)[stat.ST_MTIME])):
-        data = self._load_compiled(compiled)
+        data = self.__load_compiled(compiled)
         if not data:
           error = self.error()
       else:
@@ -184,7 +184,7 @@ class Provider(base.Base):
             and os.path.isfile(compiled)
             and os.stat(name)[stat.ST_MTIME]
             <= os.stat(compiled)[stat.ST_MTIME]):
-          data = self._load_compiled(compiled)
+          data = self.__load_compiled(compiled)
           if not data:
             error = self.error()
           if not error:
@@ -203,7 +203,7 @@ class Provider(base.Base):
     error = None
 
     if not self.PARSER:
-      self.PARSER = config.Config.parser(self.PARAMS)
+      self.PARSER = Config.parser(self.PARAMS)
 
     # discard the template text - we don't need it any more
     del data["text"]
@@ -228,25 +228,22 @@ class Provider(base.Base):
               os.path.basename(compfile), docclass.Error())
         if error is None and data.get("time") is not None:
           if not compfile:
-            return "invalid null filename", constants.STATUS_ERROR
+            return "invalid null filename", STATUS_ERROR
           ctime = int(data.get("time"))
           os.utime(compfile, (ctime, ctime))
 
       if not error:
-        try:
-          data["data"] = document.Document(parsedoc)
-          return data, None
-        except base.Exception, e:
-          error = document.ERROR
+        data["data"] = Document(parsedoc)
+        return data, None
 
     else:
-      error = base.Exception("parse",
-                             "%s %s" % (data["name"], self.PARSER.error()))
+      error = TemplateException("parse",
+                                "%s %s" % (data["name"], self.PARSER.error()))
 
     if self.TOLERANT:
-      return None, constants.STATUS_DECLINED
+      return None, STATUS_DECLINED
     else:
-      return error, constants.STATUS_ERROR
+      return error, STATUS_ERROR
 
   def _fetch_path(self, name):
     compiled = None
@@ -263,7 +260,7 @@ class Provider(base.Base):
         break  # last INCLUDE;
       paths = self.paths()
       if paths is None:
-        error = constants.STATUS_ERROR
+        error = STATUS_ERROR
         data = self.error()
         break  # last INCLUDE
       # search the INCLUDE_PATH for the file, in cache or on disk
@@ -283,11 +280,11 @@ class Provider(base.Base):
               and os.path.isfile(compiled)
               and os.stat(path)[stat.ST_MTIME] <=
                   os.stat(compiled)[stat.ST_MTIME]):
-            data = self._load_compiled(compiled)
+            data = self.__load_compiled(compiled)
             if data:
               # store in cache
               data = self.store(path, data)
-              error = constants.STATUS_OK
+              error = STATUS_OK
               return data, error  # last INCLUDE;
             else:
               sys.stderr.write(self.error() + "\n")
@@ -301,7 +298,7 @@ class Provider(base.Base):
           if not caching:
             data = data["data"]
           # all done if error is OK or ERROR
-          if not error or error == constants.STATUS_ERROR:
+          if not error or error == STATUS_ERROR:
             return data, error  # last INCLUDE;
 
       # template not found, so look for a DEFAULT template
@@ -309,7 +306,7 @@ class Provider(base.Base):
         name = self.DEFAULT
         # redo INCLUDE;
       else:
-        return None, constants.STATUS_DECLINED
+        return None, STATUS_DECLINED
 
     return data, error
 
@@ -368,14 +365,11 @@ class Provider(base.Base):
 
     return data, error
 
-  def _load_compiled(self, file):
-    namespace = document.PYEVAL_NAMESPACE.copy()
-    namespace["Document"] = document.Document
+  def __load_compiled(self, path):
     try:
-      execfile(file, namespace)
-    except base.Exception, e:
-      return self.error("compiled template %s: %s" % (file, e))
-    return namespace["document"]
+      return Document.evaluate_file(path, "document")
+    except TemplateException, e:
+      return self.error("compiled template %s: %s" % (path, e))
 
   def _store(self, name, data, compfile=None):
     load = self._modified(name)
@@ -428,7 +422,7 @@ class Provider(base.Base):
       if callable(dir):
         try:
           dpaths = dir()
-        except base.Exception, e:
+        except TemplateException, e:
           return self.error(e)
         ipaths[:0] = dpaths
       elif isinstance(dir, types.InstanceType) and util.can(dir, "paths"):
@@ -461,7 +455,7 @@ class Provider(base.Base):
     else:
       paths = self.paths()
       if not paths:
-        return self.error(), constants.STATUS_ERROR
+        return self.error(), STATUS_ERROR
       for dir in paths:
         path = os.path.join(dir, name)
         if os.path.isfile(path):
@@ -477,10 +471,17 @@ class Provider(base.Base):
 
     if error:
       if self.TOLERANT:
-        return None, constants.STATUS_DECLINED
+        return None, STATUS_DECLINED
       else:
-        return error, constants.STATUS_ERROR
+        return error, STATUS_ERROR
     elif path is None:
-      return None, constants.STATUS_DECLINED
+      return None, STATUS_DECLINED
     else:
-      return data, constants.STATUS_OK
+      return data, STATUS_OK
+
+
+def statfile(path):
+  try:
+    return os.stat(path)
+  except OSError:
+    return None

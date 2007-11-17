@@ -1,12 +1,10 @@
 import re
 import sys
 
-PyException = Exception
 
-
-class Exception(PyException):
+class TemplateException(Exception):
   def __init__(self, type, info, buffer=None):
-    PyException.__init__(self)
+    Exception.__init__(self)
     self.__type = type
     self.__info = info
     self.__buffer = buffer
@@ -42,9 +40,6 @@ class Exception(PyException):
 
   def __str__(self):
     return "%s error - %s" % (self.__type or "", self.__info)
-
-
-TemplateException = Exception
 
 
 class Base:

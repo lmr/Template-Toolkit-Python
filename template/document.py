@@ -3,52 +3,36 @@ import os
 import re
 import tempfile
 
-from template import base, config, constants, iterator, util
+from template import config, constants, iterator, util
+from template.base import Base, TemplateException
 
 
 ERROR = None
 
-PYEVAL_NAMESPACE = {
-  "scalar":    util.PerlScalar,
-  "Buffer":    util.StringBuffer,
-  "Error":     base.Exception,
-  "Iterator":  iterator.Create,
-  "Regex":     re.compile,
-  "List":      util.ScalarList,
-  "Dict":      util.ScalarDictionary,
-  "Switch":    util.SwitchList,
-  "Concat":    util.Concatenate,
-  "Continue":  util.Continue,
-  "Break":     util.Break,
-  "Evaluate":  util.EvaluateCode,
-  }
-
-class Document(base.Base):
+class Document(Base):
   def __init__(self, doc):
-    base.Base.__init__(self)
+    Base.__init__(self)
 
     #evaluate Python code in block to create sub-routine reference if necessary
-    self._BLOCK = self.__evaluate(doc.get("BLOCK"))
+    self._BLOCK = self.__compile(doc.get("BLOCK"))
 
     # same for any additional BLOCK definitions
     self._DEFBLOCKS = {}
     for name, block in doc.get("DEFBLOCKS", {}).iteritems():
-      self._DEFBLOCKS[name] = self.__evaluate(block)
+      self._DEFBLOCKS[name] = self.__compile(block)
 
     self._META = doc.get("METADATA", {}).copy()
     self._HOT = 0
 
-  def __evaluate(self, block, debug=False):
+  def __compile(self, block, debug=False):
     if callable(block):
       return block
-    namespace = PYEVAL_NAMESPACE.copy()
     if debug:
       print block
     try:
-      exec block in namespace
-    except base.Exception, e:
+      return self.evaluate(block, "block")
+    except TemplateException, e:
       return self.error(e)
-    return namespace["block"]
 
   def __getattr__(self, name):
     if name and name[0].islower():
@@ -71,12 +55,24 @@ class Document(base.Base):
     try:
       try:
         output = self._BLOCK(context)
-      except base.Exception, e:
+      except TemplateException, e:
         raise context.catch(e)
     finally:
       self._HOT = 0
       context.leave()
     return output
+
+  @classmethod
+  def evaluate(cls, block, name):
+    namespace = PYEVAL_NAMESPACE.copy()
+    exec block in namespace
+    return namespace.get(name)
+
+  @classmethod
+  def evaluate_file(cls, path, name):
+    namespace = PYEVAL_NAMESPACE.copy()
+    execfile(path, namespace)
+    return namespace.get(name)
 
   @classmethod
   def write_python_doc(cls, fh, content):
@@ -103,3 +99,20 @@ class Document(base.Base):
       return True
     except EnvironmentError, e:
       return cls.Error(e)
+
+
+PYEVAL_NAMESPACE = {
+  "scalar":    util.PerlScalar,
+  "Buffer":    util.StringBuffer,
+  "Error":     TemplateException,
+  "Iterator":  iterator.Create,
+  "Regex":     re.compile,
+  "List":      util.ScalarList,
+  "Dict":      util.ScalarDictionary,
+  "Switch":    util.SwitchList,
+  "Concat":    util.Concatenate,
+  "Continue":  util.Continue,
+  "Break":     util.Break,
+  "Evaluate":  util.EvaluateCode,
+  "Document":  Document,
+  }

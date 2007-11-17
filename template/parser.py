@@ -2,8 +2,12 @@ import re
 import sys
 from types import InstanceType
 
-from template import grammar, directive, base, util
+from template.base import Base, TemplateException
 from template.constants import *
+from template.directive import Directive
+from template.grammar import Grammar
+from template import util
+
 
 CONTINUE = 0
 ACCEPT   = 1
@@ -105,9 +109,9 @@ QUOTED_STRING = re.compile(r"""
    )
 """, re.X)
 
-class Parser(base.Base):
+class Parser(Base):
   def __init__(self, param):
-    base.Base.__init__(self)
+    Base.__init__(self)
     self.START_TAG = param.get("START_TAG") or DEFAULT_STYLE["START_TAG"]
     self.END_TAG = param.get("END_TAG") or DEFAULT_STYLE["END_TAG"]
     self.TAG_STYLE = "default"
@@ -120,7 +124,7 @@ class Parser(base.Base):
     self.FILE_INFO = 1
     self.GRAMMAR = None
     self._ERROR = ""
-    self.FACTORY = directive.Directive
+    self.FACTORY = Directive
 
     for key in self.__dict__.keys():
       if key in param:
@@ -134,7 +138,7 @@ class Parser(base.Base):
     self.STYLE = []
 
     if not self.GRAMMAR:
-      self.GRAMMAR = grammar.Grammar()
+      self.GRAMMAR = Grammar()
 
     # Build a FACTORY object to include any NAMESPACE definitions,
     # but only if FACTORY isn't already an object.
@@ -439,7 +443,7 @@ class Parser(base.Base):
           codevars = []
         try:
           coderet = code(self, *codevars)
-        except base.Exception, e:
+        except TemplateException, e:
           return self._parse_error(str(e))
         # reduce stack by len_
         if len_ > 0:
@@ -460,7 +464,8 @@ class Parser(base.Base):
     elif value == ";":
       return self._parse_error("unexpected end of directive", text)
     else:
-      return self._parse_error("unexpected token (%s)" % util.unscalar_lex(value), text)
+      return self._parse_error("unexpected token (%s)" %
+                               util.unscalar_lex(value), text)
 
   def _parse_error(self, msg, text=None):
     line = self.LINE[0]

@@ -1,13 +1,16 @@
 import os
 import re
 
-from template import base, plugin, util
+from template import util
+from template.base import TemplateException
+from template.plugin import Plugin
+
 
 STAT_KEYS = ("dev", "ino", "mode", "nlink", "uid", "gid", "rdev", "size",
              "atime", "mtime", "ctime", "blksize", "blocks")
 
 
-class File(plugin.Plugin):
+class File(Plugin):
   def __init__(self, context, path, config=None):
     if not isinstance(config, dict):
       config = {}
@@ -74,7 +77,7 @@ class File(plugin.Plugin):
       return "%s/%s" % (self.home, path)
 
   def throw(self, error):
-    raise base.Exception('File', error)
+    raise TemplateException('File', error)
 
 
 def splitpath(path):

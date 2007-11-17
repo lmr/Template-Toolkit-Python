@@ -2,7 +2,8 @@ import locale as Locale
 import re
 import time as Time
 
-from template import base, plugin
+from template.base import TemplateException
+from template.plugin import Plugin
 
 
 # Default strftime() format:
@@ -14,7 +15,7 @@ GMTIME = { True: Time.gmtime,
            False: Time.localtime }
 
 
-class Date(plugin.Plugin):
+class Date(Plugin):
   def __init__(self, context, params=None):
     self.params = params or {}
 
@@ -45,7 +46,7 @@ class Date(plugin.Plugin):
       date = re.split(r"[-/ :]", str(time))
       if len(date) < 6:
         # return None,
-        raise base.Exception(
+        raise TemplateException(
           "date", "bad time/date string:  expects 'h:m:s d:m:y'  got: '%s'"
           % time)
       date = [str(int(x)) for x in date[:6]]
@@ -81,5 +82,5 @@ class Date(plugin.Plugin):
     self.throw("Failed to load date manipulation module")
 
   def throw(self, *args):
-    raise base.Exception("date", ", ".join(str(x) for x in args))
+    raise TemplateException("date", ", ".join(str(x) for x in args))
 

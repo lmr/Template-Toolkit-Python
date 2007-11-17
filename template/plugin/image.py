@@ -1,7 +1,7 @@
 import os
 import PIL.Image
 
-from template import base
+from template.base import TemplateException
 from template.plugin import Plugin
 
 
@@ -89,7 +89,7 @@ class Image(Plugin):
               for key, value in options.items()))
 
   def throw(self, error):
-    raise base.Exception("Image", error)
+    raise TemplateException("Image", error)
 
 
 def escape(text):

@@ -1,6 +1,8 @@
 from types import ClassType
 
-from template import base, constants, util
+from template import util
+from template.base import Base, TemplateException
+from template.constants import *
 
 
 PLUGIN_BASE = "template.plugin"
@@ -22,8 +24,9 @@ STD_PLUGINS = {
   "url":       ("template.plugin.url", "URL"),
 }
 
-class Plugins(base.Base):
+class Plugins(Base):
   def __init__(self, params):
+    Base.__init__(self)
     pbase   = util.listify(params.get("PLUGIN_BASE") or [])
     plugins = params.get("PLUGINS") or {}
     factory = params.get("PLUGIN_FACTORY")
@@ -35,7 +38,7 @@ class Plugins(base.Base):
     self.TOLERANT = bool(params.get("TOLERANT"))
     self.LOAD_PYTHON = bool(params.get("LOAD_PYTHON"))
     self.FACTORY = factory or {}
-    self.DEBUG = (params.get("DEBUG") or 0) & constants.DEBUG_PLUGINS
+    self.DEBUG = (params.get("DEBUG") or 0) & DEBUG_PLUGINS
 
   def fetch(self, name, args=None, context=None):
     args = args or []
@@ -48,14 +51,14 @@ class Plugins(base.Base):
       if callable(factory):
         plugin = factory(*args)
         if not plugin:
-          raise base.Exception(None, "%s plugin failed" % name)
+          raise TemplateException(None, "%s plugin failed" % name)
       else:
-        raise base.Exception(None, "%s plugin is not callable" % name)
-    except base.Exception, e:
+        raise TemplateException(None, "%s plugin is not callable" % name)
+    except TemplateException, e:
       if self.TOLERANT:
-        return None, constants.STATUS_DECLINED
+        return None, STATUS_DECLINED
       else:
-        return e, constants.STATUS_ERROR
+        return e, STATUS_ERROR
     return plugin, None
 
   def _load(self, name, context):
@@ -108,8 +111,8 @@ class Plugins(base.Base):
       return factory, None
     elif error:
       if self.TOLERANT:
-        return None, constants.STATUS_DECLINED
+        return None, STATUS_DECLINED
       else:
-        return error, constants.STATUS_ERROR
+        return error, STATUS_ERROR
     else:
-      return None, constants.STATUS_DECLINED
+      return None, STATUS_DECLINED

@@ -2,6 +2,9 @@ import cStringIO
 import re
 import sys
 
+from template.base import TemplateException
+from template.config import Config
+
 
 class ControlFlowException(Exception):
   """Base class for exceptions related to control flow in generated code.
@@ -155,7 +158,7 @@ class PerlScalar:
 
   PerlScalar(True) / PerlScalar(4) --> PerlScalar(0.25)
 
-  list(PerlScalar([1, 2, 3])) --> [1, 2, 3]  # (A copy of the wrapped list)
+  dict(PerlScalar([('foo', 'bar')])) --> { 'foo': 'bar' }
 
   bool(PerlScalar([])) --> True
 

@@ -6,8 +6,7 @@ from template import base, config, constants, util
 
 
 def Create(expr):
-  if isinstance(expr, util.PerlScalar):
-    expr = expr.value()
+  expr = util.unscalar(expr)
   if isinstance(expr, Iterator):
     return expr
   else:

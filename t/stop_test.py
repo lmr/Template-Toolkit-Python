@@ -1,10 +1,10 @@
 from template import Template
-from template.base import Exception
+from template.base import TemplateException
 from template.test import TestCase, main
 
 
 def halt(*args):
-  raise Exception("stop", "big error")
+  raise TemplateException("stop", "big error")
 
 
 class StopTest(TestCase):

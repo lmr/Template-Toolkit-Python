@@ -3,9 +3,10 @@ import os
 import re
 import sys
 
-import template
-from template import base, constants, util
-from template.plugin import filter as plugin_filter
+from template import util
+from template.base import Base, TemplateException
+from template.constants import *
+from template.plugin.filter import Filter
 
 eval_namespace = {}
 
@@ -115,7 +116,7 @@ def eval_filter_factory(context):
 
 def python_filter_factory(context):
   if not context.eval_python():
-    return None, base.Exception("python", "EVAL_PYTHON is not set")
+    return None, TemplateException("python", "EVAL_PYTHON is not set")
   def python_filter(text):
     saved = (eval_namespace.get("context"), eval_namespace.get("stash"))
     eval_namespace["context"] = context
@@ -132,7 +133,7 @@ def python_filter_factory(context):
 def redirect_filter_factory(context, file, options=None):
   outpath = context.config().get("OUTPUT_PATH")
   if not outpath:
-    return None, base.Exception("redirect", "OUTPUT_PATH is not set")
+    return None, TemplateException("redirect", "OUTPUT_PATH is not set")
   if not isinstance(options, dict):
     options = { "binmode": options }
   def redirect(text=""):
@@ -151,7 +152,7 @@ def redirect_filter_factory(context, file, options=None):
       fh.write(text)
       fh.close()
     except Exception, e:
-      raise base.Exception("redirect", e)
+      raise TemplateException("redirect", e)
     return ""
   return redirect
 
@@ -178,7 +179,7 @@ FILTERS = {
   "lcfirst": lcfirst,
   "stderr": stderr,
   "trim": str.strip,
-  "null": lambda x: "",
+  "null": lambda *_: "",
   "collapse": collapse,
 
   # dynamic filters
@@ -190,26 +191,26 @@ FILTERS = {
   "replace":     [replace_filter_factory, True],
   "remove":      [remove_filter_factory, True],
   "eval":        [eval_filter_factory, True],
-  "evaltt":      [eval_filter_factory, True], # alias
+  "evaltt":      [eval_filter_factory, True],
   "python":      [python_filter_factory, True],
   "redirect":    [redirect_filter_factory, True],
-  "file":        [redirect_filter_factory, True], # alias
+  "file":        [redirect_filter_factory, True],
   "stdout":      [stdout_filter_factory, True],
-##   "latex":       [latex_filter_factory, True],
  }
 
-class Filters(base.Base):
+class Filters(Base):
   def __init__(self, params):
+    Base.__init__(self)
     self.FILTERS  = params.get("FILTERS")  or {}
     self.TOLERANT = params.get("TOLERANT") or False
-    self.DEBUG    = (params.get("DEBUG") or 0) & constants.DEBUG_FILTERS
+    self.DEBUG    = (params.get("DEBUG") or 0) & DEBUG_FILTERS
 
   def fetch(self, name, args, context):
     factory = None
     error   = None
 
     if not isinstance(name, str):
-      if isinstance(name, plugin_filter.Filter):
+      if isinstance(name, Filter):
         factory = name.factory()
         if not factory:
           return self.error(name.error())
@@ -218,7 +219,7 @@ class Filters(base.Base):
     else:
       factory = self.FILTERS.get(name) or FILTERS.get(name)
       if not factory:
-        return None, constants.STATUS_DECLINED
+        return None, STATUS_DECLINED
     if isinstance(factory, (tuple, list)):
       factory, is_dynamic = util.unpack(factory, 2)
     else:
@@ -232,10 +233,10 @@ class Filters(base.Base):
             filter, error = util.unpack(retval, 2)
           else:
             filter, error = retval, None
-        except base.Exception, e:
+        except TemplateException, e:
           error = error or e
         except Exception, e:
-          error = error or base.Exception(constants.ERROR_FILTER, str(e))
+          error = error or TemplateException(ERROR_FILTER, str(e))
         if not (error or callable(filter)):
           error = "invalid FILTER for '%s' (not callable)" % name
       else:
@@ -246,9 +247,9 @@ class Filters(base.Base):
     if not error:
       return filter, None
     elif self.TOLERANT:
-      return None, constants.STATUS_DECLINED
+      return None, STATUS_DECLINED
     else:
-      return error, constants.STATUS_ERROR
+      return error, STATUS_ERROR
 
   def store(self, name, filter):
     self.FILTERS[name] = filter

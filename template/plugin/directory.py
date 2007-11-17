@@ -1,15 +1,16 @@
 import os
 
-from template import base
-from template.plugin import file
+from template.base import TemplateException
+from template.plugin.file import File
 
-class Directory(file.File):
+
+class Directory(File):
   def __init__(self, context, path=None, config=None):
     if not isinstance(config, dict):
       config = {}
     if not path:
       self.throw("no directory specified")
-    file.File.__init__(self, context, path, config)
+    File.__init__(self, context, path, config)
     self.files = []
     self.dirs  = []
     self.list  = []
@@ -44,7 +45,7 @@ class Directory(file.File):
         item = Directory(None, rel, config)
         self.dirs.append(item)
       else:
-        item = file.File(None, rel, config)
+        item = File(None, rel, config)
         self.files.append(item)
       self.list.append(item)
       self._dir[name] = item
@@ -54,4 +55,4 @@ class Directory(file.File):
     return self._dir.get(name)
 
   def throw(self, error):
-    raise base.Exception("Directory", error)
+    raise TemplateException("Directory", error)
