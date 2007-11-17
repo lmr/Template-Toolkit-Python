@@ -1,7 +1,6 @@
 import cStringIO
-import re
 
-from template.util import *
+from template import util
 
 
 WHILE_MAX = 1000
@@ -45,11 +44,9 @@ class Code:
     return self.buffer.getvalue()
 
 
-#  Template::Directive
-
 class Directive:
   def __init__(self, config):
-    self.NAMESPACE = config.get("NAMESPACE")
+    self.__namespace = config.get("NAMESPACE")
 
   def template(self, block):
     if not block or block.isspace():
@@ -69,7 +66,7 @@ class Directive:
         "  raise error",
         "return output.get()")
 
-  def anon_block(self, block):
+  def anon_block(self, block):   # [% BLOCK %] ... [% END %]
     return Code.format(
       "def block():",
       Code.indent,
@@ -101,17 +98,15 @@ class Directive:
     else:
       return "Concat(%s)" % ", ".join(items)
 
-  def ident(self, ident_):   # foo.bar(baz)
-    # Does the first element of the identifier have a NAMESPACE
-    # handler defined?
-    if ident_ and len(ident_) > 2 and self.NAMESPACE:
-      key = ident_[0]
+  def ident(self, ident):   # foo.bar(baz)
+    if ident and len(ident) > 2 and self.__namespace:
+      key = ident[0]
       if key.startswith("'") and key.endswith("'"):
         key = key[1:-1]
-      ns = self.NAMESPACE.get(key)
+      ns = self.__namespace.get(key)
       if ns:
-        return ns.ident(ident_)
-    return self.Ident(ident_)
+        return ns.ident(ident)
+    return self.Ident(ident)
 
   @classmethod
   def Ident(cls, ident):
@@ -144,12 +139,13 @@ class Directive:
 
   def args(self, args):  # foo, bar, baz = qux
     args = list(args)
-    hash_ = args.pop(0)
-    if hash_:
-      args.append("Dict(%s)" % ", ".join(hash_))
+    hash = args.pop(0)
+    if hash:
+      args.append("Dict(%s)" % ", ".join(hash))
     if not args:
       return "0"
-    return "[" + ", ".join(args) + "]"
+    else:
+      return "[" + ", ".join(args) + "]"
 
   def filenames(self, names):
     if len(names) > 1:
@@ -162,37 +158,37 @@ class Directive:
     return "output.write(%s)" % (expr,)
 
   def call(self, expr):  # [% CALL bar %]
-    return expr + "\n"
+    return expr
 
   def set(self, setlist):  # [% foo = bar, baz = qux %]
-    # If one uses a generator as the argument to join here, eventually it
-    # raises a "TypeError: sequence expected, generator found".  Puzzling.
-    return "\n".join([self.assign(var, val) for var, val in chop(setlist, 2)])
+    return "\n".join([self.assign(var, val)
+                      for var, val in util.chop(setlist, 2)])
 
   def default(self, setlist):   # [% DEFAULT foo = bar, baz = qux %]
-    return "\n".join(self.assign(var, val, 1) for var, val in chop(setlist, 2))
+    return "\n".join(self.assign(var, val, 1)
+                     for var, val in util.chop(setlist, 2))
 
   def insert(self, nameargs):  # [% INSERT file %]
     return "output.write(context.insert(%s))" % self.filenames(nameargs[0])
 
   def include(self, nameargs):   # [% INCLUDE template foo = bar %]
-    file_, args = unpack(nameargs, 2)
-    hash_ = args.pop(0)
-    file_ = self.filenames(file_)
-    if hash_:
-      file_ += ", Dict(%s)" % ", ".join(hash_)
-    return "output.write(context.include(%s))" % file_
+    file, args = util.unpack(nameargs, 2)
+    hash = args.pop(0)
+    file = self.filenames(file)
+    if hash:
+      file += ", Dict(%s)" % ", ".join(hash)
+    return "output.write(context.include(%s))" % file
 
   def process(self, nameargs):  # [% PROCESS template foo = bar %]
-    file_, args = unpack(nameargs, 2)
-    hash_ = args.pop(0)
-    file_ = self.filenames(file_)
-    if hash_:
-      file_ += ", Dict(%s)" % ", ".join(hash_)
-    return "output.write(context.process(%s))" % file_
+    file, args = util.unpack(nameargs, 2)
+    hash = args.pop(0)
+    file = self.filenames(file)
+    if hash:
+      file += ", Dict(%s)" % ", ".join(hash)
+    return "output.write(context.process(%s))" % file
 
   def if_(self, expr, block, else_=None):
-    # [% IF foo < bar %] [% ELSE %] [% END %]
+    # [% IF foo < bar %] ... [% ELSE %] ... [% END %]
     if else_:
       elses = else_[:]
     else:
@@ -213,11 +209,8 @@ class Directive:
   def foreach(self, target, list, args, block):
     # [% FOREACH x = [ foo bar ] %] ... [% END %]
     if target:
-      loop_save = ("try:\n"
-                   " oldloop = %s\n"
-                   "except StandardError:\n"
-                   " pass") % self.ident(["'loop'"])
-      loop_set = "stash.contents['%s'] = value" % target
+      loop_save = "oldloop = %s" % (self.ident(["'loop'"]),)
+      loop_set = "stash.contents['%s'] = value" % (target,)
       loop_restore = "stash.set('loop', oldloop)"
     else:
       loop_save = "stash = context.localise()"
@@ -257,7 +250,7 @@ class Directive:
     return "raise Continue"
 
   def wrapper(self, nameargs, block):  # [% WRAPPER template foo = bar %]
-    file, args = unpack(nameargs, 2)
+    file, args = util.unpack(nameargs, 2)
     hash = args.pop(0)
     if len(file) > 1:
       return self.multi_wrapper(file, hash, block)
@@ -333,8 +326,8 @@ class Directive:
     handlers = []
     final = catches.pop()
     default = None
-    n = 0
     catchblock = Code()
+    n = 0
 
     for catch in catches:
       if catch[0]:
@@ -387,26 +380,26 @@ class Directive:
       "output.write(block())")
 
   def throw(self, nameargs):  # [% THROW foo "bar error" %]
-    type_, args = nameargs
+    type, args = nameargs
     if args:
-      hash_ = args.pop(0)
+      hash = args.pop(0)
     else:
-      hash_ = None
+      hash = None
     if args:
       info = args.pop(0)
     else:
       info = None
-    type_ = type_.pop(0)
+    type = type.pop(0)
     if not info:
       info = "None"
-    elif hash_ or args:
+    elif hash or args:
       info = "Dict(('args', List(%s)), %s)" % (
         ", ".join([info] + args),
         ", ".join(["(%d, %s)" % pair for pair in enumerate([info] + args)]
-                  + hash_))
+                  + hash))
     else:
       pass
-    return "context.throw(%s, %s, output)" % (type_, info)
+    return "context.throw(%s, %s, output)" % (type, info)
 
 
   def clear(self):  # [% CLEAR %]
@@ -422,13 +415,13 @@ class Directive:
     return "context.throw('stop', '', output)"
 
   def use(self, lnameargs):  # [% USE alias = plugin(args) %]
-    file_, args, alias = unpack(lnameargs, 3)
-    file_ = file_[0]
-    alias = alias or file_
+    file, args, alias = util.unpack(lnameargs, 3)
+    file = file[0]
+    alias = alias or file
     args = self.args(args)
     if args:
-      file_ = "%s, %s" % (file_, args)
-    return "stash.set(%s, context.plugin(%s))" % (alias, file_)
+      file = "%s, %s" % (file, args)
+    return "stash.set(%s, context.plugin(%s))" % (alias, file)
 
   def view(self, nameargs, block, defblocks):  # [% VIEW name args %]
     raise NotImplementedError("VIEW")
@@ -449,12 +442,12 @@ class Directive:
     return "context.throw('python', 'EVAL_PYTHON not set')"
 
   def rawpython(self, block, line):
-    block = unindent(block)
+    block = util.unindent(block)
     line = line and " (starting line %s)" % line or ""
     return "#line 1 'RAWPYTHON block%s'\n%s" % (line, block)
 
-  def filter_(self, lnameargs, block):
-    name, args, alias = unpack(lnameargs, 3)
+  def filter(self, lnameargs, block):
+    name, args, alias = util.unpack(lnameargs, 3)
     name = name[0]
     args = self.args(args)
     if alias:
@@ -499,14 +492,12 @@ class Directive:
         "def block(%s, extra=None):" % ", ".join(proto),
         code.indent,
           "params = { %s }" % ", ".join(params),
-          "if extra:",
-          " params.update(extra)")
+          "params.update(extra or {})")
     else:
       code.write(
         "def block(params=None):",
         code.indent,
-          "if params is None:",
-          " params = {}")
+          "params = params or {}")
     code.write(
       "output = Buffer()",
       "stash = context.localise(params)",

@@ -5325,10 +5325,10 @@ def rule79(*args):
     return factory.no_python()
 
 def rule80(*args):
-  return factory.filter_(*(args[2], args[4]))
+  return factory.filter(*(args[2], args[4]))
 
 def rule81(*args):
-  return factory.filter_(*(args[3], args[1]))
+  return factory.filter(*(args[3], args[1]))
 
 def rule82(*args):
   name = "/".join(args[0].DEFBLOCKS)
