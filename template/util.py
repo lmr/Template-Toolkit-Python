@@ -349,9 +349,15 @@ def numify(value):
     return long(match.group(0))
 
 
-def dynamic_filter(func, dynamic=True):
-  func.dynamic_filter = bool(dynamic)
-  return func
+def dynamic_filter(func):
+  """Function decorator that wraps a function in a wrapper with the same
+  name and a dynamic_filter attribute set to True.
+  """
+  def dynamic(*args, **kwargs):
+    return func(*args, **kwargs)
+  dynamic.__name__ = func.__name__
+  dynamic.dynamic_filter = True
+  return dynamic
 
 
 def unindent(code):

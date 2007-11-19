@@ -28,11 +28,11 @@ class FilterTest(TestCase):
                }
     filters = { 'nonfilt': 'nonsense',
                 'microjive': microjive,
-                'microsloth': dynamic_filter(microsloth, False),
-                'censor': dynamic_filter(censor_factory),
+                'microsloth': microsloth,
+                'censor': censor_factory,
                 'badfact': dynamic_filter(lambda *_: 'nonsense'),
                 'badfilt': 'rubbish',
-                'barfilt': dynamic_filter(barf_up) }
+                'barfilt': barf_up }
     config1 = { 'INTERPOLATE': 1,
                 'POST_CHOMP': 1,
                 'FILTERS': filters }
@@ -57,12 +57,16 @@ class FilterTest(TestCase):
 class Error(Exception):
   pass
 
+
 def microjive(text):
   return re.sub(r'(?i)microsoft', "The 'Soft", text)
+
 
 def microsloth(text):
   return re.sub(r'(?i)microsoft', 'Microsloth', text)
 
+
+@dynamic_filter
 def censor_factory(context, *forbidden):
   def censor(text):
     for word in forbidden:
@@ -70,24 +74,27 @@ def censor_factory(context, *forbidden):
     return text
   return censor
 
+
+@dynamic_filter
 def barf_up(context, foad=0):
   if foad == 0:
-    return None, 'barfed'
+    raise Error("barfed")
   elif foad == 1:
-    return None, TemplateException('dead', 'deceased')
+    raise TemplateException("dead", "deceased")
   elif foad == 2:
     raise Error("keeled over")
   else:
     raise TemplateException('unwell', 'sick as a parrot')
 
+
 def despace(text):
   return re.sub(r'\s+', '_', text)
+
 
 def another(context, n):
   def sub(text):
     return text * n
   return sub
-
 
 
 DATA = r"""

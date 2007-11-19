@@ -1,10 +1,11 @@
-from template import plugin
+from template.plugin import Plugin
 
-class Filter(plugin.Plugin):
+
+class Filter(Plugin):
   _DYNAMIC = False
 
   def __init__(self, context, *args):
-    plugin.Plugin.__init__(self)
+    Plugin.__init__(self)
     if args and isinstance(args[-1], dict):
       config = args.pop()
     else:

@@ -890,19 +890,12 @@ class Context(Base):
       if filter:
         return filter
     for provider in self.__load_filters:
-      filter, error = provider.fetch(name, args, self)
-      if not error:
-        break
-      if error == STATUS_ERROR:
-        if not isinstance(filter, (str, int)):
-          self.throw(filter)
-        else:
-          self.throw(ERROR_FILTER, filter)
-    if not filter:
-      return self.error("%s: filter not found" % name)
-    if alias:
-      self.__filter_cache[alias] = filter
-    return filter
+      filter = provider.fetch(name, args, self)
+      if filter:
+        if alias:
+          self.__filter_cache[alias] = filter
+        return filter
+    return self.error("%s: filter not found" % (name,))
 
   def reset(self, blocks=None):
     """Reset the state of the internal BLOCKS hash to clear any BLOCK
@@ -1037,11 +1030,11 @@ class Context(Base):
     if dynamic:
       filter = util.dynamic_filter(filter)
     for provider in self.__load_filters:
-      result, error = provider.store(name, filter)
-      if not error:
+      try:
+        provider.store(name, filter)
         return 1
-      if error == STATUS_ERROR:
-        self.throw(ERROR_FILTER, result)
+      except Exception, e:
+        self.throw(ERROR_FILTER, e)
     self.throw(ERROR_FILTER,
                "FILTER providers declined to store filter %s" % name)
 

@@ -49,10 +49,10 @@ class ConfigTest(TestCase):
     # Filters:
     filters = factory.filters({ 'TOLERANT': True })
     self.failUnless(filters)
-    self.failUnless(filters.TOLERANT)
+    self.failUnless(filters.tolerant())
     filters = factory.filters({ 'TOLERANT': True })
     self.failUnless(filters)
-    self.failUnless(filters.TOLERANT)
+    self.failUnless(filters.tolerant())
 
     # Stash:
     stash = factory.stash({ 'foo': 10, 'bar': 20 })
@@ -78,7 +78,7 @@ class ConfigTest(TestCase):
     self.assertEquals(30, context.stash().get('foo').value())
     self.failUnless(context.load_templates()[0].PARSER.INTERPOLATE)
     self.failUnless(context.load_plugins()[0].LOAD_PYTHON)
-    self.failUnless(context.load_filters()[0].TOLERANT)
+    self.failUnless(context.load_filters()[0].tolerant())
 
     # Service:
     service = factory.service({ 'INCLUDE_PATH': 'amsterdam' })
