@@ -8,7 +8,8 @@ from template import util
 from template.base import Base, TemplateException
 from template.constants import *
 from template.plugin.filter import Filter
-from template.util import Literal, EvaluateCode, dynamic_filter, numify, unpack
+from template.util import Literal, EvaluateCode, \
+     dynamic_filter, numify, registrar, unpack
 
 """
 template.filters - Post-processing filters for template blocks
@@ -679,15 +680,7 @@ class Error(Exception):
   pass
 
 
-def register(*names):
-  """Decorator that registers a function in the module dictionary FILTERS
-  under each of a list of names.
-  """
-  def registrar(func):
-    for name in names:
-      FILTERS[name] = func
-    return func
-  return registrar
+register = util.registrar(FILTERS)
 
 
 @register("html")

@@ -170,7 +170,7 @@ class Directive:
     # [% FOREACH x = [ foo bar ] %] ... [% END %]
     if target:
       loop_save = "oldloop = %s" % (self.ident(["'loop'"]),)
-      loop_set = "stash.contents['%s'] = value" % (target,)
+      loop_set = "stash['%s'] = value" % (target,)
       loop_restore = "stash.set('loop', oldloop)"
     else:
       loop_save = "stash = context.localise()"

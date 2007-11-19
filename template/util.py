@@ -360,6 +360,32 @@ def dynamic_filter(func):
   return dynamic
 
 
+def registrar(obj):
+  """Returns a function decorator that accepts any number of names, and
+  registers the function it decorates in the object obj via item access.
+
+  Example:
+
+  OBJECTS = {}
+
+  register = registrar(OBJECTS)
+
+  @register("add")
+  def addition(x, y):
+    return x + y
+
+  print OBJECTS["add"](1, 2)  # prints "3"
+
+  """
+  def register(*names):
+    def decorator(func):
+      for name in names:
+        obj[name] = func
+      return func
+    return decorator
+  return register
+
+
 def unindent(code):
   """Unindents a multiline block of text.
 

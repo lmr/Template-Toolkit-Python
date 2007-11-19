@@ -4,424 +4,193 @@ import types
 from template import util
 
 
-class Error(Exception):
-  pass
+"""
+template.stash.Stash - Magical storage for template variables
 
+
+SYNOPSIS
+
+    import template.stash
+
+    stash = template.stash.Stash(vars)
+
+    # get variable values
+    value = stash.get(variable)
+    value = stash.get([compound, ...])
+
+    # set variable value
+    stash.set(variable, value);
+    stash.set([compound, ...], value)
+
+    # default variable value
+    stash.set(variable, value, 1)
+    stash.set([compound, ...], $value, 1)
+
+    # set variable values en masse
+    stash.update(new_vars)
+
+    # methods for (de-)localising variables
+    stash = stash.clone(new_vars)
+    stash = stash.declone()
+
+
+DESCRIPTION
+
+The template.stash.Stash module defines a class which is used to store
+variable values for the runtime use of the template processor.
+Variable values are stored internally in a dictionary and are
+accessible via the get() and set() methods.
+
+Variables may reference dictionaries, lists, functions and objects as
+well as simple values.  The stash automatically performs the right
+magic when dealing with variables, calling code or object methods,
+indexing into lists, dictionaries, etc.
+
+The stash has clone() and declone() methods which are used by the
+template processor to make temporary copies of the stash for
+localising changes made to variables.
+
+
+PUBLIC METHODS
+
+__init__(params)
+
+The constructor initializes a new template.stash.Stash object.
+
+    stash = template.stash.Stash()
+
+A dictionary may be passed to provide variables and values which
+should be used to initialise the stash.
+
+    stash = template.stash.Stash({ 'var1': 'value1',
+				   'var2': 'value2' })
+
+get(variable)
+
+The get() method retrieves the variable named by the first parameter.
+
+    value = stash.get('var1')
+
+Dotted compound variables can be retrieved by specifying the variable
+elements by list.  Each node in the variable occupies two entries in
+the list.  The first gives the name of the variable element, the
+second is a list of arguments for that element, or 0 if none.
+
+    [% foo.bar(10).baz(20) %]
+
+    stash.get([ 'foo', 0, 'bar', [ 10 ], 'baz', [ 20 ] ])
+
+
+set(variable, value, default)
+
+The set() method sets the variable name in the first parameter to the
+value specified in the second.
+
+    stash.set('var1', 'value1')
+
+If the third parameter evaluates to a true value, the variable is
+set only if it did not have a true value before.
+
+    stash.set('var2', 'default_value', 1)
+
+Dotted compound variables may be specified as per get() above.
+
+    [% foo.bar = 30 %]
+
+    stash.set([ 'foo', 0, 'bar', 0 ], 30)
+
+The magical variable 'IMPORT' can be specified whose corresponding
+value should be a dictionary.  The contents of the dictionary are
+copied (i.e. imported) into the current namespace.
+
+    # foo.bar = baz, foo.wiz = waz
+    stash.set('foo', { 'bar': 'baz', 'wiz': 'waz' })
+
+    # import 'foo' into main namespace: bar = baz, wiz = waz
+    stash.set('IMPORT', stash.get('foo'))
+
+
+clone(params)
+
+The clone() method creates and returns a new Stash object which
+represents a localised copy of the parent stash.  Variables can be
+freely updated in the cloned stash and when declone() is called, the
+original stash is returned with all its members intact and in the same
+state as they were before clone() was called.
+
+For convenience, a dictionary of parameters may be passed into clone()
+which is used to update any simple variable (i.e. those that don't
+contain any namespace elements like 'foo' and 'bar' but not 'foo.bar')
+variables while cloning the stash.  For adding and updating complex
+variables, the set() method should be used after calling clone().
+This will correctly resolve and/or create any necessary namespace
+hashes.
+
+A cloned stash maintains a reference to the stash that it was copied
+from in its '__parent' member.
+
+=head2 declone()
+
+The declone() method returns the '__parent' reference and can be used
+to restore the state of a stash as described above.
+
+"""
+
+
+# Regular expression that identifies "private" stash entries.
 
 PRIVATE = r"^[_.]"
 
-LONG_REGEX = re.compile(r"-?\d+")
 
-def _to_lower(x):
-  return str(x).lower()
+# Global dictionary of scalar operations.
 
-def _to_long(x):
-  try:
-    return long(x)
-  except ValueError:
-    match = LONG_REGEX.match(str(x))
-    if match:
-      return long(match.group(0))
-    else:
-      return 0L
-
-def _by_value(func):
-  def wrapper(x):
-    return func(x[1])
-  return wrapper
-
-def _slice(seq, items):
-  if isinstance(items, str):
-    raise TypeError
-  sliced = []
-  for x in items:
-    try:
-      sliced.append(seq[x])
-    except KeyError:
-      sliced.append(None)
-  return sliced
-
-def increment(x):
-  return x + 1
-
-def decrement(x):
-  return x - 1
-
-ROOT_OPS = {
-  "inc": increment,
-  "dec": decrement,
-  }
-
-def scalar_item(scalar):
-  return scalar
-
-def scalar_list(scalar):
-  return [scalar]
-
-def scalar_hash(scalar):
-  return {"value": scalar}
-
-def scalar_length(scalar):
-  return len(str(scalar))
-
-def scalar_size(scalar):
-  return 1
-
-def scalar_defined(scalar):
-  return 1
-
-def scalar_match(scalar, search=None, matchall=False):
-  if scalar is None or search is None:
-    return scalar
-  if matchall:
-    matches = re.findall(search, str(scalar))
-    if not matches:
-      matches = None
-    elif isinstance(matches[0], tuple):
-      matches = [item for group in matches for item in group]  # flatten
-  else:
-    match = re.search(search, str(scalar))
-    if match:
-      matches = match.groups() or [1]
-    else:
-      matches = ""
-  return matches
-
-def scalar_search(scalar=None, pattern=None):
-  if scalar is None or pattern is None:
-    return scalar
-  return re.search(pattern, str(scalar)) and True or False
-
-def scalar_repeat(scalar="", count=1):
-  return str(scalar) * count
-
-def scalar_replace(scalar="", pattern="", replace="", global_=True):
-  scalar = str(scalar)
-  pattern = str(pattern)
-  replace = str(replace)
-  if re.search(r"\$\d+", replace):
-    def expand(match1):
-      def matched(match2):
-        escaped = match2.group(1)
-        if escaped:
-          return escaped
-        index = int(match2.group(2))
-        if 0 < index <= len(match1.groups()):
-          return match1.group(index)
-        else:
-          return ""
-      return re.sub(r"\\([\\$])|\$(\d+)", matched, replace)
-  else:
-    expand = lambda _: replace
-  return re.sub(pattern, expand, scalar, int(not global_))
-
-def scalar_remove(scalar=None, search=None):
-  if scalar is None or search is None:
-    return scalar
-  return re.sub(search, "", str(scalar))
-
-def scalar_split(scalar="", split=None, limit=None):
-  if limit is not None:
-    return str(scalar).split(split, limit - 1)
-  else:
-    return str(scalar).split(split)
-
-def scalar_chunk(scalar="", size=1):
-  string = str(scalar)
-  if size > 0:
-    return [string[pos:pos+size] for pos in range(0, len(string), size)]
-  else:
-    seq = [string[max(pos,0):pos-size]
-           for pos in range(len(string) + size, size, size)]
-    seq.reverse()
-    return seq
-
-def scalar_substr(scalar="", offset=0, length=None, replacement=None):
-  scalar = str(scalar)
-  if length is not None:
-    if replacement is not None:
-      return (scalar[:offset]
-              + str(replacement)
-              + scalar[offset + length:])
-    else:
-      return scalar[offset:offset + length]
-  else:
-    return scalar[offset:]
+SCALAR_OPS = {}
 
 
-def hash_item(hash, item=""):
-  if PRIVATE and re.search(PRIVATE, item):
-    return None
-  else:
-    return hash[item]
+# Global dictionary of list operations.
 
-def hash_hash(hash):
-  return hash
+LIST_OPS = {}
 
-def hash_size(hash):
-  return len(hash)
 
-def hash_each(hash):
-  return [item for pair in hash.iteritems() for item in pair]
+# Global dictionary of hash operations.
 
-def hash_keys(hash):
-  return hash.keys()
-
-def hash_values(hash):
-  return hash.values()
-
-hash_items = hash_each
-
-def hash_pairs(hash):
-  return [{"key": key, "value": value} for key, value in sorted(hash.items())]
-
-def hash_list(hash, what=""):
-  if what == "keys":
-    return hash_keys(hash)
-  elif what == "values":
-    return hash_values(hash)
-  elif what == "each":
-    return hash_each(hash)
-  else:
-    return hash_pairs(hash)
-
-def hash_exists(hash, key):
-  return key in hash
-
-def hash_defined(hash, key=None):
-  if key is None:
-    return True
-  else:
-    return hash.get(key) is not None
-
-def hash_delete(hash, *keys):
-  for key in keys:
-    del hash[key]
-
-def hash_import(hash, imp=None):
-  if isinstance(imp, dict):
-    hash.update(imp)
-  return ""
-
-def hash_sort(hash):
-  return [pair[0] for pair in sorted(hash.items(), key=_by_value(_to_lower))]
-
-def hash_nsort(hash):
-  return [pair[0] for pair in sorted(hash.items(), key=_by_value(_to_long))]
-
-def list_item(list, item=0):
-  return list[item]
-
-def list_list(list):
-  return list[:]
-
-def list_hash(list, n=None):
-  if n is not None:
-    n = int(n or 0)
-    return dict((index + n, item) for index, item in enumerate(list))
-  else:
-    return dict(util.chop(list, 2))
-
-def list_push(list, *args):
-  list.extend(args)
-  return ""
-
-def list_pop(list):
-  return list.pop()
-
-def list_unshift(list, *args):
-  list[:0] = args
-  return ""
-
-def list_shift(list):
-  return list.pop(0)
-
-def list_max(list):
-  return len(list) - 1
-
-def list_size(list):
-  return len(list)
-
-def list_defined(list, index=None):
-  if index is None:
-    return 1
-  else:
-    return 0 <= index < len(list) and list[index] is not None
-
-def list_first(list, count=None):
-  if count is None:
-    if list:
-      return list[0]
-    else:
-      return None
-  else:
-    return list[:count]
-
-def list_last(list, count=None):
-  if count is None:
-    if list:
-      return list[-1]
-    else:
-      return None
-  else:
-    return list[-count:]
-
-def list_reverse(list):
-  copy = list[:]
-  copy.reverse()
-  return copy
-
-def list_grep(list, pattern=""):
-  regex = re.compile(pattern)
-  return [item for item in list if regex.search(str(item))]
-
-def list_join(list, joint=" "):
-  return joint.join(str(item) for item in list)
-
-def list_sort(list, field=None):
-  if len(list) <= 1:
-    return list[:]
-  else:
-    if field:
-      return sorted(list, key=_smartsort(field, _to_lower))
-    else:
-      return sorted(list, key=_to_lower)
-
-def list_nsort(list, field=None):
-  if len(list) <= 1:
-    return list[:]
-  elif field:
-    return sorted(list, key=_smartsort(field, _to_long))
-  else:
-    return sorted(list, key=_to_long)
-
-def list_unique(seq):
-  return list(set(seq))
-
-def list_import(seq, *args):
-  for arg in args:
-    if isinstance(arg, list):
-      seq.extend(x for x in arg if x is not None)
-  return seq
-
-def list_merge(list_, *args):
-  copy = list_[:]
-  for arg in args:
-    if isinstance(arg, list):
-      copy.extend(x for x in arg if x is not None)
-  return copy
-
-def list_slice(list, start=0, to=None):
-  if start < 0:
-    start = len(list) + start
-  if to is None or to < 0:
-    return list[start:]
-  else:
-    return list[start:to + 1]
-
-def list_splice(seq, start=0, length=None, *replace):
-  if start < 0:
-    start = len(seq) + start
-  if length is not None:
-    stop = start + length
-  else:
-    stop = len(seq)
-  if len(replace) == 1 and isinstance(replace[0], (list, tuple)):
-    replace = replace[0]
-  s = slice(start, stop)
-  removed = seq[s]
-  seq[s] = replace
-  return removed
-
-def _smartsort(field, coerce):
-  def getkey(element):
-    key = element
-    if isinstance(element, dict):
-      key = element[field]
-    else:
-      attr = getattr(element, field, None)
-      if callable(attr):
-        key = attr()
-    return coerce(key)
-  return getkey
-
-SCALAR_OPS = {
-  "item": scalar_item,
-  "list": scalar_list,
-  "hash": scalar_hash,
-  "length": scalar_length,
-  "size": scalar_size,
-  "defined": scalar_defined,
-  "match": scalar_match,
-  "search": scalar_search,
-  "repeat": scalar_repeat,
-  "replace": scalar_replace,
-  "remove": scalar_remove,
-  "split": scalar_split,
-  "chunk": scalar_chunk,
-  "substr": scalar_substr,
-  }
-
-LIST_OPS = {
-  "item": list_item,
-  "list": list_list,
-  "hash": list_hash,
-  "push": list_push,
-  "pop": list_pop,
-  "unshift": list_unshift,
-  "shift": list_shift,
-  "max": list_max,
-  "size": list_size,
-  "defined": list_defined,
-  "first": list_first,
-  "last": list_last,
-  "reverse": list_reverse,
-  "grep": list_grep,
-  "join": list_join,
-  "sort": list_sort,
-  "nsort": list_nsort,
-  "unique": list_unique,
-  "import": list_import,
-  "merge": list_merge,
-  "slice": list_slice,
-  "splice": list_splice,
-  }
-
-HASH_OPS = {
-  "item": hash_item,
-  "hash": hash_hash,
-  "size": hash_size,
-  "each": hash_each,
-  "keys": hash_keys,
-  "values": hash_values,
-  "items": hash_items,
-  "pairs": hash_pairs,
-  "list": hash_list,
-  "exists": hash_exists,
-  "defined": hash_defined,
-  "delete": hash_delete,
-  "import": hash_import,
-  "sort": hash_sort,
-  "nsort": hash_nsort,
-  }
+HASH_OPS = {}
 
 
 class Stash:
   def __init__(self, params=None):
     params = params or {}
-    self.contents = {"global": {}}
-    self.contents.update(params)
-    self.contents.update(ROOT_OPS)
-    self._PARENT = None
-    self._DEBUG = bool(params.get("_DEBUG"))
+    self.__contents = {"global": {}}
+    self.__contents.update(params)
+    self.__contents.update(ROOT_OPS)
+    self.__parent = None
+    self.__debug = bool(params.get("_DEBUG"))
 
   def __getitem__(self, key):
-    return self.contents.get(key)
+    """Provides direct, container-like read access to the stash contents."""
+    return self.__contents.get(key)
 
   def __setitem__(self, key, value):
-    self.contents[key] = value
+    """Provides direct, container-like write access to the stash contents."""
+    self.__contents[key] = value
 
   def clone(self, params=None):
+    """Creates a copy of the current stash object to effect
+    localisation of variables.
+
+    The new stash is blessed into the same class as the parent (which
+    may be a derived class) and has a '__parent' member added which
+    contains a reference to the parent stash that created it (self).
+    This member is used in a successive declone() method call to
+    return the reference to the parent.
+
+    A parameter may be provided which should be a dictionary of
+    variable/values which should be defined in the new stash.  The
+    update() method is called to define these new variables in the
+    cloned stash.
+
+    Returns the cloned Stash.
+    """
     params = params or {}
     import_ = params.get("import")
     if isinstance(import_, dict):
@@ -429,18 +198,40 @@ class Stash:
     else:
       import_ = None
     clone = Stash()
-    clone.contents.update(self.contents)
-    clone.contents.update(params)
-    clone._DEBUG = self._DEBUG
-    clone._PARENT = self
+    clone.__contents.update(self.__contents)
+    clone.__contents.update(params)
+    clone.__debug = self.__debug
+    clone.__parent = self
     if import_:
       HASH_OPS["import"](clone, import_)
     return clone
 
   def declone(self):
-    return self._PARENT or self
+    """Returns a reference to the PARENT stash.
+
+    When called in the following manner:
+
+      stash = stash.declone()
+
+    the reference count on the current stash will drop to 0 and be "freed"
+    and the caller will be left with a reference to the parent.  This
+    contains the state of the stash before it was cloned.
+    """
+    return self.__parent or self
 
   def get(self, ident, args=None):
+    """Returns the value for an variable stored in the stash.
+
+    The variable may be specified as a simple string, e.g. 'foo', or
+    as an array reference representing compound variables.  In the
+    latter case, each pair of successive elements in the list
+    represent a node in the compound variable.  The first is the
+    variable name, the second a list of arguments or 0 if undefined.
+    So, the compound variable [% foo.bar('foo').baz %] would be
+    represented as the list [ 'foo', 0, 'bar', ['foo'], 'baz', 0 ].
+    Returns the value of the identifier or an empty string if
+    undefined.
+    """
     ident = util.unscalar(ident)
     root = self
     if isinstance(ident, str) and ident.find(".") != -1:
@@ -448,19 +239,33 @@ class Stash:
                  for y in (re.sub(r"\(.*$", "", x), 0)]
     if isinstance(ident, (list, tuple)):
       for a, b in util.chop(ident, 2):
-        result = self._dotop(root, a, b)
+        result = self.__dotop(root, a, b)
         if result is not None:
           root = result
         else:
           break
     else:
-      result = self._dotop(root, ident, args)
+      result = self.__dotop(root, ident, args)
 
     if result is None:
       result = self.undefined(ident, args)
     return util.PerlScalar(result)
 
   def set(self, ident, value, default=False):
+    """Updates the value for a variable in the stash.
+
+    The first parameter should be the variable name or list, as per
+    get().  The second parameter should be the intended value for the
+    variable.  The third, optional parameter is a flag which may be
+    set to indicate 'default' mode.  When set true, the variable will
+    only be updated if it is currently undefined or has a false value.
+    The magical 'IMPORT' variable identifier may be used to indicate
+    that value is a dictionary whose values should be imported.
+    Returns the value set, or an empty string if not set (e.g. default
+    mode).  In the case of IMPORT, returns the number of items
+    imported from the hash.
+    """
+
     root = self
     ident = util.unscalar(ident)
     value = util.unscalar(value)
@@ -472,23 +277,31 @@ class Stash:
       chopped = list(util.chop(ident, 2))
       for i in range(len(chopped)-1):
         x, y = chopped[i]
-        result = self._dotop(root, x, y, True)
+        result = self.__dotop(root, x, y, True)
         if result is None:
           # last ELEMENT
           return ""
         else:
           root = result
-      result = self._assign(root, chopped[-1][0], chopped[-1][1],
+      result = self.__assign(root, chopped[-1][0], chopped[-1][1],
                             value, default)
     else:
-      result = self._assign(root, ident, 0, value, default)
+      result = self.__assign(root, ident, 0, value, default)
 
     if result is None:
       return ""
     else:
       return result
 
-  def _assign(self, root, item, args=None, value=None, default=False):
+  def __assign(self, root, item, args=None, value=None, default=False):
+    """Similar to __dotop, but assigns a value to the given variable
+    instead of simply returning it.
+
+    The first three parameters are the root item, the item and
+    arguments, as per __dotop, followed by the value to which the
+    variable should be set and an optional 'default' flag.  If set
+    true, the variable will only be set if currently false.
+    """
     item = util.unscalar(item)
     args = util.unscalar_list(args)
     atroot = root is self
@@ -514,7 +327,28 @@ class Stash:
 
     return None
 
-  def _dotop(self, root, item, args=None, lvalue=False):
+  def __dotop(self, root, item, args=None, lvalue=False):
+    """This is the core 'dot' operation method which evaluates
+    elements of variables against their root.
+
+    All variables have an implicit root which is the stash object
+    itself.  Thus, a non-compound variable 'foo' is actually
+    '(stash.)foo', the compound 'foo.bar' is '(stash.)foo.bar'.  The
+    first parameter is the current root, initially the stash itself.
+    The second parameter contains the name of the variable element,
+    e.g. 'foo'.  The third optional parameter is a list of any
+    parenthesised arguments specified for the variable, which are
+    passed to sub-routines, object methods, etc.  The final parameter
+    is an optional flag to indicate if this variable is being
+    evaluated on the left side of an assignment (e.g. foo.bar.baz =
+    10).  When set true, intermediated dictionaries will be created
+    (e.g. bar) if necessary.
+
+    Returns the result of evaluating the item against the root, having
+    performed any variable "magic".  The value returned can then be used
+    as the root of the next __dotop() in a compound sequence.  Returns
+    None if the variable is undefined.
+    """
     root = util.unscalar(root)
     item = util.unscalar(item)
     args = util.unscalar_list(args)
@@ -620,57 +454,532 @@ class Stash:
       result = SCALAR_OPS[item](root, *args)
     elif item in LIST_OPS and not lvalue:
       result = LIST_OPS[item]([root], *args)
-    elif self._DEBUG:
+    elif self.__debug:
       raise Error("don't know how to access [%r].%s" % (root, item))
     else:
       result = []
 
-    if not found and self._DEBUG:
+    if not found and self.__debug:
       raise Error("%s is undefined" % (item,))
     elif result is not None:
       return result
-    elif self._DEBUG:
+    elif self.__debug:
       raise Error("%s is undefined" % (item,))
     else:
       return None
 
   def getref(self, ident, args=None):
+    """Returns a "reference" to a particular item.
+
+    This is represented as a function which will return the actual
+    stash item when called.  WARNING: still experimental!
+    """
     root = self
     if util.is_seq(ident):
       chopped = list(util.chop(ident, 2))
       for i, (item, args) in enumerate(chopped):
         if i == len(chopped) - 1:
           break
-        root = self._dotop(root, item, args)
+        root = self.__dotop(root, item, args)
         if root is None:
           break
     else:
       item = ident
     if root is not None:
-      return lambda *x: self._dotop(root, item, tuple(args or ()) + x)
+      return lambda *x: self.__dotop(root, item, tuple(args or ()) + x)
     else:
       return lambda *x: ""
 
 
   def update(self, params):
+    """Update multiple variables en masse.
+
+    No magic is performed.  Simple variable names only.
+    """
     if params is not None:
       import_ = params.get("import")
       if isinstance(import_, dict):
-        self.contents.update(import_)
+        self.__contents.update(import_)
         del params["import"]
-      self.contents.update(params)
+      self.__contents.update(params)
 
   def undefined(self, ident, args):
+    """Method called when a get() returns an undefined value.
+
+    Can be redefined in a subclass to implement alternate handling.
+    """
     return ""
 
   def define_vmethod(self, type, name, func):
+    """Defines a virtual method of type 'type' ('scalar', 'item',
+    'hash', 'list', or 'array'), with name 'name', that invokes 'func'
+    when called.
+
+    It is expected that func be able to handle the type that it will
+    be called upon.
+    """
     type = type.lower()
     if type in ("scalar", "item"):
-      op = SCALAR_OPS
+      SCALAR_OPS[name] = func
     elif type == "hash":
-      op = HASH_OPS
+      HASH_OPS[name] = func
     elif type in ("list", "array"):
-      op = LIST_OPS
+      LIST_OPS[name] = func
     else:
       raise Error("invalid vethod type: %s\n" % type)
-    op[name] = func
+
+
+class Error(Exception):
+  """A trivial local exception class."""
+  pass
+
+
+scalar_op = util.registrar(SCALAR_OPS)
+
+list_op = util.registrar(LIST_OPS)
+
+hash_op = util.registrar(HASH_OPS)
+
+
+@scalar_op("item")
+def scalar_item(scalar):
+  return scalar
+
+
+@scalar_op("list")
+def scalar_list(scalar):
+  return [scalar]
+
+
+@scalar_op("hash")
+def scalar_hash(scalar):
+  return {"value": scalar}
+
+
+@scalar_op("length")
+def scalar_length(scalar):
+  return len(str(scalar))
+
+
+@scalar_op("size")
+def scalar_size(scalar):
+  return 1
+
+
+@scalar_op("defined")
+def scalar_defined(scalar):
+  return 1
+
+
+@scalar_op("match")
+def scalar_match(scalar, search=None, matchall=False):
+  if scalar is None or search is None:
+    return scalar
+  if matchall:
+    matches = re.findall(search, str(scalar))
+    if not matches:
+      matches = None
+    elif isinstance(matches[0], tuple):
+      matches = [item for group in matches for item in group]  # flatten
+  else:
+    match = re.search(search, str(scalar))
+    if match:
+      matches = match.groups() or [1]
+    else:
+      matches = ""
+  return matches
+
+
+@scalar_op("search")
+def scalar_search(scalar=None, pattern=None):
+  if scalar is None or pattern is None:
+    return scalar
+  return re.search(pattern, str(scalar)) and True or False
+
+
+@scalar_op("repeat")
+def scalar_repeat(scalar="", count=1):
+  return str(scalar) * count
+
+
+@scalar_op("replace")
+def scalar_replace(scalar="", pattern="", replace="", global_=True):
+  scalar = str(scalar)
+  pattern = str(pattern)
+  replace = str(replace)
+  if re.search(r"\$\d+", replace):
+    def expand(match1):
+      def matched(match2):
+        escaped = match2.group(1)
+        if escaped:
+          return escaped
+        index = int(match2.group(2))
+        if 0 < index <= len(match1.groups()):
+          return match1.group(index)
+        else:
+          return ""
+      return re.sub(r"\\([\\$])|\$(\d+)", matched, replace)
+  else:
+    expand = lambda _: replace
+  return re.sub(pattern, expand, scalar, int(not global_))
+
+
+@scalar_op("remove")
+def scalar_remove(scalar=None, search=None):
+  if scalar is None or search is None:
+    return scalar
+  return re.sub(search, "", str(scalar))
+
+
+@scalar_op("split")
+def scalar_split(scalar="", split=None, limit=None):
+  if limit is not None:
+    return str(scalar).split(split, limit - 1)
+  else:
+    return str(scalar).split(split)
+
+
+@scalar_op("chunk")
+def scalar_chunk(scalar="", size=1):
+  string = str(scalar)
+  if size > 0:
+    return [string[pos:pos+size] for pos in range(0, len(string), size)]
+  else:
+    seq = [string[max(pos,0):pos-size]
+           for pos in range(len(string) + size, size, size)]
+    seq.reverse()
+    return seq
+
+
+@scalar_op("substr")
+def scalar_substr(scalar="", offset=0, length=None, replacement=None):
+  scalar = str(scalar)
+  if length is not None:
+    if replacement is not None:
+      return (scalar[:offset]
+              + str(replacement)
+              + scalar[offset + length:])
+    else:
+      return scalar[offset:offset + length]
+  else:
+    return scalar[offset:]
+
+
+@hash_op("item")
+def hash_item(hash, item=""):
+  if PRIVATE and re.search(PRIVATE, item):
+    return None
+  else:
+    return hash[item]
+
+
+@hash_op("hash")
+def hash_hash(hash):
+  return hash
+
+
+@hash_op("size")
+def hash_size(hash):
+  return len(hash)
+
+
+@hash_op("each", "items")
+def hash_each(hash):
+  return [item for pair in hash.iteritems() for item in pair]
+
+
+@hash_op("keys")
+def hash_keys(hash):
+  return hash.keys()
+
+
+@hash_op("values")
+def hash_values(hash):
+  return hash.values()
+
+
+@hash_op("pairs")
+def hash_pairs(hash):
+  return [{"key": key, "value": value} for key, value in sorted(hash.items())]
+
+
+@hash_op("list")
+def hash_list(hash, what=""):
+  if what == "keys":
+    return hash_keys(hash)
+  elif what == "values":
+    return hash_values(hash)
+  elif what == "each":
+    return hash_each(hash)
+  else:
+    return hash_pairs(hash)
+
+
+@hash_op("exists")
+def hash_exists(hash, key):
+  return key in hash
+
+
+@hash_op("defined")
+def hash_defined(hash, key=None):
+  if key is None:
+    return True
+  else:
+    return hash.get(key) is not None
+
+
+@hash_op("delete")
+def hash_delete(hash, *keys):
+  for key in keys:
+    try:
+      del hash[key]
+    except KeyError:
+      pass
+
+
+@hash_op("import")
+def hash_import(hash, imp=None):
+  if isinstance(imp, dict):
+    hash.update(imp)
+  return ""
+
+
+@hash_op("sort")
+def hash_sort(hash):
+  return [pair[0] for pair in sorted(hash.items(), key=_by_value(_to_lower))]
+
+
+@hash_op("nsort")
+def hash_nsort(hash):
+  return [pair[0] for pair in sorted(hash.items(), key=_by_value(_to_long))]
+
+
+@list_op("item")
+def list_item(list, item=0):
+  return list[item]
+
+
+@list_op("list")
+def list_list(list):
+  return list[:]
+
+
+@list_op("hash")
+def list_hash(list, n=None):
+  if n is not None:
+    n = int(n or 0)
+    return dict((index + n, item) for index, item in enumerate(list))
+  else:
+    return dict(util.chop(list, 2))
+
+
+@list_op("push")
+def list_push(list, *args):
+  list.extend(args)
+  return ""
+
+
+@list_op("pop")
+def list_pop(list):
+  return list.pop()
+
+
+@list_op("unshift")
+def list_unshift(list, *args):
+  list[:0] = args
+  return ""
+
+
+@list_op("shift")
+def list_shift(list):
+  return list.pop(0)
+
+
+@list_op("max")
+def list_max(list):
+  return len(list) - 1
+
+
+@list_op("size")
+def list_size(list):
+  return len(list)
+
+
+@list_op("defined")
+def list_defined(list, index=None):
+  if index is None:
+    return 1
+  else:
+    return 0 <= index < len(list) and list[index] is not None
+
+
+@list_op("first")
+def list_first(list, count=None):
+  if count is None:
+    if list:
+      return list[0]
+    else:
+      return None
+  else:
+    return list[:count]
+
+
+@list_op("last")
+def list_last(list, count=None):
+  if count is None:
+    if list:
+      return list[-1]
+    else:
+      return None
+  else:
+    return list[-count:]
+
+
+@list_op("reverse")
+def list_reverse(list):
+  copy = list[:]
+  copy.reverse()
+  return copy
+
+
+@list_op("grep")
+def list_grep(list, pattern=""):
+  regex = re.compile(pattern)
+  return [item for item in list if regex.search(str(item))]
+
+
+@list_op("join")
+def list_join(list, joint=" "):
+  return joint.join(str(item) for item in list)
+
+
+@list_op("sort")
+def list_sort(list, field=None):
+  if len(list) <= 1:
+    return list[:]
+  else:
+    if field:
+      return sorted(list, key=_smartsort(field, _to_lower))
+    else:
+      return sorted(list, key=_to_lower)
+
+
+@list_op("nsort")
+def list_nsort(list, field=None):
+  if len(list) <= 1:
+    return list[:]
+  elif field:
+    return sorted(list, key=_smartsort(field, _to_long))
+  else:
+    return sorted(list, key=_to_long)
+
+
+@list_op("unique")
+def list_unique(seq):
+  # FIXME: This will break if the items of seq are unhashable.
+  return list(set(seq))
+
+
+@list_op("import")
+def list_import(seq, *args):
+  for arg in args:
+    if isinstance(arg, list):
+      seq.extend(x for x in arg if x is not None)
+  return seq
+
+
+@list_op("merge")
+def list_merge(list_, *args):
+  copy = list_[:]
+  for arg in args:
+    if isinstance(arg, list):
+      copy.extend(x for x in arg if x is not None)
+  return copy
+
+
+@list_op("slice")
+def list_slice(list, start=0, to=None):
+  if start < 0:
+    start = len(list) + start
+  if to is None or to < 0:
+    return list[start:]
+  else:
+    return list[start:to + 1]
+
+
+@list_op("splice")
+def list_splice(seq, start=0, length=None, *replace):
+  if start < 0:
+    start = len(seq) + start
+  if length is not None:
+    stop = start + length
+  else:
+    stop = len(seq)
+  if len(replace) == 1 and isinstance(replace[0], (list, tuple)):
+    replace = replace[0]
+  s = slice(start, stop)
+  removed = seq[s]
+  seq[s] = replace
+  return removed
+
+
+def _smartsort(field, coerce):
+  def getkey(element):
+    key = element
+    if isinstance(element, dict):
+      key = element[field]
+    else:
+      attr = getattr(element, field, None)
+      if callable(attr):
+        key = attr()
+    return coerce(key)
+  return getkey
+
+
+def _to_lower(x):
+  return str(x).lower()
+
+
+LONG_REGEX = re.compile(r"-?\d+")
+
+def _to_long(x):
+  try:
+    return long(x)
+  except ValueError:
+    match = LONG_REGEX.match(str(x))
+    if match:
+      return long(match.group(0))
+    else:
+      return 0L
+
+
+def _by_value(func):
+  def wrapper(x):
+    return func(x[1])
+  return wrapper
+
+
+def _slice(seq, items):
+  if isinstance(items, str):
+    raise TypeError
+  sliced = []
+  for x in items:
+    try:
+      sliced.append(seq[x])
+    except KeyError:
+      sliced.append(None)
+  return sliced
+
+
+def increment(x):
+  return x + 1
+
+
+def decrement(x):
+  return x - 1
+
+
+ROOT_OPS = {
+  "inc": increment,
+  "dec": decrement,
+}
