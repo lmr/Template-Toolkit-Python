@@ -1,47 +1,7 @@
-import cStringIO
-
-from template import util
+from template.util import Code, chop, unpack, unindent
 
 
 WHILE_MAX = 1000
-
-
-class Code:
-  class Error(Exception):
-    pass
-
-  indent   = Error()  # any distinct objects
-  unindent = Error()  # will do
-
-  @classmethod
-  def format(cls, *args):
-    code = cls()
-    code.write(*args)
-    return code.text()
-
-  def __init__(self):
-    self.buffer = cStringIO.StringIO()
-    self.depth = 0
-
-  def write(self, *args):
-    for arg in args:
-      if arg is self.indent:
-        self.depth += 1
-      elif arg is self.unindent:
-        if self.depth == 0:
-          raise self.Error("Too many unindents")
-        self.depth -= 1
-      elif not arg:
-        pass  # skip blank lines
-      else:
-        for line in arg.split("\n"):
-          if line and not line.isspace():
-            self.buffer.write(" " * self.depth)
-            self.buffer.write(line)
-            self.buffer.write("\n")
-
-  def text(self):
-    return self.buffer.getvalue()
 
 
 class Directive:
@@ -162,17 +122,17 @@ class Directive:
 
   def set(self, setlist):  # [% foo = bar, baz = qux %]
     return "\n".join([self.assign(var, val)
-                      for var, val in util.chop(setlist, 2)])
+                      for var, val in chop(setlist, 2)])
 
   def default(self, setlist):   # [% DEFAULT foo = bar, baz = qux %]
     return "\n".join(self.assign(var, val, 1)
-                     for var, val in util.chop(setlist, 2))
+                     for var, val in chop(setlist, 2))
 
   def insert(self, nameargs):  # [% INSERT file %]
     return "output.write(context.insert(%s))" % self.filenames(nameargs[0])
 
   def include(self, nameargs):   # [% INCLUDE template foo = bar %]
-    file, args = util.unpack(nameargs, 2)
+    file, args = unpack(nameargs, 2)
     hash = args.pop(0)
     file = self.filenames(file)
     if hash:
@@ -180,7 +140,7 @@ class Directive:
     return "output.write(context.include(%s))" % file
 
   def process(self, nameargs):  # [% PROCESS template foo = bar %]
-    file, args = util.unpack(nameargs, 2)
+    file, args = unpack(nameargs, 2)
     hash = args.pop(0)
     file = self.filenames(file)
     if hash:
@@ -194,7 +154,7 @@ class Directive:
     else:
       elses = []
     if elses:
-      else_ = elses.pop()  # Ouch.
+      else_ = elses.pop()
     else:
       else_ = None
     code = Code()
@@ -250,7 +210,7 @@ class Directive:
     return "raise Continue"
 
   def wrapper(self, nameargs, block):  # [% WRAPPER template foo = bar %]
-    file, args = util.unpack(nameargs, 2)
+    file, args = unpack(nameargs, 2)
     hash = args.pop(0)
     if len(file) > 1:
       return self.multi_wrapper(file, hash, block)
@@ -401,7 +361,6 @@ class Directive:
       pass
     return "context.throw(%s, %s, output)" % (type, info)
 
-
   def clear(self):  # [% CLEAR %]
     return "output.clear()"
 
@@ -415,7 +374,7 @@ class Directive:
     return "context.throw('stop', '', output)"
 
   def use(self, lnameargs):  # [% USE alias = plugin(args) %]
-    file, args, alias = util.unpack(lnameargs, 3)
+    file, args, alias = unpack(lnameargs, 3)
     file = file[0]
     alias = alias or file
     args = self.args(args)
@@ -442,12 +401,11 @@ class Directive:
     return "context.throw('python', 'EVAL_PYTHON not set')"
 
   def rawpython(self, block, line):
-    block = util.unindent(block)
     line = line and " (starting line %s)" % line or ""
-    return "#line 1 'RAWPYTHON block%s'\n%s" % (line, block)
+    return "#line 1 'RAWPYTHON block%s'\n%s" % (line, unindent(block))
 
   def filter(self, lnameargs, block):
-    name, args, alias = util.unpack(lnameargs, 3)
+    name, args, alias = unpack(lnameargs, 3)
     name = name[0]
     args = self.args(args)
     if alias:
@@ -461,8 +419,7 @@ class Directive:
       "def block():",
       Code.indent,
         "output = Buffer()",
-        "filter = context.filter(%s) or "
-          "context.throw(context.error())" % name,
+        "filter = context.filter(%s) or context.throw(context.error())" % name,
         block,
         "return filter(output.get())",
       Code.unindent,

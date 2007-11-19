@@ -6,6 +6,11 @@ from template.base import TemplateException
 from template.config import Config
 
 
+class Error(Exception):
+  """A trivial local exception class."""
+  pass
+
+
 class ControlFlowException(Exception):
   """Base class for exceptions related to control flow in generated code.
 
@@ -61,9 +66,55 @@ class StringBuffer:
     return self.__buffer.getvalue()
 
 
-class Error(Exception):
-  """A trivial local exception class."""
-  pass
+class Code:
+  """Utility class for constructing snippets of properly-indented Python
+  code.
+
+  The write() method takes any number of arguments, which are
+  processed in order.  An argument which is identically equal to one
+  of the class members named"indent" or "unindent" has the effect of
+  increasing or decreasing, respectively, the indentation level of
+  the following lines by one space.  All other arguments are stringified,
+  split on newlines, and printed line by line to an internal buffer, each
+  line being indented to the current indentation level.  Empty lines
+  are skipped.
+
+  The "text" method returns the contents of the internal buffer.
+
+  The class method "format" instantiates an object, writes all of its
+  arguments to it, and returns the buffer contents, all in one step.
+  """
+
+  indent   = Error()  # any distinct objects
+  unindent = Error()  # will do
+
+  @classmethod
+  def format(cls, *args):
+    code = cls()
+    code.write(*args)
+    return code.text()
+
+  def __init__(self):
+    self.__buffer = StringBuffer()
+    self.__depth = 0
+
+  def write(self, *args):
+    for arg in args:
+      if arg is self.indent:
+        self.__depth += 1
+      elif arg is self.unindent:
+        if self.__depth == 0:
+          raise Error("Internal error: too many unindents")
+        self.__depth -= 1
+      elif not arg:
+        pass  # skip blank lines
+      else:
+        for line in str(arg).split("\n"):
+          if line and not line.isspace():
+            self.__buffer.write(" " * self.__depth, line, "\n")
+
+  def text(self):
+    return self.__buffer.get()
 
 
 class Literal:
@@ -317,7 +368,12 @@ def unindent(code):
 
 
 def EvaluateCode(code, context, stash):
-  """Evaluates 
+  """Evaluates a snippet of Python code, returning everything that it
+  writes to sys.stdout, which is temporarily redirected to a StringIO
+  object.
+
+  The two global variables "context" and "stash" are set to the two
+  function arguments of the same names.
   """
   code = unindent(code)
   old_stdout = sys.stdout

@@ -3,14 +3,20 @@ import sys
 
 
 class Base:
+  """Base class for all core Template Toolkit classes.
+
+  This class mainly provides Perl-style error-reporting semantics that
+  are better accomplished in Python by simple exception-throwing.  It
+  should therefore probably be removed in the near future, if possible.
+  """
   def __init__(self):
-    self._ERROR = None
+    self.__error = None
 
   def error(self, *args):
     if args:
-      self._ERROR = self.__ErrorMessage(args)
+      self.__error = self.__ErrorMessage(args)
     else:
-      return self._ERROR
+      return self.__error
 
   def DEBUG(self, *args):
     sys.stderr.write("DEBUG: ")
@@ -20,9 +26,12 @@ class Base:
   @classmethod
   def Error(cls, *args):
     if args:
-      cls.ERROR = self.__ErrorMessage(args)
+      cls.__ERROR = self.__ErrorMessage(args)
     else:
-      return getattr(cls, "ERROR", None)
+      try:
+        return cls.__ERROR
+      except AttributeError:
+        return None
 
   @staticmethod
   def __ErrorMessage(args):
