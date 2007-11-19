@@ -7,8 +7,8 @@ from template import util
 from template.base import Base, TemplateException
 from template.constants import *
 from template.plugin.filter import Filter
+from template.util import Literal, EvaluateCode, unpack, dynamic_filter
 
-eval_namespace = {}
 
 # Static filters:
 
@@ -20,7 +20,7 @@ def html_filter(text):
 
 def html_paragraph(text):
   return ("<p>\n"
-          + "\n</p>\n\n<p>\n".join(re.split(r"(?:\r?\n){2,}", text))
+          + "\n</p>\n\n<p>\n".join(re.split(r"(?:\r?\n){2,}", str(text)))
           + "</p>\n")
 
 def html_para_break(text):
@@ -33,7 +33,7 @@ URI_ESCAPES = dict((chr(x), "%%%02X" % x) for x in range(256))
 
 def uri_filter(text):
   return re.sub(r"[^;\/?:@&=+\$,A-Za-z0-9\-_.!~*'()]",
-                lambda m: URI_ESCAPES[m.group(0)], text)
+                lambda m: URI_ESCAPES[m.group()], text)
 
 def ucfirst(text):
   if text:
@@ -56,6 +56,7 @@ def collapse(text):
 
 # Dynamic filter factories:
 
+@dynamic_filter
 def html_entity_filter_factory(context):
   from htmlentitydefs import codepoint2name
   def encode(char):
@@ -64,79 +65,79 @@ def html_entity_filter_factory(context):
       return "&%s;" % name
     else:
       return "%%%02X" % char
-  def filter(text=""):
+  def html_entity_filter(text=""):
     return re.sub(r"[^\n\r\t !#$%'-;=?-~]",
                   lambda m: encode(ord(m.group(0))), text)
-  return filter
+  return html_entity_filter
 
+@dynamic_filter
 def indent_filter_factory(context, pad=4):
   try:
     pad = " " * int(pad)
   except:
     pass
-  def indent(text=""):
-    return re.sub(r"(?m)^(?=(?s).)", lambda m: pad, text)
-  return indent
+  def indent_filter(text=""):
+    return re.sub(r"(?m)^(?=(?s).)", lambda _: pad, text)
+  return indent_filter
 
+@dynamic_filter
 def format_filter_factory(context, formatstr="%s"):
-  def format(text=""):
+  def format_filter(text=""):
     # The "rstrip" is to emulate Perl's strip, which elides trailing nulls.
     return "\n".join(formatstr % string
                      for string in text.rstrip("\n").split("\n"))
-  return format
+  return format_filter
 
 
+@dynamic_filter
 def truncate_filter_factory(context, length=32, char="..."):
-  def truncate(text=""):
+  def truncate_filter(text=""):
     if len(text) <= length:
       return text
     else:
       return text[:length-len(char)] + char
-  return truncate
+  return truncate_filter
 
-def repeat_filter_factory(context, iter=1):
-  def repeat(text=""):
-    return text * iter
-  return repeat
+@dynamic_filter
+def repeat_filter_factory(context, count=1):
+  def repeat_filter(text=""):
+    return str(text) * int(count)
+  return repeat_filter
 
+@dynamic_filter
 def replace_filter_factory(context, search="", replace=""):
-  def replace_(text=""):
-    return re.sub(search, replace, text)
-  return replace_
+  def replace_filter(text=""):
+    return re.sub(str(search), lambda _: str(replace), str(text))
+  return replace_filter
 
+@dynamic_filter
 def remove_filter_factory(context, search="", *args):
-  def remove(text=""):
+  def remove_filter(text=""):
     return re.sub(search, "", text)
-  return remove
+  return remove_filter
 
+@dynamic_filter
 def eval_filter_factory(context):
-  def eval(text=""):
+  def eval_filter(text=""):
     return context.process(util.Literal(text))
-  return eval
+  return eval_filter
 
+@dynamic_filter
 def python_filter_factory(context):
   if not context.eval_python():
     return None, TemplateException("python", "EVAL_PYTHON is not set")
   def python_filter(text):
-    saved = (eval_namespace.get("context"), eval_namespace.get("stash"))
-    eval_namespace["context"] = context
-    eval_namespace["stash"] = context.stash()
-    try:
-      try:
-        return str(eval(text, eval_namespace))
-      except Exception, e:
-        context.throw(e)
-    finally:
-      eval_namespace["context"], eval_namespace["stash"] = saved
+    return util.EvaluateCode(text, context, context.stash())
   return python_filter
 
+@dynamic_filter
 def redirect_filter_factory(context, file, options=None):
   outpath = context.config().get("OUTPUT_PATH")
   if not outpath:
     return None, TemplateException("redirect", "OUTPUT_PATH is not set")
   if not isinstance(options, dict):
     options = { "binmode": options }
-  def redirect(text=""):
+  def redirect_filter(text=""):
     outpath = context.config().get("OUTPUT_PATH")
     if not outpath:
       return ""
@@ -154,15 +155,16 @@ def redirect_filter_factory(context, file, options=None):
     except Exception, e:
       raise TemplateException("redirect", e)
     return ""
-  return redirect
+  return redirect_filter
 
+@dynamic_filter
 def stdout_filter_factory(context, options=None):
   if not isinstance(options, dict):
     options = {"binmode": options}
-  def stdout(text):
+  def stdout_filter(text):
     sys.stdout.write(text)
     return ""
-  return stdout
+  return stdout_filter
 
 
 
@@ -183,19 +185,19 @@ FILTERS = {
   "collapse": collapse,
 
   # dynamic filters
-  "html_entity": [html_entity_filter_factory, True],
-  "indent":      [indent_filter_factory, True],
-  "format":      [format_filter_factory, True],
-  "truncate":    [truncate_filter_factory, True],
-  "repeat":      [repeat_filter_factory, True],
-  "replace":     [replace_filter_factory, True],
-  "remove":      [remove_filter_factory, True],
-  "eval":        [eval_filter_factory, True],
-  "evaltt":      [eval_filter_factory, True],
-  "python":      [python_filter_factory, True],
-  "redirect":    [redirect_filter_factory, True],
-  "file":        [redirect_filter_factory, True],
-  "stdout":      [stdout_filter_factory, True],
+  "html_entity": html_entity_filter_factory,
+  "indent":      indent_filter_factory,
+  "format":      format_filter_factory,
+  "truncate":    truncate_filter_factory,
+  "repeat":      repeat_filter_factory,
+  "replace":     replace_filter_factory,
+  "remove":      remove_filter_factory,
+  "eval":        eval_filter_factory,
+  "evaltt":      eval_filter_factory,
+  "python":      python_filter_factory,
+  "redirect":    redirect_filter_factory,
+  "file":        redirect_filter_factory,
+  "stdout":      stdout_filter_factory,
  }
 
 class Filters(Base):
@@ -220,10 +222,7 @@ class Filters(Base):
       factory = self.FILTERS.get(name) or FILTERS.get(name)
       if not factory:
         return None, STATUS_DECLINED
-    if isinstance(factory, (tuple, list)):
-      factory, is_dynamic = util.unpack(factory, 2)
-    else:
-      is_dynamic = False
+    is_dynamic = getattr(factory, "dynamic_filter", False)
 
     if callable(factory):
       if is_dynamic:

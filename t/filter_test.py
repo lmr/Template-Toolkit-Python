@@ -5,7 +5,7 @@ import sys
 
 from template import Template, TemplateException
 from template.test import TestCase, main
-from template import base
+from template.util import dynamic_filter
 
 old_stderr = sys.stderr
 sys.stderr = cStringIO.StringIO()
@@ -28,11 +28,11 @@ class FilterTest(TestCase):
                }
     filters = { 'nonfilt': 'nonsense',
                 'microjive': microjive,
-                'microsloth': [ microsloth, False ],
-                'censor': [ censor_factory, True ],
-                'badfact': [ lambda *_: 'nonsense', True ],
-                'badfilt': [ 'rubbish', True ],
-                'barfilt': [ barf_up, 1 ] }
+                'microsloth': dynamic_filter(microsloth, False),
+                'censor': dynamic_filter(censor_factory),
+                'badfact': dynamic_filter(lambda *_: 'nonsense'),
+                'badfilt': 'rubbish',
+                'barfilt': dynamic_filter(barf_up) }
     config1 = { 'INTERPOLATE': 1,
                 'POST_CHOMP': 1,
                 'FILTERS': filters }
@@ -49,7 +49,7 @@ class FilterTest(TestCase):
     self.Expect(DATA, (('default', tt1), ('evalpython', tt2)), params)
     self.failUnless(os.path.exists(path))
     os.remove(path)
-    
+
 #
 #  Custom filter subs.
 #

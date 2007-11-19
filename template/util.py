@@ -135,7 +135,7 @@ class Literal:
   # to make this class unnecessary.
 
   def __init__(self, text):
-    self.__text = text
+    self.__text = str(text)
 
   def text(self):
     return self.__text
@@ -349,6 +349,11 @@ def numify(value):
     return long(match.group(0))
 
 
+def dynamic_filter(func, dynamic=True):
+  func.dynamic_filter = bool(dynamic)
+  return func
+
+
 def unindent(code):
   """Unindents a multiline block of text.
 
@@ -358,7 +363,7 @@ def unindent(code):
   """
   try:
     indent = min(len(match.group())
-                 for match in re.finditer(r"(?m)^\s+(?=\S)", code))
+                 for match in re.finditer(r"(?m)^[^\S\n]*(?=\S)", code))
   except ValueError:
     # No indentation found; min() complains of a zero-length sequence.
     pass

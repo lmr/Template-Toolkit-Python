@@ -1035,7 +1035,7 @@ class Context(Base):
   def define_filter(self, name, filter, dynamic=False):
     """Adds a new FILTER definition to the local FILTER_CACHE."""
     if dynamic:
-      filter = [filter, True]
+      filter = util.dynamic_filter(filter)
     for provider in self.__load_filters:
       result, error = provider.store(name, filter)
       if not error:

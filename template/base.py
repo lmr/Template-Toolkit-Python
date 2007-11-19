@@ -43,7 +43,7 @@ class Base:
 
 class TemplateException(Exception):
   def __init__(self, type, info, buffer=None):
-    Exception.__init__(self)
+    Exception.__init__(self, type, info)
     self.__type = type
     self.__info = info
     self.__buffer = buffer
