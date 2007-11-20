@@ -145,9 +145,9 @@ class Parser(Base):
     if not isinstance(self.FACTORY, InstanceType):
       self.FACTORY = self.FACTORY(param)
 
-    self.LEXTABLE = self.GRAMMAR.LEXTABLE
-    self.STATES = self.GRAMMAR.STATES
-    self.RULES = self.GRAMMAR.RULES
+    self.LEXTABLE = self.GRAMMAR.lextable
+    self.STATES = self.GRAMMAR.states
+    self.RULES = self.GRAMMAR.rules
     if not self.new_style(param):
       return self.Error(self.error())
 
@@ -365,8 +365,8 @@ class Parser(Base):
     token = None
     in_string = False
     in_python = False
-    line      = [0]
-    status    = CONTINUE
+    line = [0]
+    status = CONTINUE
     lhs = None
     text = None
     self.LINE = line
