@@ -10,18 +10,18 @@ class ConfigTest(TestCase):
     # Parser:
     parser = factory.parser({ 'PRE_CHOMP': 1, 'INTERPOLATE': True })
     self.failUnless(parser)
-    self.assertEquals(1, parser.PRE_CHOMP)
-    self.failUnless(parser.INTERPOLATE)
+    self.assertEquals(1, parser.pre_chomp)
+    self.failUnless(parser.interpolate)
     parser = factory.parser({ 'POST_CHOMP': 1 })
     self.failUnless(parser)
-    self.assertEquals(1, parser.POST_CHOMP)
+    self.assertEquals(1, parser.post_chomp)
 
     # Provider:
     provider = factory.provider({ 'INCLUDE_PATH': 'here:there',
                                   'PARSER': parser })
     self.failUnless(provider)
     self.assertEquals(['here', 'there'], provider.INCLUDE_PATH)
-    self.assertEquals(1, provider.PARSER.POST_CHOMP)
+    self.assertEquals(1, provider.PARSER.post_chomp)
     provider = factory.provider({ 'INCLUDE_PATH': 'cat:mat',
                                   'ANYCASE': True,
                                   'INTERPOLATE': True })
@@ -31,8 +31,8 @@ class ConfigTest(TestCase):
     # correct parameters.
     text = 'The cat sat on the mat'
     self.failUnless(provider.fetch(Literal(text)))
-    self.failUnless(provider.PARSER.ANYCASE)
-    self.failUnless(provider.PARSER.INTERPOLATE)
+    self.failUnless(provider.PARSER.anycase)
+    self.failUnless(provider.PARSER.interpolate)
 
     # Plugins:
     plugins = factory.plugins({ 'PLUGIN_BASE': ('my.plugins', 'MyPlugins') })
@@ -76,7 +76,7 @@ class ConfigTest(TestCase):
                                 'STASH': stash })
     self.failUnless(context)
     self.assertEquals(30, context.stash().get('foo').value())
-    self.failUnless(context.load_templates()[0].PARSER.INTERPOLATE)
+    self.failUnless(context.load_templates()[0].PARSER.interpolate)
     self.failUnless(context.load_plugins()[0].LOAD_PYTHON)
     self.failUnless(context.load_filters()[0].tolerant())
 

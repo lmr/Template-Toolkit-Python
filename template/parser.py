@@ -1,12 +1,489 @@
 import re
 import sys
-from types import InstanceType
+import types
 
 from template.base import Base, TemplateException
 from template.constants import *
 from template.directive import Directive
 from template.grammar import Grammar
 from template import util
+
+
+"""
+template.parser - LALR(1) parser for compiling template documents
+
+
+SYNOPSIS
+
+    import template.parser
+
+    parser = template.parser.Parser(config)
+    template = parser.parse(text)
+
+
+DESCRIPTION
+
+The template.parser module implements a LALR(1) parser and associated
+methods for parsing template documents into Python code.
+
+
+PUBLIC METHODS
+
+__init__(params)
+
+The constructor initializes a new template.parser.Parser object.  A
+dictionary may be supplied as a parameter to provide configuration
+values.  These may include:
+
+* START_TAG, END_TAG
+
+The START_TAG and END_TAG options are used to specify character
+sequences or regular expressions that mark the start and end of a
+template directive.  The default values for START_TAG and END_TAG are
+'[%' and '%]' respectively, giving us the familiar directive style:
+
+    [% example %]
+
+Any Python regex characters can be used and therefore should be
+escaped (or use the re.escape function) if they are intended to
+represent literal characters.
+
+    parser = template.parser.Parser({
+  	'START_TAG': re.escape('<+'),
+  	'END_TAG': re.escape('+>'),
+    })
+
+example:
+
+    <+ INCLUDE foobar +>
+
+The TAGS directive can also be used to set the START_TAG and END_TAG values
+on a per-template file basis.
+
+    [% TAGS <+ +> %]
+
+* TAG_STYLE
+
+The TAG_STYLE option can be used to set both START_TAG and END_TAG
+according to pre-defined tag styles.
+
+    parser = template.parser.Parser({
+  	'TAG_STYLE': 'star',
+    })
+
+Available styles are:
+
+    template    [% ... %]               (default)
+    template1   [% ... %] or %% ... %%  (TT version 1)
+    metatext    %% ... %%               (Text::MetaText)
+    star        [* ... *]               (TT alternate)
+    php         <? ... ?>               (PHP)
+    asp         <% ... %>               (ASP)
+    mason       <% ...  >               (HTML::Mason)
+    html        <!-- ... -->            (HTML comments)
+
+Any values specified for START_TAG and/or END_TAG will over-ride those
+defined by a TAG_STYLE.
+
+The TAGS directive may also be used to set a TAG_STYLE
+
+    [% TAGS html %]
+    <!-- INCLUDE header -->
+
+* PRE_CHOMP, POST_CHOMP
+
+Anything outside a directive tag is considered plain text and is
+generally passed through unaltered (but see the INTERPOLATE option).
+This includes all whitespace and newlines characters surrounding
+directive tags.  Directives that don't generate any output will leave
+gaps in the output document.
+
+Example:
+
+    Foo
+    [% a = 10 %]
+    Bar
+
+Output:
+
+    Foo
+
+    Bar
+
+The PRE_CHOMP and POST_CHOMP options can help to clean up some of this
+extraneous whitespace.  Both are disabled by default.
+
+    parser = template.parser.Parser({
+        'PRE_CHOMP': 1,
+        'POST_CHOMP': 1,
+    })
+
+With PRE_CHOMP set to 1, the newline and whitespace preceding a
+directive at the start of a line will be deleted.  This has the effect
+of concatenating a line that starts with a directive onto the end of
+the previous line.
+
+        Foo E<lt>----------.
+                       |
+    ,---(PRE_CHOMP)----'
+    |
+    `-- [% a = 10 %] --.
+                       |
+    ,---(POST_CHOMP)---'
+    |
+    `-E<gt> Bar
+
+With POST_CHOMP set to 1, any whitespace after a directive up to and
+including the newline will be deleted.  This has the effect of joining
+a line that ends with a directive onto the start of the next line.
+
+If PRE_CHOMP or POST_CHOMP is set to 2, all whitespace including any
+number of newline will be removed and replaced with a single space.
+This is useful for HTML, where (usually) a contiguous block of
+whitespace is rendered the same as a single space.
+
+With PRE_CHOMP or POST_CHOMP set to 3, all adjacent whitespace
+(including newlines) will be removed entirely.
+
+These values are defined as CHOMP_NONE, CHOMP_ONE, CHOMP_COLLAPSE and
+CHOMP_GREEDY constants in the template.constants module.  CHOMP_ALL
+is also defined as an alias for CHOMP_ONE to provide backwards
+compatability with earlier version of the Template Toolkit.
+
+Additionally the chomp tag modifiers listed below may also be used for
+the PRE_CHOMP and POST_CHOMP configuration.
+
+     tt = template.Template({
+        'PRE_CHOMP': '~',
+        'POST_CHOMP': '-',
+     })
+
+PRE_CHOMP and POST_CHOMP can be activated for individual directives by
+placing a '-' immediately at the start and/or end of the directive.
+
+    [% FOREACH user IN userlist %]
+       [%- user -%]
+    [% END %]
+
+This has the same effect as CHOMP_ONE in removing all whitespace
+before or after the directive up to and including the newline.  The
+template will be processed as if written:
+
+    [% FOREACH user IN userlist %][% user %][% END %]
+
+To remove all whitespace including any number of newlines, use the '~'
+character instead.
+
+    [% FOREACH user IN userlist %]
+
+       [%~ user ~%]
+
+    [% END %]
+
+To collapse all whitespace to a single space, use the '=' character.
+
+    [% FOREACH user IN userlist %]
+
+       [%= user =%]
+
+    [% END %]
+
+Here the template is processed as if written:
+
+    [% FOREACH user IN userlist %] [% user %] [% END %]
+
+If you have PRE_CHOMP or POST_CHOMP set as configuration options then
+you can use '+' to disable any chomping options (i.e.  leave the
+whitespace intact) on a per-directive basis.
+
+    [% FOREACH user = userlist %]
+    User: [% user +%]
+    [% END %]
+
+With POST_CHOMP set to CHOMP_ONE, the above example would be parsed as
+if written:
+
+    [% FOREACH user = userlist %]User: [% user %]
+    [% END %]
+
+For reference, the PRE_CHOMP and POST_CHOMP configuration options may be set to any of the following:
+
+     Constant      Value   Tag Modifier
+     ----------------------------------
+     CHOMP_NONE      0          +
+     CHOMP_ONE       1          -
+     CHOMP_COLLAPSE  2          =
+     CHOMP_GREEDY    3          ~
+
+* INTERPOLATE
+
+The INTERPOLATE flag, when set to any true value will cause variable
+references in plain text (i.e. not surrounded by START_TAG and
+END_TAG) to be recognised and interpolated accordingly.
+
+    parser = template.parser.Parser({
+  	'INTERPOLATE': 1,
+    })
+
+Variables should be prefixed by a '$' to identify them.  Curly braces
+can be used in the familiar Perl/shell style to explicitly scope the
+variable name where required.
+
+    # INTERPOLATE => 0
+    <a href="http://[% server %]/[% help %]">
+    <img src="[% images %]/help.gif"></a>
+    [% myorg.name %]
+
+    # INTERPOLATE => 1
+    <a href="http://$server/$help">
+    <img src="$images/help.gif"></a>
+    $myorg.name
+
+    # explicit scoping with {  }
+    <img src="$images/${icon.next}.gif">
+
+Note that a limitation in Perl's regex engine restricts the maximum
+length of an interpolated template to around 32 kilobytes or possibly
+less.  Files that exceed this limit in size will typically cause Perl
+to dump core with a segmentation fault.  If you routinely process
+templates of this size then you should disable INTERPOLATE or split
+the templates in several smaller files or blocks which can then be
+joined backed together via PROCESS or INCLUDE.
+
+It is unknown whether this limitation is shared by the Python regex
+engine.
+
+* ANYCASE
+
+By default, directive keywords should be expressed in UPPER CASE.  The
+ANYCASE option can be set to allow directive keywords to be specified
+in any case.
+
+    # ANYCASE => 0 (default)
+    [% INCLUDE foobar %]	# OK
+    [% include foobar %]        # ERROR
+    [% include = 10   %]        # OK, 'include' is a variable
+
+    # ANYCASE => 1
+    [% INCLUDE foobar %]	# OK
+    [% include foobar %]	# OK
+    [% include = 10   %]        # ERROR, 'include' is reserved word
+
+One side-effect of enabling ANYCASE is that you cannot use a variable
+of the same name as a reserved word, regardless of case.  The reserved
+words are currently:
+
+        GET CALL SET DEFAULT INSERT INCLUDE PROCESS WRAPPER
+    IF UNLESS ELSE ELSIF FOR FOREACH WHILE SWITCH CASE
+    USE PLUGIN FILTER MACRO PERL RAWPERL BLOCK META
+    TRY THROW CATCH FINAL NEXT LAST BREAK RETURN STOP
+    CLEAR TO STEP AND OR NOT MOD DIV END
+
+The only lower case reserved words that cannot be used for variables,
+regardless of the ANYCASE option, are the operators:
+
+    and or not mod div
+
+* V1DOLLAR
+
+In version 1 of the Template Toolkit, an optional leading '$' could be placed
+on any template variable and would be silently ignored.
+
+    # VERSION 1
+    [% $foo %]       ===  [% foo %]
+    [% $hash.$key %] ===  [% hash.key %]
+
+To interpolate a variable value the '${' ... '}' construct was used.
+Typically, one would do this to index into a hash array when the key
+value was stored in a variable.
+
+example:
+
+    vars = {
+	users => {
+	    'aba': { 'name': 'Alan Aardvark', ... },
+	    'abw': { 'name': 'Andy Wardley', ... },
+            ...
+	},
+	'uid': 'aba',
+        ...
+    }
+
+    template.process('user/home.html', vars)
+
+'user/home.html':
+
+    [% user = users.${uid} %]     # users.aba
+    Name: [% user.name %]         # Alan Aardvark
+
+This was inconsistent with double quoted strings and also the
+INTERPOLATE mode, where a leading '$' in text was enough to indicate a
+variable for interpolation, and the additional curly braces were used
+to delimit variable names where necessary.  Note that this use is
+consistent with UNIX and Perl conventions, among others.
+
+    # double quoted string interpolation
+    [% name = "$title ${user.name}" %]
+
+    # INTERPOLATE = 1
+    <img src="$images/help.gif"></a>
+    <img src="$images/${icon.next}.gif">
+
+For version 2, these inconsistencies have been removed and the syntax
+clarified.  A leading '$' on a variable is now used exclusively to
+indicate that the variable name should be interpolated
+(e.g. subsituted for its value) before being used.  The earlier example
+from version 1:
+
+    # VERSION 1
+    [% user = users.${uid} %]
+    Name: [% user.name %]
+
+can now be simplified in version 2 as:
+
+    # VERSION 2
+    [% user = users.$uid %]
+    Name: [% user.name %]
+
+The leading dollar is no longer ignored and has the same effect of
+interpolation as '${' ... '}' in version 1.  The curly braces may
+still be used to explicitly scope the interpolated variable name
+where necessary.
+
+e.g.
+
+    [% user = users.${me.id} %]
+    Name: [% user.name %]
+
+The rule applies for all variables, both within directives and in
+plain text if processed with the INTERPOLATE option.  This means that
+you should no longer (if you ever did) add a leading '$' to a variable
+inside a directive, unless you explicitly want it to be interpolated.
+
+One obvious side-effect is that any version 1 templates with variables
+using a leading '$' will no longer be processed as expected.  Given
+the following variable definitions,
+
+    [% foo = 'bar'
+       bar = 'baz'
+    %]
+
+version 1 would interpret the following as:
+
+    # VERSION 1
+    [% $foo %] => [% GET foo %] => bar
+
+whereas version 2 interprets it as:
+
+    # VERSION 2
+    [% $foo %] => [% GET $foo %] => [% GET bar %] => baz
+
+In version 1, the '$' is ignored and the value for the variable 'foo'
+is retrieved and printed.  In version 2, the variable '$foo' is first
+interpolated to give the variable name 'bar' whose value is then
+retrieved and printed.
+
+The use of the optional '$' has never been strongly recommended, but
+to assist in backwards compatibility with any version 1 templates that
+may rely on this "feature", the V1DOLLAR option can be set to 1
+(default: 0) to revert the behaviour and have leading '$' characters
+ignored.
+
+    parser = template.parser.Parser->new({
+	'V1DOLLAR': 1,
+    });
+
+* GRAMMAR
+
+The GRAMMAR configuration item can be used to specify an alternate
+grammar for the parser.  This allows a modified or entirely new
+template language to be constructed and used by the Template Toolkit.
+
+Source templates are compiled to Python code by the template.parser
+module using the template.grammar module (by default) to define the
+language structure and semantics.  Compiled templates are thus
+inherently "compatible" with each other and there is nothing to prevent
+any number of different template languages being compiled and used within
+the same Template Toolkit processing environment (other than the usual
+time and memory constraints).
+
+The template.grammar file is constructed from a YACC like grammar
+(using Parse::YAPP) and a skeleton module template.  These files are
+provided, along with a small script to rebuild the grammar, in the
+'parser' sub-directory of the distribution.  You don't have to know or
+worry about these unless you want to hack on the template language or
+define your own variant.  There is a README file in the same directory
+which provides some small guidance but it is assumed that you know
+what you're doing if you venture herein.  If you grok LALR parsers,
+then you should find it comfortably familiar.
+
+By default, an instance of the default template.grammar.Grammar will
+be created and used automatically if a GRAMMAR item isn't specified.
+
+    import myorg.template.grammar
+
+    parser = template.parser.Parser({
+       	'GRAMMAR': myorg.template.grammar.Grammar(),
+    })
+
+* DEBUG
+
+The DEBUG option can be used to enable various debugging features of
+the Template::Parser module.
+
+    from template.constants import *
+
+    tt = template.Template({
+	'DEBUG': DEBUG_PARSER | DEBUG_DIRS,
+    })
+
+The DEBUG value can include any of the following.  Multiple values
+should be combined using the logical OR operator, '|'.
+
+** DEBUG_PARSER
+
+This flag causes the Parser to generate debugging messages that show
+the Python code generated by parsing and compiling each template.
+
+** DEBUG_DIRS
+
+This option causes the Template Toolkit to generate comments
+indicating the source file, line and original text of each directive
+in the template.  These comments are embedded in the template output
+using the format defined in the DEBUG_FORMAT configuration item, or a
+simple default format if unspecified.
+
+For example, the following template fragment:
+
+
+    Hello World
+
+would generate this output:
+
+    ## input text line 1 :  ##
+    Hello
+    ## input text line 2 : World ##
+    World
+
+
+parse(text)
+
+The parse() method parses the text passed in the first parameter and
+returns a dictionary of data defining the compiled representation of
+the template text, suitable for passing to the
+template.document.Document constructor.
+
+Example:
+
+    data = parser.parse(text)
+
+The data dictionary returned contains a BLOCK item containing the
+compiled Python code for the template, a DEFBLOCKS item containing a
+dictionary of sub-template BLOCKs defined within in the template, and
+a METADATA item containing a dictionary of metadata values defined in
+META tags.
+
+"""
 
 
 CONTINUE = 0
@@ -96,7 +573,7 @@ GRAMMAR = re.compile(r"""
     |  \.\.?             # n..n sequence
     |  \S+               # something unquoted
     )                    # end of $7
-""", re.X)
+""", re.VERBOSE)
 
 QUOTED_STRING = re.compile(r"""
    ( (?: \\. | [^\$] ){1,3000} ) # escaped or non-'$' character [$1]
@@ -107,53 +584,56 @@ QUOTED_STRING = re.compile(r"""
      ([\w\.]+)                 # $word                          [$4]
      )
    )
-""", re.X)
+""", re.VERBOSE)
+
 
 class Parser(Base):
+  """This module implements a LALR(1) parser and assocated support
+  methods to parse template documents into the appropriate "compiled"
+  format.
+  """
   def __init__(self, param):
     Base.__init__(self)
-    self.START_TAG = param.get("START_TAG") or DEFAULT_STYLE["START_TAG"]
-    self.END_TAG = param.get("END_TAG") or DEFAULT_STYLE["END_TAG"]
-    self.TAG_STYLE = "default"
-    self.ANYCASE = False
-    self.INTERPOLATE = False
-    self.PRE_CHOMP = CHOMP_NONE
-    self.POST_CHOMP = CHOMP_NONE
-    self.V1DOLLAR = False
-    self.EVAL_PYTHON = False
-    self.FILE_INFO = 1
-    self.GRAMMAR = None
+    self.start_tag = param.get("START_TAG") or DEFAULT_STYLE["START_TAG"]
+    self.end_tag = param.get("END_TAG") or DEFAULT_STYLE["END_TAG"]
+    self.tag_style = param.get("TAG_STYLE", "default")
+    self.anycase = param.get("ANYCASE", False)
+    self.interpolate = param.get("INTERPOLATE", False)
+    self.pre_chomp = param.get("PRE_CHOMP", CHOMP_NONE)
+    self.post_chomp = param.get("POST_CHOMP", CHOMP_NONE)
+    self.v1dollar = param.get("V1DOLLAR", False)
+    self.eval_python = param.get("EVAL_PYTHON", False)
+    self.file_info = param.get("FILE_INFO", 1)
+    self.grammar = param.get("GRAMMAR", Grammar())
+    self.factory = param.get("FACTORY", Directive)
+    self.fileinfo = []
+    self.defblocks = []
+    self.defblock_stack = []
+    self.infor = 0
+    self.inwhile = 0
+    self.style = []
     self._ERROR = ""
-    self.FACTORY = Directive
-
-    for key in self.__dict__.keys():
-      if key in param:
-        setattr(self, key, param[key])
-
-    self.FILEINFO = []
-    self.DEFBLOCKS = []
-    self.DEFBLOCK_STACK = []
-    self.INFOR = 0
-    self.INWHILE = 0
-    self.STYLE = []
-
-    if not self.GRAMMAR:
-      self.GRAMMAR = Grammar()
 
     # Build a FACTORY object to include any NAMESPACE definitions,
     # but only if FACTORY isn't already an object.
-    if not isinstance(self.FACTORY, InstanceType):
-      self.FACTORY = self.FACTORY(param)
+    if not isinstance(self.factory, types.InstanceType):
+      self.factory = self.factory(param)
 
-    self.LEXTABLE = self.GRAMMAR.lextable
-    self.STATES = self.GRAMMAR.states
-    self.RULES = self.GRAMMAR.rules
+    self.lextable = self.grammar.lextable
+    self.states = self.grammar.states
+    self.rules = self.grammar.rules
     if not self.new_style(param):
       return self.Error(self.error())
 
   def new_style(self, config):
-    if self.STYLE:
-      style = self.STYLE[-1]
+    """Install a new (stacked) parser style.
+
+    This feature is currently experimental but should mimic the
+    previous behaviour with regard to TAG_STYLE, START_TAG, END_TAG,
+    etc.
+    """
+    if self.style:
+      style = self.style[-1]
     else:
       style = DEFAULT_STYLE
     style = style.copy()
@@ -169,46 +649,56 @@ class Parser(Base):
       value = config.get(key)
       if value is not None:
         style[key] = value
-    self.STYLE.append(style)
+    self.style.append(style)
     return style
 
   def old_style(self):
-    if len(self.STYLE) <= 1:
+    """Pop the current parser style and revert to the previous one.
+
+    See new_style().  ** experimental **
+    """
+    if len(self.style) <= 1:
       return self.error("only 1 parser style remaining")
-    self.STYLE.pop()
-    return self.STYLE[-1]
+    self.style.pop()
+    return self.style[-1]
 
   def location(self):
-    if not self.FILE_INFO:
+    """Return Python comment indicating current parser file and line."""
+    if not self.file_info:
       return "\n"
-    line = self.LINE[0]
-    info = self.FILEINFO[-1]
+    line = self.line[0]
+    info = self.fileinfo[-1]
     file_ = info.get("path") or info.get("name") or "(unknown template)"
     line = re.sub(r"-.*", "", str(line))  # might be 'n-n'
     return '#line %s "%s"\n' % (line, file_)
 
   def parse(self, text, info=None):
+    """Parses the text string, text, and returns a dictionary
+    representing the compiled template block(s) as Python code, in the
+    format expected by template.document.
+    """
     info = info or {}
-    self.DEFBLOCK = {}
-    self.METADATA = {}
+    self.defblock = {}
+    self.metadata = {}
     self._ERROR = ""
     tokens = self.split_text(text)
     if tokens is None:
       return None
-    self.FILEINFO.append(info)
+    self.fileinfo.append(info)
     block = self._parse(tokens, info)
-    self.FILEINFO.pop()
+    self.fileinfo.pop()
     if block:
       return {"BLOCK": block,
-              "DEFBLOCKS": self.DEFBLOCK,
-              "METADATA": self.METADATA}
+              "DEFBLOCKS": self.defblock,
+              "METADATA": self.metadata}
     else:
       return None
 
   def split_text(self, text):
+    """Split input template text into directives and raw text chunks."""
     tokens = []
     line = 1
-    style = self.STYLE[-1]
+    style = self.style[-1]
     def make_splitter(delims):
       return re.compile(r"(?s)(.*?)%s(.*?)%s" % delims)
     splitter = make_splitter((style["START_TAG"], style["END_TAG"]))
@@ -298,6 +788,24 @@ class Parser(Base):
     return tokens
 
   def tokenise_directive(self, dirtext):
+    """Called by the private _parse() method when it encounters a
+    DIRECTIVE token in the list provided by the split_text() or
+    interpolate_text() methods.
+
+    The method splits the directive into individual tokens as
+    recognised by the parser grammar (see template.grammar for
+    details).  It constructs a list of tokens each represented by 2
+    elements, as per split_text() et al.  The first element contains
+    the token type, the second the token itself.
+
+    The method tokenises the string using a complex (but fast) regex.
+    For a deeper understanding of the regex magic at work here, see
+    Jeffrey Friedl's excellent book "Mastering Regular Expressions",
+    from O'Reilly, ISBN 1-56592-257-3
+
+    Returns the list of chunks (each one being 2 elements) identified
+    in the directive text.
+    """
     tokens = []
     for match in GRAMMAR.finditer(dirtext):
       # ignore comments to EOL
@@ -343,23 +851,34 @@ class Parser(Base):
             token = match.group(6)
             if token is not None:
               # reserved words may be in lower case unless case sensitive
-              if self.ANYCASE:
+              if self.anycase:
                 uctoken = token.upper()
               else:
                 uctoken = token
-              toktype = self.LEXTABLE.get(uctoken)
+              toktype = self.lextable.get(uctoken)
               if toktype is not None:
                 token = uctoken
               else:
                 toktype = "IDENT"
             else:
               token = match.group(7)
-              toktype = self.LEXTABLE.get(token, "UNQUOTED")
+              toktype = self.lextable.get(token, "UNQUOTED")
       tokens.extend([toktype, token])
     return tokens
 
   def _parse(self, tokens, info):
-    self.GRAMMAR.install_factory(self.FACTORY)
+    """Parses the list of input tokens passed by reference and returns
+    an object which contains the compiled representation of the
+    template.
+
+    This is the main parser DFA loop.  See embedded comments for
+    further details.
+
+    On error, None is returned and the internal _ERROR field is set
+    to indicate the error.  This can be retrieved by calling the
+    error() method.
+    """
+    self.grammar.install_factory(self.factory)
     stack = [[0, None]]  # DFA stack
     coderet = None
     token = None
@@ -369,14 +888,14 @@ class Parser(Base):
     status = CONTINUE
     lhs = None
     text = None
-    self.LINE = line
-    self.FILE = info.get("name")
-    self.INPYTHON = 0
+    self.line = line
+    self.file = info.get("name")
+    self.inpython = 0
     value = None
 
     while True:
       stateno = stack[-1][0]
-      state   = self.STATES[stateno]
+      state   = self.states[stateno]
 
       # see if any lookaheads exist for the current state
       if "ACTIONS" in state:
@@ -430,7 +949,7 @@ class Parser(Base):
         # PERL: redo;
       else:
         # reduce (negative ACTION)
-        lhs, len_, code = self.RULES[-action]
+        lhs, len_, code = self.rules[-action]
         # no action implies ACCEPTance
         if not action:
           status = ACCEPT
@@ -455,7 +974,7 @@ class Parser(Base):
           return None
         elif status == ERROR:
           break
-        stack.append([self.STATES[stack[-1][0]].get("GOTOS", {}).get(lhs),
+        stack.append([self.states[stack[-1][0]].get("GOTOS", {}).get(lhs),
                       coderet])
 
     # ERROR
@@ -468,7 +987,10 @@ class Parser(Base):
                                util.unscalar_lex(value), text)
 
   def _parse_error(self, msg, text=None):
-    line = self.LINE[0]
+    """Method used to handle errors encountered during the parse process
+    in the _parse() method.
+    """
+    line = self.line[0]
     if not line:
       line = "unknown"
     if text is not None:
@@ -476,30 +998,43 @@ class Parser(Base):
     return self.error("line %s: %s" % (line, msg))
 
   def define_block(self, name, block):
-    if self.DEFBLOCK is None:
+    """Called by the parser 'defblock' rule when a BLOCK definition is
+    encountered in the template.
+
+    The name of the block is passed in the first parameter and a
+    reference to the compiled block is passed in the second.  This
+    method stores the block in the self.defblock dictionary which has
+    been initialised by parse() and will later be used by the same
+    method to call the store() method on the calling cache to define
+    the block "externally".
+    """
+    if self.defblock is None:
       return None
-    self.DEFBLOCK[name] = block
+    self.defblock[name] = block
     return None
 
   def push_defblock(self):
-    self.DEFBLOCK_STACK.append(self.DEFBLOCK)
-    self.DEFBLOCK = {}
+    self.defblock_stack.append(self.defblock)
+    self.defblock = {}
 
   def pop_defblock(self):
-    if not self.DEFBLOCK_STACK:
-      return self.DEFBLOCK
-    block = self.DEFBLOCK
-    self.DEFBLOCK = self.DEFBLOCK_STACK.pop(0)
+    if not self.defblock_stack:
+      return self.defblock
+    block = self.defblock
+    self.defblock = self.defblock_stack.pop(0)
     return block
 
   def add_metadata(self, setlist):
     setlist = [util.unscalar_lex(x) for x in setlist]
-    if self.METADATA is not None:
+    if self.metadata is not None:
       for key, value in util.chop(setlist, 2):
-        self.METADATA[key] = value
+        self.metadata[key] = value
     return None
 
   def interpolate_text(self, text, line=0):
+    """Examines text looking for any variable references embedded
+    like $this or like ${ this }.
+    """
     tokens = []
     for match in QUOTED_STRING.finditer(text):
       pre = match.group(1)

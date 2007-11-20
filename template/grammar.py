@@ -5272,7 +5272,7 @@ def rule(*args):
 
 @define(39, "atomdir", 1)
 def rule(*args):
-  if args[0].INFOR or args[0].INWHILE:
+  if args[0].infor or args[0].inwhile:
     return "raise Break"
   else:
     return "break"
@@ -5280,9 +5280,9 @@ def rule(*args):
 
 @define(40, "atomdir", 1)
 def rule(*args):
-  if args[0].INFOR:
+  if args[0].infor:
     return factory.next()
-  elif args[0].INWHILE:
+  elif args[0].inwhile:
     return "raise Continue"
   else:
     return "continue"
@@ -5364,14 +5364,14 @@ def rule(*args):
 
 @define(56, "@1-3", 0)
 def rule(*args):
-  retval = args[0].INFOR
-  args[0].INFOR += 1
+  retval = args[0].infor
+  args[0].infor += 1
   return retval
 
 
 @define(57, "loop", 6)
 def rule(*args):
-  args[0].INFOR -= 1
+  args[0].infor -= 1
   return factory.foreach(*(args[2] + [args[5]]))
 
 
@@ -5382,14 +5382,14 @@ def rule(*args):
 
 @define(59, "@2-3", 0)
 def rule(*args):
-  retval = args[0].INWHILE
-  args[0].INWHILE += 1
+  retval = args[0].inwhile
+  args[0].inwhile += 1
   return retval
 
 
 @define(60, "loop", 6)
 def rule(*args):
-  args[0].INWHILE -= 1
+  args[0].inwhile -= 1
   return factory.while_(*(args[2], args[5]))
 
 
@@ -5473,13 +5473,13 @@ def rule(*args):
 
 @define(76, "@4-2", 0)
 def rule(*args):
-  args[0].INPYTHON += 1
+  args[0].inpython += 1
 
 
 @define(77, "perl", 5)
 def rule(*args):
-  args[0].INPYTHON -= 1
-  if args[0].EVAL_PYTHON:
+  args[0].inpython -= 1
+  if args[0].eval_python:
     return factory.python(args[4])
   else:
     return factory.no_python()
@@ -5488,14 +5488,14 @@ def rule(*args):
 @define(78, "@5-1", 0)
 def rule(*args):
   global rawstart
-  args[0].INPYTHON += 1
-  rawstart = args[0].LINE[0]
+  args[0].inpython += 1
+  rawstart = args[0].line[0]
 
 
 @define(79, "rawperl", 5)
 def rule(*args):
-  args[0].INPYTHON -= 1
-  if args[0].EVAL_PYTHON:
+  args[0].inpython -= 1
+  if args[0].eval_python:
     return factory.rawpython(args[4], rawstart)
   else:
     return factory.no_python()
@@ -5513,15 +5513,15 @@ def rule(*args):
 
 @define(82, "defblock", 5)
 def rule(*args):
-  name = "/".join(args[0].DEFBLOCKS)
-  args[0].DEFBLOCKS.pop()
+  name = "/".join(args[0].defblocks)
+  args[0].defblocks.pop()
   args[0].define_block(name, args[4])
   return None
 
 
 @define(83, "defblockname", 2)
 def rule(*args):
-  args[0].DEFBLOCKS.append(unscalar_lex(args[2]))
+  args[0].defblocks.append(unscalar_lex(args[2]))
   return args[2]
 
 
@@ -5695,7 +5695,7 @@ def rule(*args):
 
 @define(132, "item", 2)
 def rule(*args):
-  if args[0].V1DOLLAR:
+  if args[0].v1dollar:
     return "'%s'" % args[2]
   else:
     return factory.ident(["'%s'" % args[2], 0])
