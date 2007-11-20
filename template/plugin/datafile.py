@@ -1,10 +1,11 @@
 import re
 
-from template import plugin
+from template.plugin import Plugin
 
 
-class Datafile(plugin.Plugin):
+class Datafile(Plugin):
   def __init__(self, context, filename, params=None):
+    Plugin.__init__(self)
     params = params or {}
     delim = params.get("delim") or ":"
     items = []
@@ -33,5 +34,5 @@ class Datafile(plugin.Plugin):
     # Hack to allow stash to recognize this object as a list:
     self.TT_LIST_ATTRIBUTE = self.items
 
-  def as_list(self):
-    return self.items
+  def __iter__(self):
+    return iter(self.items)

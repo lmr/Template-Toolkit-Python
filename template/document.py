@@ -3,7 +3,8 @@ import os
 import re
 import tempfile
 
-from template import iterator, util
+from template import util
+from template.iterator import Iterator
 from template.base import Base, TemplateException
 from template.constants import *
 
@@ -279,7 +280,7 @@ PYEVAL_NAMESPACE = {
   "scalar":    util.PerlScalar,
   "Buffer":    util.StringBuffer,
   "Error":     TemplateException,
-  "Iterator":  iterator.Create,
+  "Iterator":  Iterator.Create,
   "Regex":     re.compile,
   "List":      util.ScalarList,
   "Dict":      util.ScalarDictionary,
