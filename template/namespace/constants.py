@@ -3,7 +3,70 @@ from template.config import Config
 from template.directive import Directive
 from template.util import PerlScalar
 
+
+"""
+template.namespace.constants - Compile time constant folding
+
+
+SYNOPSIS
+
+    # easy way to define constants
+    import template
+
+    tt = template.Template({
+	'CONSTANTS': {
+	    'pi': 3.14,
+	    'e': 2.718,
+	},
+    })
+
+    # nitty-gritty, hands-dirty way
+    import template.namespace.constants
+
+    tt = template.Template({
+	'NAMESPACE': {
+	    'constants': template.namespace.constants.Constants({
+		'pi': 3.14,
+	        'e': 2.718,
+            },
+	},
+    })
+
+
+DESCRIPTION
+
+The template.namespace.constants.Constants class implements a
+namespace handler which is plugged into the
+template.directive.Directive compiler class.  This then performs
+compile time constant folding of variables in a particular namespace.
+
+
+PUBLIC METHODS
+
+__init__(constants)
+
+The constructor initializes a new Constants object.  This creates an
+internal stash to store the constant variable definitions passed as
+arguments.
+
+    handler = template.namespace.constants.Constants({
+	'pi': 3.14,
+	'e': 2.718,
+    })
+
+ident(ident)
+
+Method called to resolve a variable identifier into a compiled form.
+In this case, the method fetches the corresponding constant value from
+its internal stash and returns it.
+
+"""
+
+
 class Constants(Base):
+  """Plugin compiler class for performing constant folding at compile time
+  on variables in a particular namespace.
+  """
   def __init__(self, config):
     Base.__init__(self)
     self.__stash = Config.stash(config)
