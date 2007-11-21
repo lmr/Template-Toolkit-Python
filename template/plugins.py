@@ -1,3 +1,5 @@
+import types
+
 from template.base import Base, TemplateException
 from template.constants import *
 from template.util import listify
@@ -43,7 +45,7 @@ the form:
 can also be used via the template module as:
 
     tengine = template.Template({
-	'PLUGIN_BASE': 'MyTemplate::Plugin',
+	'PLUGIN_BASE': 'mytemplate.plugin',
         'LOAD_PYTHON': 1,
 	...
     })
@@ -82,17 +84,20 @@ to the Plugins constructor.
 
 The PLUGINS options can be used to provide a dictionary that maps
 plugin names to Python classes.  The values of this dictionary
-can be in one of two forms.
+may be one of three kinds.
 
-  1.  A two-element tuple.  The first item names the module; the
+  1.  The plugin class object itself.
+
+  2.  A two-element tuple.  The first item names the module; the
       second item names the class within the module.
 
-  2.  A string, which is interpreted as a module name.  The class
+  3.  A string, which is interpreted as a module name.  The class
       name is derived from it by taking only the trailing non-period
       characters and capitalizing the first.
 
-The string form is less exact than the tuple form, and is not
-appropriate for all situations.
+The third form is potentially ambiguous, and exists primarily as a nod
+to the semantics of the original Perl implemetation.  It should be
+avoided.
 
 A number of standard plugins are defined (e.g. 'table', 'cgi', 'dbi',
 etc.) which map to their corresponding template.plugin.* counterparts.
@@ -100,9 +105,9 @@ These can be redefined by values in the PLUGINS hash.
 
     plugins = template.plugins.Plugins({
         'PLUGINS': {
-            'cgi': ('myorg.template.plugin.cgi', 'CGI'),
-            'foo':  'myorg.template.plugin.foo',  # class is Foo
-            'bar':  'myorg.template.plugin.bar',  # class is Bar
+            'foo':   myorg.template.plugin.foo.Foo,       # Style 1
+            'cgi': ('myorg.template.plugin.cgi', 'CGI'),  # Style 2
+            'bar':  'myorg.template.plugin.bar',          # Style 3
         },
     })
 
@@ -448,20 +453,19 @@ the same way that Perl's Text::Wrap module does.
 PLUGIN_BASE = "template.plugin"
 
 STD_PLUGINS = {
-  "datafile":  "template.plugin.datafile",
-  "date":      "template.plugin.date",
-  "directory": "template.plugin.directory",
-  "file":      "template.plugin.file",
-  "format":    "template.plugin.format",
-  "html":      "template.plugin.html",
-  "image":     "template.plugin.image",
-  "iterator":  "template.plugin.iterator",
-  "math":     ("template.plugin.math_plugin", "Math"),
-  "string":    "template.plugin.string",
-  "table":     "template.plugin.table",
-  "Table":     "template.plugin.table",
-  "wrap":      "template.plugin.wrap",
-  "url":       "template.plugin.url",
+  "datafile":  ("template.plugin.datafile", "Datafile"),
+  "date":      ("template.plugin.date", "Date"),
+  "directory": ("template.plugin.directory", "Directory"),
+  "file":      ("template.plugin.file", "File"),
+  "format":    ("template.plugin.format", "Format"),
+  "html":      ("template.plugin.html", "Html"),
+  "image":     ("template.plugin.image", "Image"),
+  "iterator":  ("template.plugin.iterator", "Iterator"),
+  "math":      ("template.plugin.math_plugin", "Math"),
+  "string":    ("template.plugin.string", "String"),
+  "table":     ("template.plugin.table", "Table"),
+  "wrap":      ("template.plugin.wrap", "Wrap"),
+  "url":       ("template.plugin.url", "Url"),
 }
 
 
@@ -490,12 +494,12 @@ class Plugins(Base):
     self.__debug = (params.get("DEBUG") or 0) & DEBUG_PLUGINS
 
   def fetch(self, name, args=None, context=None):
-    args = (context,) + tuple(args or ())
     factory = self.__factory[name] = self._load(name, context)
     if not factory:
       return None
     try:
       if callable(factory):
+        args = (context,) + tuple(args or ())
         return factory(*args)
       else:
         raise Error("%s plugin is not callable" % (name,))
@@ -507,6 +511,10 @@ class Plugins(Base):
 
   def _load(self, name, context):
     impl = self.__plugins.get(name) or self.__plugins.get(name.lower())
+
+    if isinstance(impl, types.ClassType):
+      return impl.load(context)
+
     if impl:
       modname, clsname = deduce_class(impl)
       return get_plugin(modname, clsname, context)
@@ -540,9 +548,7 @@ def get_class(modname, clsname):
 
 
 def get_plugin(modname, clsname, context):
-  cls = get_class(modname, clsname)
-  load = getattr(cls, "load")
-  return load(context)
+  return get_class(modname, clsname).load(context)
 
 
 def deduce_class(obj):

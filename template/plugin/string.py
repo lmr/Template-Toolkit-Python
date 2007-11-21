@@ -1,15 +1,12 @@
 import re
 
-from template import plugin
+from template.plugin import Plugin
 
 
-class String(plugin.Plugin):
+class String(Plugin):
   def __init__(self, context, *args):
-    args = list(args)
-    if args and isinstance(args[-1], dict):
-      config = args.pop()
-    else:
-      config = {}
+    Plugin.__init__(self)
+    args, config = self._split_arguments(args)
     if "text" in config:
       self._text = config["text"]
     elif args:

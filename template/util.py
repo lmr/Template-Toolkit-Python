@@ -577,3 +577,10 @@ def slice(seq, indices):
     except IndexError:
       sliced.append(None)
   return sliced
+
+
+def split_arguments(args):
+  if args and isinstance(args[-1], dict):
+    return args[:-1], args[-1]
+  else:
+    return args, {}

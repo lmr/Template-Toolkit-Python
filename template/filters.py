@@ -652,7 +652,8 @@ class Filters(Base):
       if not callable(factory):
         raise Error("invalid FILTER entry for '%s' (not callable)" % (name,))
       elif getattr(factory, "dynamic_filter", False):
-        filter = factory(context, *(args or ()))
+        args = args or ()
+        filter = factory(context, *args)
       else:
         filter = factory
       if not callable(filter):

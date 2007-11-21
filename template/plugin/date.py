@@ -23,11 +23,7 @@ class Date(Plugin):
     return int(Time.time())
 
   def format(self, *args):
-    args = list(args)
-    if args and isinstance(args[-1], dict):
-      params = args.pop()
-    else:
-      params = {}
+    args, params = self._split_arguments(args)
     def get(name):
       if args:
         return args.pop(0)
