@@ -868,11 +868,9 @@ class Context(Base):
     """
     args = util.unscalar_list(args)
     for provider in self.__load_plugins:
-      plugin, error = provider.fetch(name, args, self)
-      if not error:
+      plugin = provider.fetch(name, args, self)
+      if plugin:
         return plugin
-      if error == STATUS_ERROR:
-        self.throw(plugin)
     self.throw(ERROR_PLUGIN, "%s: plugin not found" % name)
 
   def filter(self, name, args=None, alias=None):

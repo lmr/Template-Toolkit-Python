@@ -38,13 +38,13 @@ class ConfigTest(TestCase):
     plugins = factory.plugins({ 'PLUGIN_BASE': ('my.plugins', 'MyPlugins') })
     self.failUnless(plugins)
     self.assertEquals([('my.plugins', 'MyPlugins'), 'template.plugin'],
-                      plugins.PLUGIN_BASE)
+                      plugins.plugin_base())
     plugins = factory.plugins({ 'LOAD_PYTHON': True,
                                 'PLUGIN_BASE': ('my.plugins', 'NewPlugins') })
     self.failUnless(plugins)
-    self.failUnless(plugins.LOAD_PYTHON)
+    self.failUnless(plugins.load_python())
     self.assertEquals([('my.plugins', 'NewPlugins'), 'template.plugin'],
-                      plugins.PLUGIN_BASE)
+                      plugins.plugin_base())
 
     # Filters:
     filters = factory.filters({ 'TOLERANT': True })
@@ -77,7 +77,7 @@ class ConfigTest(TestCase):
     self.failUnless(context)
     self.assertEquals(30, context.stash().get('foo').value())
     self.failUnless(context.load_templates()[0].PARSER.interpolate)
-    self.failUnless(context.load_plugins()[0].LOAD_PYTHON)
+    self.failUnless(context.load_plugins()[0].load_python())
     self.failUnless(context.load_filters()[0].tolerant())
 
     # Service:

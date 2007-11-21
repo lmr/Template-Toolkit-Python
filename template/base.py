@@ -79,3 +79,9 @@ class TemplateException(Exception):
 
   def __str__(self):
     return "%s error - %s" % (self.__type or "", self.__info)
+
+  @classmethod
+  def convert(cls, exception):
+    if not isinstance(exception, TemplateException):
+      exception = TemplateException(None, exception)
+    return exception

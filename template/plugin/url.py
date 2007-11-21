@@ -7,7 +7,7 @@ from template import util
 JOINT = "&amp;"
 
 
-class URL(Plugin):
+class Url(Plugin):
   @classmethod
   def load(cls, context=None):
     return cls.factory

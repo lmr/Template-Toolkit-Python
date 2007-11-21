@@ -9,9 +9,9 @@ class PluginsTest(TestCase):
   def testPlugins(self):
     sys.path.insert(0, os.path.abspath("test/plugin"))
     tt1 = Template({ "PLUGIN_BASE": "MyPlugs" })
-    tt2 = Template({ "PLUGINS": { "bar": ("MyPlugs.bar", "Bar"),
-                                  "baz": ("MyPlugs.foo", "Foo"),
-                                  "cgi": ("MyPlugs.bar", "Bar") } })
+    tt2 = Template({ "PLUGINS": { "bar": "MyPlugs.Bar",
+                                  "baz": ("MyPlugs.Foo", "Foo"),
+                                  "cgi": ("MyPlugs.Bar", "Bar") } })
     tt3 = Template({ "LOAD_PYTHON": 1 })
     del plugins.STD_PLUGINS["date"]
     plugins.PLUGIN_BASE = ""

@@ -1,4 +1,4 @@
-from template import plugin
+from template.plugin import Plugin
 
 
 def make_formatter(format="%s"):
@@ -20,7 +20,7 @@ def make_formatter(format="%s"):
   return formatter
 
 
-class Format(plugin.Plugin):
+class Format(Plugin):
   @classmethod
   def load(cls, context=None):
     return cls.factory

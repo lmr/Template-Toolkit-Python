@@ -64,7 +64,7 @@ class TestCase(unittest.TestCase):
 
       try:
         out = tproc.processString(input, vars)
-      except TemplateException, e:
+      except Exception, e:
         self.fail("Test #%d: %s process FAILED: %s\n%s" % (
           count + 1, name, subtext(input), e))
 

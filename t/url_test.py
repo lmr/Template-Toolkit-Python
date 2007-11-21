@@ -28,7 +28,7 @@ class UrlTest(TestCase):
             { "name": "edit",
               "url": "/product",
               "args": { "action": "edit", "style": "editor" } } ]
-    urls = dict((x["name"], url.URL.factory(None, x["url"], x.get("args")))
+    urls = dict((x["name"], url.Url.factory(None, x["url"], x.get("args")))
                 for x in urls)
     urls = { "product": urls }
     vars = { "url": urls,
