@@ -93,7 +93,7 @@ some stuff
 
 # This is some text
 # more stuff goes here
-ERROR: [None]
+ERROR: [file]
 
 -- test --
 -- use do_python --

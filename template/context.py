@@ -951,15 +951,18 @@ class Context(Base):
     blockname = ""
     while shortname:
       for provider in providers:
-        template, error = provider.fetch(shortname, prefix)
-        if error:
-          if error == STATUS_ERROR:
-            if (isinstance(template, TemplateException)
-                and template.type == ERROR_FILE):
-              self.throw(template)
-            else:
-              self.throw(ERROR_FILE, template)
-        elif blockname:
+        try:
+          template = provider.fetch(shortname, prefix)
+        except Exception, e:
+          if isinstance(e, TemplateException) and e.type() == ERROR_FILE:
+            self.throw(e)
+          else:
+            self.throw(ERROR_FILE, str(e))
+
+        if template is None:
+          continue
+
+        if blockname:
           template = template.blocks().get(blockname)
           if template:
             return template

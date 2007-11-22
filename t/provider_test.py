@@ -10,18 +10,28 @@ provider.MAX_DIRS = 42
 
 
 def delivered(provider, file):
-  result, error = provider.fetch(file)
-  return not error
+  try:
+    provider.fetch(file)
+  except Exception:
+    return False
+  else:
+    return True
 
 
 def declined(provider, file):
-  result, error = provider.fetch(file)
-  return error == constants.STATUS_DECLINED
+  try:
+    return provider.fetch(file) is None
+  except Exception, e:
+    return False
 
 
 def denied(provider, file):
-  result, error = provider.fetch(file)
-  return error == constants.STATUS_ERROR
+  try:
+    provider.fetch(file)
+  except Exception:
+    return True
+  else:
+    return False
 
 
 class DynamicPaths:
@@ -68,8 +78,8 @@ class ProviderTest(TestCase):
       { "ABSOLUTE": 1, "PARSER": parser })
     provrel = Config.provider(
       { "RELATIVE": 1, "PARSER": parser })
-    self.assert_(provinc.PARSER is provabs.PARSER)
-    self.assert_(provabs.PARSER is provrel.PARSER)
+    self.assert_(provinc.parser() is provabs.parser())
+    self.assert_(provabs.parser() is provrel.parser())
 
     self.assert_(delivered(provinc, file))
     self.assert_(declined(provinc, absfile))

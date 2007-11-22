@@ -20,19 +20,19 @@ class ConfigTest(TestCase):
     provider = factory.provider({ 'INCLUDE_PATH': 'here:there',
                                   'PARSER': parser })
     self.failUnless(provider)
-    self.assertEquals(['here', 'there'], provider.INCLUDE_PATH)
-    self.assertEquals(1, provider.PARSER.post_chomp)
+    self.assertEquals(['here', 'there'], provider.include_path())
+    self.assertEquals(1, provider.parser().post_chomp)
     provider = factory.provider({ 'INCLUDE_PATH': 'cat:mat',
                                   'ANYCASE': True,
                                   'INTERPOLATE': True })
     self.failUnless(provider)
-    self.assertEquals(['cat', 'mat'], provider.INCLUDE_PATH)
+    self.assertEquals(['cat', 'mat'], provider.include_path())
     # Force the provider to instantiate a parser and check it uses the
     # correct parameters.
     text = 'The cat sat on the mat'
     self.failUnless(provider.fetch(Literal(text)))
-    self.failUnless(provider.PARSER.anycase)
-    self.failUnless(provider.PARSER.interpolate)
+    self.failUnless(provider.parser().anycase)
+    self.failUnless(provider.parser().interpolate)
 
     # Plugins:
     plugins = factory.plugins({ 'PLUGIN_BASE': ('my.plugins', 'MyPlugins') })
@@ -69,14 +69,15 @@ class ConfigTest(TestCase):
     self.failUnless(context)
     context = factory.context({ 'INCLUDE_PATH': 'anywhere' })
     self.failUnless(context)
-    self.assertEquals('anywhere', context.load_templates()[0].INCLUDE_PATH[0])
+    self.assertEquals('anywhere',
+                      context.load_templates()[0].include_path()[0])
     context = factory.context({ 'LOAD_TEMPLATES': [ provider ],
                                 'LOAD_PLUGINS': [ plugins ],
                                 'LOAD_FILTERS': [ filters ],
                                 'STASH': stash })
     self.failUnless(context)
     self.assertEquals(30, context.stash().get('foo').value())
-    self.failUnless(context.load_templates()[0].PARSER.interpolate)
+    self.failUnless(context.load_templates()[0].parser().interpolate)
     self.failUnless(context.load_plugins()[0].load_python())
     self.failUnless(context.load_filters()[0].tolerant())
 
@@ -84,7 +85,7 @@ class ConfigTest(TestCase):
     service = factory.service({ 'INCLUDE_PATH': 'amsterdam' })
     self.failUnless(service)
     self.assertEquals(['amsterdam'],
-                      service.context().load_templates()[0].INCLUDE_PATH)
+                      service.context().load_templates()[0].include_path())
 
     # Iterator:
     iterator = factory.iterator(['foo', 'bar', 'baz'])

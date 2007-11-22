@@ -26,6 +26,10 @@ DEBUG = 0
 RELATIVE_PATH = re.compile(r"(?:^|/)\.+/")
 
 
+class Error(Exception):
+  pass
+
+
 class Provider(Base):
   def __init__(self, params):
     Base.__init__(self)
@@ -105,7 +109,16 @@ class Provider(Base):
       else:
         data, error = None, STATUS_DECLINED
 
-    return data, error
+
+    if error == STATUS_DECLINED:
+      return None
+    elif error == STATUS_ERROR:
+      if isinstance(data, Exception):
+        raise data
+      else:
+        raise Error(data)
+    else:
+      return data
 
   def _load(self, name, alias=None):
     now = time.time()
@@ -478,6 +491,17 @@ class Provider(Base):
       return None, STATUS_DECLINED
     else:
       return data, STATUS_OK
+
+  def include_path(self, path=None):
+    if path:
+      self.INCLUDE_PATH = None
+    return self.INCLUDE_PATH
+
+  def parser(self):
+    return self.PARSER
+
+  def tolerant(self):
+    return self.TOLERANT
 
 
 def statfile(path):

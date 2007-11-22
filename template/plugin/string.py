@@ -10,7 +10,7 @@ class String(Plugin):
     if "text" in config:
       self._text = config["text"]
     elif args:
-      self._text = args.pop(0)
+      self._text = args[0]
     else:
       self._text = ""
     self.filters = []

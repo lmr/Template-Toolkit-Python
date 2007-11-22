@@ -24,6 +24,7 @@ class Date(Plugin):
 
   def format(self, *args):
     args, params = self._split_arguments(args)
+    args = list(args)
     def get(name):
       if args:
         return args.pop(0)
