@@ -1,7 +1,6 @@
 import os
 import re
 import sys
-import stat
 import time
 import types
 
@@ -34,140 +33,110 @@ class Provider(Base):
   def __init__(self, params):
     Base.__init__(self)
     size = params.get("CACHE_SIZE")
-    path = params.get("INCLUDE_PATH") or "."
-    cdir = params.get("COMPILE_DIR") or ""
-    dlim = params.get("DELIMITER")
-
-    if dlim is None:
-      if os.name == "nt":
-        dlim = r":(?!\/)"
-      else:
-        dlim = r":"
-    if not isinstance(path, list):
-      path = re.split(dlim, path)
-    if size is not None and (size == 1 or size < 0):
-      size = 2
+    paths = params.get("INCLUDE_PATH", ".")
+    cdir = params.get("COMPILE_DIR", "")
+    dlim = params.get("DELIMITER", os.name == "nt" and r":(?!\/)" or ":")
     debug = params.get("DEBUG")
-    if debug is not None:
-      self.DEBUG = debug & (DEBUG_PROVIDER & DEBUG_FLAGS)
-    else:
-      self.DEBUG = DEBUG
-    if cdir:
-      for dir in path:
-        if not isinstance(dir, str):
-          continue
-        wdir = dir
-        if os.name == "nt":
-          wdir = re.sub(r":", "", wdir)
-        if not os.path.isdir(wdir):
-          os.makedirs(wdir)
 
-    self.LOOKUP = {}
-    self.SLOTS  = 0
-    self.SIZE   = size
-    self.INCLUDE_PATH = path
-    self.DELIMITER = dlim
-    self.COMPILE_DIR = cdir
-    self.COMPILE_EXT = params.get("COMPILE_EXT") or ""
-    self.ABSOLUTE = params.get("ABSOLUTE") or 0
-    self.RELATIVE = params.get("RELATIVE") or 0
-    self.TOLERANT = params.get("TOLERANT") or 0
-    self.DOCUMENT = params.get("DOCUMENT") or Document
-    self.PARSER   = params.get("PARSER")
-    self.DEFAULT  = params.get("DEFAULT")
-    self.ENCODING = params.get("ENCODING")
-    self.PARAMS   = params
-    self.HEAD     = None
-    self.TAIL     = None
+    if isinstance(paths, str):
+      paths = re.split(dlim, paths)
+    if size == 1 or size < 0:
+      size = 2
+    if debug is not None:
+      self.__debug = debug & (DEBUG_PROVIDER & DEBUG_FLAGS)
+    else:
+      self.__debug = DEBUG
+    if cdir:
+      for path in paths:
+        if not isinstance(path, str):
+          continue
+        if os.name == "nt":
+          path = path.replace(":", "")
+        if not os.path.isdir(path):
+          os.makedirs(path)
+
+    self.__lookup = {}
+    self.__slots = 0
+    self.__size = size
+    self.__include_path = paths
+    self.__delimiter = dlim
+    self.__compile_dir = cdir
+    self.__compile_ext = params.get("COMPILE_EXT", "")
+    self.__absolute = bool(params.get("ABSOLUTE"))
+    self.__relative = bool(params.get("RELATIVE"))
+    self.__tolerant = bool(params.get("TOLERANT"))
+    self.__document = params.get("DOCUMENT", Document)
+    self.__parser= params.get("PARSER")
+    self.__default = params.get("DEFAULT")
+    self.__encoding = params.get("ENCODING")
+    self.__params = params
+    self.__head = None
+    self.__tail = None
 
   def fetch(self, name, prefix=None):
     if not isinstance(name, str):
       data = self._load(name)
-      data = data and self._compile(data)
-      data = data and data["data"]
-      return data
+      data = self._compile(data)
+      return data and data.data
     elif os.path.isabs(name):
-      if self.ABSOLUTE:
+      if self.__absolute:
         return self._fetch(name)
-      elif self.TOLERANT:
+      elif self.__tolerant:
         return None
       else:
         raise Error("%s: absolute paths are not allowed (set ABSOLUTE option)"
                     % name)
     elif RELATIVE_PATH.search(name):
-      if self.RELATIVE:
+      if self.__relative:
         return self._fetch(name)
-      elif self.TOLERANT:
+      elif self.__tolerant:
         return None
       else:
         raise Error("%s: relative paths are not allowed (set RELATIVE option)"
                     % name)
+    elif self.__include_path:
+      return self._fetch_path(name)
     else:
-      if self.INCLUDE_PATH:
-        return self._fetch_path(name)
-      else:
-        return None
+      return None
 
   def _load(self, name, alias=None):
     now = time.time()
     if alias is None and isinstance(name, str):
       alias = name
-    # LOAD: {
     if isinstance(name, util.Literal):
       # name can be a Literal wrapper around the input text...
-      data = {"text": name.text(),
-              "time": now,
-              "load": 0}
-      if alias is not None:
-        data["name"] = alias
-      else:
-        data["name"] = "input text"
+      data = Data(name.text(), alias, alt="input text", load=0)
     elif not isinstance(name, str):
       # ...or a file handle...
-      text = name.read()
-      data = {"text": name.read(),
-              "time": now,
-              "load": 0}
-      if alias is not None:
-        data["name"] = alias
-      else:
-        data["name"] = "input file"
+      data = Data(name.read(), alias, alt="input file", load=0)
     elif os.path.isfile(name):
       try:
         fh = open(name)
       except IOError, e:
-        if self.TOLERANT:
+        if self.__tolerant:
           return None
         else:
           raise Error("%s: %s" % (alias, e))
-      else:
-        data = {"name": alias,
-                "path": name,
-                "text": fh.read(),
-                "time": os.stat(name)[stat.ST_MTIME],
-                "load": now}
-        fh.close()
+      data = Data(fh.read(), alias, when=os.stat(name).st_mtime, path=name)
+      fh.close()
     else:
       return None
-
-    if data and isinstance(data, dict) and data.get("path") is None:
-      data["path"] = data["name"]
 
     return data
 
   def _fetch(self, name):
     compiled = self._compiled_filename(name)
-    if self.SIZE is not None and not self.SIZE:
+    if self.__size is not None and not self.__size:
       if (compiled
           and os.path.isfile(compiled)
-          and not self._modified(name, os.stat(compiled)[stat.ST_MTIME])):
+          and not self._modified(name, os.stat(compiled).st_mtime)):
         data = self.__load_compiled(compiled)
       else:
         data = self._load(name)
-        data = data and self._compile(data, compiled)
-        data = data and data["data"]
+        data = self._compile(data, compiled)
+        data = data and data.data
     else:
-      slot = self.LOOKUP.get(name)
+      slot = self.__lookup.get(name)
       if slot:
         # cached entry exists, so refresh slot and extract data
         data = self._refresh(slot)
@@ -176,31 +145,33 @@ class Provider(Base):
         # nothing in cache so try to load, compile, and cache
         if (compiled
             and os.path.isfile(compiled)
-            and os.stat(name)[stat.ST_MTIME]
-            <= os.stat(compiled)[stat.ST_MTIME]):
+            and os.stat(name).st_mtime <= os.stat(compiled).st_mtime):
           data = self.__load_compiled(compiled)
           self.store(name, data)
         else:
           data = self._load(name)
-          data = data and self._compile(data, compiled)
+          data = self._compile(data, compiled)
           data = data and self._store(name, data)
 
     return data
 
   def _compile(self, data, compfile=None):
-    text = data["text"]
+    if data is None:
+      return None
+
+    text = data.text
     error = None
 
-    if not self.PARSER:
-      self.PARSER = Config.parser(self.PARAMS)
+    if not self.__parser:
+      self.__parser = Config.parser(self.__params)
 
     # discard the template text - we don't need it any more
-    del data["text"]
+    del data.text
 
-    parsedoc = self.PARSER.parse(text, data)
+    parsedoc = self.__parser.parse(text, data)
     if parsedoc:
-      parsedoc["METADATA"].setdefault("name", data["name"])
-      parsedoc["METADATA"].setdefault("modtime", data["time"])
+      parsedoc["METADATA"].setdefault("name", data.name)
+      parsedoc["METADATA"].setdefault("modtime", data.time)
       # write the Python code to the file compfile, if defined
       if compfile:
         basedir = os.path.dirname(compfile)
@@ -211,36 +182,36 @@ class Provider(Base):
             error = ("failed to create compiled templates "
                      "directory: %s (%s)" % (basedir, e))
         if not error:
-          docclass = self.DOCUMENT
+          docclass = self.__document
           if not docclass.write_python_file(compfile, parsedoc):
             error = "cache failed to write %s: %s" % (
               os.path.basename(compfile), docclass.Error())
-        if error is None and data.get("time") is not None:
+        if error is None and data.time is not None:
           if not compfile:
             raise Error("invalid null filename")
-          ctime = int(data.get("time"))
+          ctime = int(data.time)
           os.utime(compfile, (ctime, ctime))
 
       if not error:
-        data["data"] = Document(parsedoc)
+        data.data = Document(parsedoc)
         return data
 
     else:
-      error = TemplateException("parse",
-                                "%s %s" % (data["name"], self.PARSER.error()))
+      error = TemplateException("parse", "%s %s" % (data.name,
+                                                    self.__parser.error()))
 
-    if self.TOLERANT:
+    if self.__tolerant:
       return None
     else:
       raise Error(error)
 
   def _fetch_path(self, name):
     compiled = None
-    caching = self.SIZE is None or self.SIZE
+    caching = self.__size is None or self.__size
     # INCLUDE: {
     while True:
       # the template may have been stored using a non-filename name
-      slot = self.LOOKUP.get(name)
+      slot = self.__lookup.get(name)
       if caching and slot:
         # cached entry exists, so refresh slot and extract data
         data = self._refresh(slot)
@@ -250,19 +221,18 @@ class Provider(Base):
       # search the INCLUDE_PATH for the file, in cache or on disk
       for dir in paths:
         path = os.path.join(dir, name)
-        slot = self.LOOKUP.get(path)
+        slot = self.__lookup.get(path)
         if caching and slot:
           # cached entry exists, so refresh slot and extract data
           data = self._refresh(slot)
           data = slot[DATA]
           return data  # last INCLUDE;
         elif os.path.isfile(path):
-          if self.COMPILE_EXT or self.COMPILE_DIR:
+          if self.__compile_ext or self.__compile_dir:
             compiled = self._compiled_filename(path)
           if (compiled
               and os.path.isfile(compiled)
-              and os.stat(path)[stat.ST_MTIME] <=
-                  os.stat(compiled)[stat.ST_MTIME]):
+              and os.stat(path).st_mtime <= os.stat(compiled).st_mtime):
             data = self.__load_compiled(compiled)
             if data:
               # store in cache
@@ -271,17 +241,17 @@ class Provider(Base):
           # compiled is set if an attempt to write the compiled
           # template to disk should be made
           data = self._load(path, name)
-          data = data and self._compile(data, compiled)
+          data = self._compile(data, compiled)
           if caching:
             data = data and self._store(path, data)
           if not caching:
-            data = data and data["data"]
+            data = data and data.data
           # all done if error is OK or ERROR
           return data  # last INCLUDE;
 
       # template not found, so look for a DEFAULT template
-      if self.DEFAULT is not None and name != self.DEFAULT:
-        name = self.DEFAULT
+      if self.__default is not None and name != self.__default:
+        name = self.__default
         # redo INCLUDE;
       else:
         return None
@@ -289,19 +259,19 @@ class Provider(Base):
     return data
 
   def _compiled_filename(self, file):
-    if not (self.COMPILE_EXT or self.COMPILE_DIR):
+    if not (self.__compile_ext or self.__compile_dir):
       return None
     path = file
     if os.name == "nt":
       path = path.replace(":", "")
-    compiled = "%s%s" % (path, self.COMPILE_EXT)
-    if self.COMPILE_DIR:
+    compiled = "%s%s" % (path, self.__compile_ext)
+    if self.__compile_dir:
       # Can't use os.path.join here; compiled may be absolute.
-      compiled = "%s%s%s" % (self.COMPILE_DIR, os.path.sep, compiled)
+      compiled = "%s%s%s" % (self.__compile_dir, os.path.sep, compiled)
     return compiled
 
   def _modified(self, name, time=None):
-    load = os.stat(name)[stat.ST_MTIME]
+    load = os.stat(name).st_mtime
     if not load:
       return time and 1 or 0
     if time:
@@ -315,28 +285,28 @@ class Provider(Base):
       statbuf = statfile(slot[NAME])
       if statbuf:
         slot[STAT] = time.time()
-        if statbuf[stat.ST_MTIME] != slot[LOAD]:
+        if statbuf.st_mtime != slot[LOAD]:
           data = self._load(slot[NAME], slot[DATA].name)
           data = self._compile(data)
-          slot[DATA] = data["data"]
-          slot[LOAD] = data["time"]
-    if self.HEAD is not slot:
+          slot[DATA] = data.data
+          slot[LOAD] = data.time
+    if self.__head is not slot:
       # remove existing slot from usage chain...
       if slot[PREV]:
         slot[PREV][NEXT] = slot[NEXT]
       else:
-        self.HEAD = slot[NEXT]
+        self.__head = slot[NEXT]
       if slot[NEXT]:
         slot[NEXT][PREV] = slot[PREV]
       else:
-        self.TAIL = slot[PREV]
+        self.__tail = slot[PREV]
       # ...and add to start of list
-      head = self.HEAD
+      head = self.__head
       if head:
         head[PREV] = slot
       slot[PREV] = None
       slot[NEXT] = head
-      self.HEAD  = slot
+      self.__head  = slot
 
     return data
 
@@ -348,43 +318,43 @@ class Provider(Base):
 
   def _store(self, name, data, compfile=None):
     load = self._modified(name)
-    data = data["data"]
-    if self.SIZE is not None and self.SLOTS >= self.SIZE:
+    data = data.data
+    if self.__size is not None and self.__slots >= self.__size:
       # cache has reached size limit, so reuse oldest entry
       # remove entry from tail or list
-      slot = self.TAIL
+      slot = self.__tail
       slot[PREV][NEXT] = None
-      self.TAIL = slot[PREV]
+      self.__tail = slot[PREV]
 
       # remove name lookup for old node
-      del self.LOOKUP[slot[NAME]]
+      del self.__lookup[slot[NAME]]
 
       # add modified node to head of list
-      head = self.HEAD
+      head = self.__head
       if head:
         head[PREV] = slot
       slot[:] = [None, name, data, load, head, time.time()]
-      self.HEAD = slot
+      self.__head = slot
 
       # add name lookup for new node
-      self.LOOKUP[name] = slot
+      self.__lookup[name] = slot
     else:
       # cache is under size limit, or none is defined
-      head = self.HEAD
+      head = self.__head
       slot = [None, name, data, load, head, time.time()]
       if head:
         head[PREV] = slot
-      self.HEAD = slot
-      if not self.TAIL:
-        self.TAIL = slot
+      self.__head = slot
+      if not self.__tail:
+        self.__tail = slot
       # add lookup from name to slot and increment nslots
-      self.LOOKUP[name] = slot
-      self.SLOTS += 1
+      self.__lookup[name] = slot
+      self.__slots += 1
 
     return data
 
   def paths(self):
-    ipaths = self.INCLUDE_PATH[:]
+    ipaths = self.__include_path[:]
     opaths = []
     count = MAX_DIRS
     while ipaths and count > 0:
@@ -411,17 +381,17 @@ class Provider(Base):
     return opaths
 
   def store(self, name, data):
-    return self._store(name, { "data": data, "load": 0 })
+    return self._store(name, Data(data=data, load=0))
 
   def load(self, name, prefix=None):
     path = name
     error = None
     if os.path.isabs(name):
-      if not self.ABSOLUTE:
+      if not self.__absolute:
         error = ("%s: absolute paths are not allowed (set ABSOLUTE option)"
                  % name)
     elif RELATIVE_PATH.search(name):
-      if not self.RELATIVE:
+      if not self.__relative:
         error = ("%s: relative paths are not allowed (set RELATIVE option)"
                  % name)
     else:
@@ -442,7 +412,7 @@ class Provider(Base):
         error = "%s: %s" % (name, e)
 
     if error:
-      if self.TOLERANT:
+      if self.__tolerant:
         return None
       else:
         raise Error(error)
@@ -453,14 +423,34 @@ class Provider(Base):
 
   def include_path(self, path=None):
     if path:
-      self.INCLUDE_PATH = None
-    return self.INCLUDE_PATH
+      self.__include_path = None
+    return self.__include_path
 
   def parser(self):
-    return self.PARSER
+    return self.__parser
 
   def tolerant(self):
-    return self.TOLERANT
+    return self.__tolerant
+
+
+class Data:
+  def __init__(self, text=None, name=None, alt=None, when=None, path=None,
+               load=None, data=None):
+    self.text = text
+    if name is not None:
+      self.name = name
+    else:
+      self.name = alt
+    if when is not None:
+      self.time = when
+    else:
+      self.time = time.time()
+    if path is not None:
+      self.path = path
+    else:
+      self.path = self.name
+    self.load = load
+    self.data = data
 
 
 def statfile(path):
@@ -468,3 +458,4 @@ def statfile(path):
     return os.stat(path)
   except OSError:
     return None
+

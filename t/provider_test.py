@@ -72,12 +72,11 @@ class ProviderTest(TestCase):
     #------------------------------------------------------------------------
 
     parser = Config.parser({"POST_CHOMP": 1})
-    provinc = Config.provider(
-      { "INCLUDE_PATH": dir, "PARSER": parser, "TOLERANT": 1 })
-    provabs = Config.provider(
-      { "ABSOLUTE": 1, "PARSER": parser })
-    provrel = Config.provider(
-      { "RELATIVE": 1, "PARSER": parser })
+    provinc = Config.provider({ "INCLUDE_PATH": dir,
+                                "PARSER": parser,
+                                "TOLERANT": 1 })
+    provabs = Config.provider({ "ABSOLUTE": 1, "PARSER": parser })
+    provrel = Config.provider({ "RELATIVE": 1, "PARSER": parser })
     self.assert_(provinc.parser() is provabs.parser())
     self.assert_(provabs.parser() is provrel.parser())
 

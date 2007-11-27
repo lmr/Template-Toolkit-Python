@@ -30,7 +30,7 @@ class IncludeTest(TestCase):
     incpath[1] = "test/lib"
 
     replace["metaout"] = tproc.process("metadata", replace)
-    replace["metamod"] = os.stat("test/src/metadata")[9]
+    replace["metamod"] = os.stat("test/src/metadata").st_mtime
 
     self.Expect(DATA, (('default', tproc), ('reset', tt_reset)), replace)
 

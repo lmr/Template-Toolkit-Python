@@ -668,16 +668,15 @@ class Parser(Base):
       return "\n"
     line = self.line[0]
     info = self.fileinfo[-1]
-    file_ = info.get("path") or info.get("name") or "(unknown template)"
+    file = info and (info.path or info.name) or "(unknown template)"
     line = re.sub(r"-.*", "", str(line))  # might be 'n-n'
-    return '#line %s "%s"\n' % (line, file_)
+    return '#line %s "%s"\n' % (line, file)
 
   def parse(self, text, info=None):
     """Parses the text string, text, and returns a dictionary
     representing the compiled template block(s) as Python code, in the
     format expected by template.document.
     """
-    info = info or {}
     self.defblock = {}
     self.metadata = {}
     self._ERROR = ""
@@ -889,7 +888,7 @@ class Parser(Base):
     lhs = None
     text = None
     self.line = line
-    self.file = info.get("name")
+    self.file = info and info.name
     self.inpython = 0
     value = None
 
