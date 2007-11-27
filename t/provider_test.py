@@ -12,7 +12,7 @@ provider.MAX_DIRS = 42
 def delivered(provider, file):
   try:
     provider.fetch(file)
-  except Exception:
+  except:
     return False
   else:
     return True
@@ -21,14 +21,14 @@ def delivered(provider, file):
 def declined(provider, file):
   try:
     return provider.fetch(file) is None
-  except Exception, e:
+  except:
     return False
 
 
 def denied(provider, file):
   try:
     provider.fetch(file)
-  except Exception:
+  except:
     return True
   else:
     return False

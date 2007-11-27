@@ -673,15 +673,13 @@ class Context(Base):
         providers = self.__prefix_map.get("default") or self.__load_templates
 
       for provider in providers:
-        text, error = provider.load(name, prefix)
-        if not error:
+        try:
+          text = provider.load(name, prefix)
+        except Exception, e:
+          self.throw(ERROR_FILE, str(e))
+        if text is not None:
           output.write(text)
           break
-        if error == STATUS_ERROR:
-          if isinstance(text, list):
-            self.throw(text)
-          else:
-            self.throw(ERROR_FILE, text)
       else:
         self.throw(ERROR_FILE, "%s: not found" % file)
 
