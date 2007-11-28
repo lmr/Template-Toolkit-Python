@@ -295,7 +295,9 @@ class PerlScalar:
     instead.
     """
     if self.__truth is not None:
-      return self.__truth
+      truth = self.__truth
+      self.__truth = None
+      return truth
     else:
       return self.__value not in self.__False
 
@@ -580,7 +582,21 @@ def slice(seq, indices):
 
 
 def split_arguments(args):
+  """Returns the 2-tuple (args[:-1], args[-1]) if args[-1] exists and
+  is a dict; otherwise returns (args, {}).
+  """
   if args and isinstance(args[-1], dict):
     return args[:-1], args[-1]
   else:
     return args, {}
+
+
+def slurp(path):
+  """Returns the contents of the file at the given path."""
+  f = None
+  try:
+    f = open(path)
+    return f.read()
+  finally:
+    if f:
+      f.close()
