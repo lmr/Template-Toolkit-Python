@@ -1,19 +1,26 @@
-from template import plugin, iterator
+from template.plugin import Plugin
+from template.iterator import Iterator
 
-class Table(plugin.Plugin):
+
+class Error(Exception):
+  """A trivial local exception class."""
+  pass
+
+
+class Table(Plugin):
   def __init__(self, context, data, params=None):
-    if isinstance(data, iterator.Iterator):
+    Plugin.__init__(self)
+    if isinstance(data, Iterator):
       data, error = data.get_all()
       if error:
-        return self.error("iterator failed to provide data for table: %s" %
-                          error)
+        raise Error("iterator failed to provide data for table: %s" % error)
     if not isinstance(data, (tuple, list)):
-      return self.error("invalid table data, expecting a list")
+      raise Error("invalid table data, expecting a list")
 
     if params is None:
       params = {}
     if not isinstance(params, dict):
-      return self.error("invalid table parameters, expecting a dict")
+      raise Error("invalid table parameters, expecting a dict")
 
     # ensure keys are folded to upper case
     params.update(dict((str(key).upper(), value)

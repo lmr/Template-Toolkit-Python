@@ -20,7 +20,7 @@ class ParserTest(TestCase):
     self.assertEquals(0, s1["PRE_CHOMP"])
     self.assertEquals(1, s1["POST_CHOMP"])
     s2 = p2.old_style()
-    self.assert_(s2, p2.error())
+    self.assert_(s2)
     self.assertEquals(r"\[\*", s2["START_TAG"])
     self.assertEquals(1, s2["PRE_CHOMP"])
     self.assertEquals(0, s2["POST_CHOMP"])

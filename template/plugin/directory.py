@@ -1,7 +1,7 @@
 import os
 
-from template.base import TemplateException
 from template.plugin.file import File
+from template.util import TemplateException
 
 
 class Directory(File):

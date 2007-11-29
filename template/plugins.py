@@ -1,8 +1,7 @@
 import types
 
-from template.base import Base, TemplateException
 from template.constants import *
-from template.util import listify
+from template.util import TemplateException, listify
 
 
 """
@@ -473,13 +472,12 @@ class Error(Exception):
   pass
 
 
-class Plugins(Base):
+class Plugins:
   """Plugin provider which handles the loading of plugin modules and
   instantiation of plugin objects.
   """
 
   def __init__(self, params):
-    Base.__init__(self)
     pbase = listify(params.get("PLUGIN_BASE") or [])
     plugins = params.get("PLUGINS") or {}
     factory = params.get("PLUGIN_FACTORY")

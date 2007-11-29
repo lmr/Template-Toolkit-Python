@@ -1,4 +1,3 @@
-from template.base import Base
 from template.config import Config
 from template.directive import Directive
 from template.util import PerlScalar
@@ -63,12 +62,11 @@ its internal stash and returns it.
 """
 
 
-class Constants(Base):
+class Constants:
   """Plugin compiler class for performing constant folding at compile time
   on variables in a particular namespace.
   """
   def __init__(self, config):
-    Base.__init__(self)
     self.__stash = Config.stash(config)
 
   def ident(self, ident):

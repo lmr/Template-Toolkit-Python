@@ -2,7 +2,7 @@ import re
 import unittest
 
 from template import Template, TemplateException
-from template import util
+
 
 main = unittest.main
 

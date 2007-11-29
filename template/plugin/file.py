@@ -2,8 +2,8 @@ import os
 import re
 
 from template import util
-from template.base import TemplateException
 from template.plugin import Plugin
+from template.util import TemplateException
 
 
 STAT_KEYS = ("dev", "ino", "mode", "nlink", "uid", "gid", "rdev", "size",

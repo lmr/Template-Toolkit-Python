@@ -1,8 +1,7 @@
 from template.test import TestCase, main
-from template.base import Base
 
 
-class MyObj(Base):
+class MyObj:
   def foo(self, *arg):
     return "object:\n" + self.args(*arg)
   def args(self, *arg):

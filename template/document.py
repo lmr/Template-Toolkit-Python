@@ -5,8 +5,9 @@ import tempfile
 
 from template import util
 from template.iterator import Iterator
-from template.base import Base, TemplateException
 from template.constants import *
+from template.util import TemplateException
+
 
 """
 template.document.Document - Compiled template document object
@@ -141,16 +142,18 @@ templates.
 
 """
 
+class Error(Exception):
+  """A trivial local exception class."""
+  pass
 
-class Document(Base):
+
+class Document:
   """Module defining a class of objects which encapsulate compiled
   templates, storing additional block definitions and metadata as well
   as the compiled Python functions representing the main template
   content.
   """
   def __init__(self, doc):
-    Base.__init__(self)
-
     #evaluate Python code in block to create sub-routine reference if necessary
     self.__block = self.__compile(doc.get("BLOCK"))
 
@@ -167,10 +170,7 @@ class Document(Base):
       return block
     if debug:
       print block
-    try:
-      return self.evaluate(block, "block")
-    except TemplateException, e:
-      return self.error(e)
+    return self.evaluate(block, "block")
 
   def __getattr__(self, name):
     if name and name[0].islower():
@@ -238,23 +238,26 @@ class Document(Base):
 
   @classmethod
   def write_python_file(cls, path, content):
-    """Writes a representation of the compiled template "content" to the
+    """Writes a representation of the compiled template 'content' to the
     named file.
     """
     if not path:
-      return cls.Error("invalid null filename")
+      raise Error("invalid null filename")
+    tmpfh, tmppath = tempfile.mkstemp(dir=os.path.dirname(path))
     try:
-      tmpfh, tmppath = tempfile.mkstemp(dir=os.path.dirname(path))
-      tmpfh = os.fdopen(tmpfh, "w")
-      write_python_doc(tmpfh,
-                       content.get("METADATA"),
-                       content.get("DEFBLOCKS", {}),
-                       content["BLOCK"])
-      tmpfh.close()
+      try:
+        tmpfh = os.fdopen(tmpfh, "w")
+        write_python_doc(tmpfh,
+                         content.get("METADATA"),
+                         content.get("DEFBLOCKS", {}),
+                         content["BLOCK"])
+      finally:
+        tmpfh.close()
+    except:
+      os.remove(tmppath)
+      raise
+    else:
       os.rename(tmppath, path)
-      return True
-    except EnvironmentError, e:
-      return cls.Error(e)
 
 
 def write_python_doc(fh, metadata, defblocks, block):
@@ -290,4 +293,4 @@ PYEVAL_NAMESPACE = {
   "Break":     util.Break,
   "Evaluate":  util.EvaluateCode,
   "Document":  Document,
-  }
+}

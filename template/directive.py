@@ -419,7 +419,7 @@ class Directive:
       "def block():",
       Code.indent,
         "output = Buffer()",
-        "filter = context.filter(%s) or context.throw(context.error())" % name,
+        "filter = context.filter(%s)" % name,
         block,
         "return filter(output.get())",
       Code.unindent,

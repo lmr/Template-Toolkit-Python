@@ -1,6 +1,5 @@
-from template.base import TemplateException
 from template.test import TestCase, main
-from template.util import StringBuffer
+from template.util import StringBuffer, TemplateException
 
 
 class ExceptionTest(TestCase):

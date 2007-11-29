@@ -1,7 +1,6 @@
 import operator
 import sys
 
-from template.base import Base
 from template.config import Config
 from template.constants import *
 from template.util import unscalar, unscalar_list
@@ -155,7 +154,7 @@ the last item.
 """
 
 
-class Iterator(Base):
+class Iterator:
   """Class defining an iterator class which is used by the FOREACH
   directive for iterating through data sets.  This may be sub-classed
   to define more specific iterator types.
@@ -176,7 +175,6 @@ class Iterator(Base):
   get_all() method for returning all remaining elements as a list.
   """
   def __init__(self, data=None, params=None):
-    Base.__init__(self)
     self._impl = self._IteratorImpl(normalize_data(data))
 
   @staticmethod

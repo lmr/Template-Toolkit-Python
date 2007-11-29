@@ -4,13 +4,13 @@ import re
 import time
 
 from template import util
-from template.base import Base, TemplateException
 from template.constants import *
 from template.document import Document
 from template.filters import Filters
 from template.plugins import Plugins
 from template.provider import Provider
 from template.stash import Stash
+from template.util import TemplateException
 
 
 """
@@ -592,14 +592,13 @@ will be reinstated.
 DEBUG = None
 
 
-class Context(Base):
+class Context:
   """Class defining a context in which a template document is processed.
   This is the runtime processing interface through which templates
   can access the functionality of the Template Toolkit.
   """
 
   def __init__(self, config):
-    Base.__init__(self)
     self.__load_templates = util.listify(
       config.get("LOAD_TEMPLATES") or Provider(config))
     self.__load_plugins = util.listify(
@@ -891,7 +890,7 @@ class Context(Base):
         if alias:
           self.__filter_cache[alias] = filter
         return filter
-    return self.error("%s: filter not found" % (name,))
+    self.throw("%s: filter not found" % name)
 
   def reset(self, blocks=None):
     """Reset the state of the internal BLOCKS hash to clear any BLOCK

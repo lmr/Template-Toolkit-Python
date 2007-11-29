@@ -1,8 +1,10 @@
-from template.base import Base
 from template.util import split_arguments
 
 
-class Plugin(Base):
+class Plugin:
+  def __init__(self):
+    pass
+
   @classmethod
   def load(cls, context=None):
     return cls

@@ -1,8 +1,8 @@
 import os
 import PIL.Image
 
-from template.base import TemplateException
 from template.plugin import Plugin
+from template.util import TemplateException
 
 
 def Init(func):

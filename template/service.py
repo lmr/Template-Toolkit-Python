@@ -1,9 +1,9 @@
 import sys
 
-from template.base import Base, TemplateException
 from template.config import Config
 from template.constants import DEBUG_SERVICE
-from template.util import StringBuffer, is_seq
+from template.util import StringBuffer, TemplateException, is_seq
+
 
 """
 
@@ -395,9 +395,14 @@ instance of the template.context.Context class.
 
 """
 
-class Service(Base):
+
+class Service:
+  """Class implementing a template processing service which wraps a
+  template within PRE_PROCESS and POST_PROCESS templates and offers
+  ERROR recovery.
+  """
+
   def __init__(self, config=None):
-    Base.__init__(self)
     config = config or {}
     delim = config.get("DELIMITER", ":")
 
@@ -424,6 +429,15 @@ class Service(Base):
     return self.__context
 
   def process(self, template, params=None):
+    """Process a template within a service framework.
+
+    A service may encompass PRE_PROCESS and POST_PROCESS templates and
+    an ERROR dictionary which names templates to be substituted for
+    the main template document in case of error.  Each service
+    invocation begins by resetting the state of the context object via
+    a call to reset().  The AUTO_RESET option may be set to 0
+    (default: 1) to bypass this step.
+    """
     context = self.__context
     output = StringBuffer()
     procout = StringBuffer()
@@ -469,6 +483,14 @@ class Service(Base):
     return output.get()
 
   def __recover(self, exception):
+    """Examines the internal ERROR dictionary to find a handler
+    suitable for the passed exception object.
+
+    Selecting the handler is done by delegation to the exception's
+    select_handler() method, passing the set of handler keys as
+    arguments.  A 'default' handler may also be provided.  The handler
+    value represents the name of a template which should be processed.
+    """
     # A 'stop' exception is thrown by [% STOP %] - we return the output
     # buffer stored in the exception object.
     if exception.type() == "stop":

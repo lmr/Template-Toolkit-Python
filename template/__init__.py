@@ -1,9 +1,10 @@
 import os
 
 from template import util
-from template.base import Base
 from template.service import Service
 from template.config import Config
+from template.util import Literal, TemplateException
+
 
 """
 
@@ -587,18 +588,12 @@ DEBUG = False
 
 BINMODE = False
 
-# Convenience aliases.
-Literal = util.Literal
 
-TemplateException = base.TemplateException
-
-
-class Template(Base):
+class Template:
   """Module implementing a simple, user-oriented front-end to the Template
   Toolkit.
   """
   def __init__(self, config=None):
-    Base.__init__(self)
     config = config or {}
     # Prepare a namespace handler for any CONSTANTS definition.
     constants = config.get("CONSTANTS")
@@ -621,15 +616,11 @@ class Template(Base):
     processing effort to the underlying Service object.
     """
     options = options or {}
-    if options.setdefault("binmode", BINMODE):
-      self.DEBUG("set binmode\n")
+    if options.setdefault("binmode", BINMODE) and DEBUG:
+      util.Debug("set binmode\n")
 
     output = self.__service.process(template, vars)
-    if output is not None:
-      self.__MaybeWriteOutput(output, options["binmode"])
-    else:
-      raise self.__service.error()
-
+    self.__MaybeWriteOutput(output, options["binmode"])
     return output
 
   def service(self):

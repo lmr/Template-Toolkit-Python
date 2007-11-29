@@ -603,7 +603,7 @@ def scalar_repeat(scalar="", count=1):
 
 
 @scalar_op("replace")
-def scalar_replace(scalar="", pattern="", replace="", global_=True):
+def scalar_replace(scalar="", pattern="", replace="", all=True):
   scalar = str(scalar)
   pattern = str(pattern)
   replace = str(replace)
@@ -621,7 +621,7 @@ def scalar_replace(scalar="", pattern="", replace="", global_=True):
       return re.sub(r"\\([\\$])|\$(\d+)", matched, replace)
   else:
     expand = lambda _: replace
-  return re.sub(pattern, expand, scalar, int(not global_))
+  return re.sub(pattern, expand, scalar, int(not all))
 
 
 @scalar_op("remove")
@@ -670,7 +670,7 @@ def hash_item(hash, item=""):
   if PRIVATE and re.search(PRIVATE, item):
     return None
   else:
-    return hash[item]
+    return hash.get(item)
 
 
 @hash_op("hash")
@@ -756,7 +756,10 @@ def hash_nsort(hash):
 
 @list_op("item")
 def list_item(list, item=0):
-  return list[item]
+  try:
+    return list[util.numify(item)]
+  except IndexError:
+    return None
 
 
 @list_op("list")
@@ -792,7 +795,10 @@ def list_unshift(list, *args):
 
 @list_op("shift")
 def list_shift(list):
-  return list.pop(0)
+  try:
+    return list.pop(0)
+  except IndexError:
+    return None
 
 
 @list_op("max")
@@ -810,7 +816,10 @@ def list_defined(list, index=None):
   if index is None:
     return 1
   else:
-    return 0 <= index < len(list) and list[index] is not None
+    try:
+      return int(list[util.numify(index)] is not None)
+    except IndexError:
+      return 0
 
 
 @list_op("first")
@@ -857,11 +866,10 @@ def list_join(list, joint=" "):
 def list_sort(list, field=None):
   if len(list) <= 1:
     return list[:]
+  elif field:
+    return sorted(list, key=_smartsort(field, _to_lower))
   else:
-    if field:
-      return sorted(list, key=_smartsort(field, _to_lower))
-    else:
-      return sorted(list, key=_to_lower)
+    return sorted(list, key=_to_lower)
 
 
 @list_op("nsort")
@@ -899,23 +907,26 @@ def list_merge(list_, *args):
 
 @list_op("slice")
 def list_slice(list, start=0, to=None):
+  start = util.numify(start)
   if start < 0:
     start = len(list) + start
   if to is None or to < 0:
     return list[start:]
   else:
+    to = util.numify(to)
     return list[start:to + 1]
 
 
 @list_op("splice")
 def list_splice(seq, start=0, length=None, *replace):
+  start = util.numify(start)
   if start < 0:
     start = len(seq) + start
   if length is not None:
     stop = start + length
   else:
     stop = len(seq)
-  if len(replace) == 1 and isinstance(replace[0], (list, tuple)):
+  if len(replace) == 1 and util.is_seq(replace[0]):
     replace = replace[0]
   s = slice(start, stop)
   removed = seq[s]

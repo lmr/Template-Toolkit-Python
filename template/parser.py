@@ -2,11 +2,11 @@ import re
 import sys
 import types
 
-from template.base import Base, TemplateException
+from template import util
 from template.constants import *
 from template.directive import Directive
 from template.grammar import Grammar
-from template import util
+from template.util import TemplateException
 
 
 """
@@ -587,13 +587,17 @@ QUOTED_STRING = re.compile(r"""
 """, re.VERBOSE)
 
 
-class Parser(Base):
+class Error(Exception):
+  """A trivial local exception class."""
+  pass
+
+
+class Parser:
   """This module implements a LALR(1) parser and assocated support
   methods to parse template documents into the appropriate "compiled"
   format.
   """
   def __init__(self, param):
-    Base.__init__(self)
     self.start_tag = param.get("START_TAG") or DEFAULT_STYLE["START_TAG"]
     self.end_tag = param.get("END_TAG") or DEFAULT_STYLE["END_TAG"]
     self.tag_style = param.get("TAG_STYLE", "default")
@@ -622,8 +626,7 @@ class Parser(Base):
     self.lextable = self.grammar.lextable
     self.states = self.grammar.states
     self.rules = self.grammar.rules
-    if not self.new_style(param):
-      return self.Error(self.error())
+    self.new_style(param)
 
   def new_style(self, config):
     """Install a new (stacked) parser style.
@@ -641,7 +644,7 @@ class Parser(Base):
     if tagstyle:
       tags = TAG_STYLE.get(tagstyle)
       if tags is None:
-        return self.error("Invalid tag style: %s" % tagstyle)
+        raise Error("Invalid tag style: %s" % tagstyle)
       start, end = tags
       config["START_TAG"] = config.get("START_TAG", start)
       config["END_TAG"] = config.get("END_TAG", end)
@@ -658,7 +661,7 @@ class Parser(Base):
     See new_style().  ** experimental **
     """
     if len(self.style) <= 1:
-      return self.error("only 1 parser style remaining")
+      raise Error("only 1 parser style remaining")
     self.style.pop()
     return self.style[-1]
 
@@ -962,7 +965,7 @@ class Parser(Base):
         try:
           coderet = code(self, *codevars)
         except TemplateException, e:
-          return self._parse_error(str(e))
+          self._parse_error(str(e), info.name)
         # reduce stack by len_
         if len_ > 0:
           stack[-len_:] = []
@@ -978,14 +981,14 @@ class Parser(Base):
 
     # ERROR
     if value is None:
-      return self._parse_error("unexpected end of input")
+      self._parse_error("unexpected end of input", info.name)
     elif value == ";":
-      return self._parse_error("unexpected end of directive", text)
+      self._parse_error("unexpected end of directive", info.name, text)
     else:
-      return self._parse_error("unexpected token (%s)" %
-                               util.unscalar_lex(value), text)
+      self._parse_error("unexpected token (%s)" %
+                        util.unscalar_lex(value), info.name, text)
 
-  def _parse_error(self, msg, text=None):
+  def _parse_error(self, msg, name, text=None):
     """Method used to handle errors encountered during the parse process
     in the _parse() method.
     """
@@ -994,7 +997,7 @@ class Parser(Base):
       line = "unknown"
     if text is not None:
       msg += "\n  [%% %s %%]" % text
-    return self.error("line %s: %s" % (line, msg))
+    raise TemplateException("parse", "%s line %s: %s" % (name, line, msg))
 
   def define_block(self, name, block):
     """Called by the parser 'defblock' rule when a BLOCK definition is

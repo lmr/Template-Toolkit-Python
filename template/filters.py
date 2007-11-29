@@ -5,10 +5,9 @@ import re
 import sys
 
 from template import util
-from template.base import Base, TemplateException
 from template.constants import *
 from template.plugin.filter import Filter
-from template.util import Literal, EvaluateCode, \
+from template.util import Literal, EvaluateCode, TemplateException, \
      dynamic_filter, numify, registrar, unpack
 
 """
@@ -623,9 +622,8 @@ generates output to stdout.
 FILTERS = {}
 
 
-class Filters(Base):
+class Filters:
   def __init__(self, params):
-    Base.__init__(self)
     self.__filters = params.get("FILTERS") or {}
     self.__tolerant = bool(params.get("TOLERANT"))
     self.__debug = (params.get("DEBUG") or 0) & DEBUG_FILTERS

@@ -2,9 +2,9 @@ import locale as Locale
 import re
 import time as Time
 
-from template.base import TemplateException
 from template.plugin import date as date_plugin
 from template.test import TestCase, main
+from template.util import TemplateException
 
 
 def time_locale(time, format, locale):

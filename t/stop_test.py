@@ -1,5 +1,4 @@
-from template import Template
-from template.base import TemplateException
+from template import Template, TemplateException
 from template.test import TestCase, main
 
 

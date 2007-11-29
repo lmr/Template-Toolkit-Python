@@ -2,7 +2,6 @@ import cStringIO
 import re
 import sys
 
-from template.base import TemplateException
 from template.config import Config
 
 
@@ -26,6 +25,52 @@ class Continue(ControlFlowException):
 class Break(ControlFlowException):
   """Exception raised by the LAST template directive."""
   pass
+
+
+class TemplateException(Exception):
+  def __init__(self, type, info, buffer=None):
+    Exception.__init__(self, type, info)
+    self.__type = type
+    self.__info = info
+    self.__buffer = buffer
+
+  def text(self, buffer=None):
+    if buffer:
+      if self.__buffer and self.__buffer is not buffer:
+        buffer.reset(buffer.get() + self.__buffer.get())
+      self.__buffer = buffer
+      return ""
+    elif self.__buffer:
+      return self.__buffer.get()
+    else:
+      return ""
+
+  def select_handler(self, options):
+    type = str(self.__type)
+    hlut = dict((str(option), True) for option in options)
+    while type:
+      if hlut.get(type):
+        return type
+      type = re.sub(r'\.?[^.]*$', '', type)
+    return None
+
+  def type(self):
+    return self.__type
+
+  def info(self):
+    return self.__info
+
+  def type_info(self):
+    return self.__type, self.__info
+
+  def __str__(self):
+    return "%s error - %s" % (self.__type or "", self.__info)
+
+  @classmethod
+  def convert(cls, exception):
+    if not isinstance(exception, TemplateException):
+      exception = TemplateException(None, exception)
+    return exception
 
 
 class StringBuffer:
@@ -346,25 +391,23 @@ def numify(value):
   if not match:
     return 0
   elif match.group(1) or match.group(2) or match.group(3):
-    return float(match.group(0))
+    return float(match.group())
   else:
-    return long(match.group(0))
+    return long(match.group())
 
 
 def dynamic_filter(func):
-  """Function decorator that wraps a function in a wrapper with the same
-  name and a dynamic_filter attribute set to True.
+  """Function decorator that sets the wrapped function's 'dynamic_filter'
+  attribute to True.
   """
-  def dynamic(*args, **kwargs):
-    return func(*args, **kwargs)
-  dynamic.__name__ = func.__name__
-  dynamic.dynamic_filter = True
-  return dynamic
+  func.dynamic_filter = True
+  return func
 
 
 def registrar(obj):
-  """Returns a function decorator that accepts any number of names, and
-  registers the function it decorates in the object obj via item access.
+  """Returns a function decorator that accepts any number of names,
+  and registers the function it decorates under each of those names in
+  the object 'obj' via item access.
 
   Example:
 
@@ -372,11 +415,12 @@ def registrar(obj):
 
   register = registrar(OBJECTS)
 
-  @register("add")
+  @register('add', 'accumulate')
   def addition(x, y):
     return x + y
 
-  print OBJECTS["add"](1, 2)  # prints "3"
+  print OBJECTS['add'](1, 2)         # prints '3'
+  print OBJECTS{'accumulate'](3, 4)  # prints '7'
 
   """
   def register(*names):
@@ -600,3 +644,9 @@ def slurp(path):
   finally:
     if f:
       f.close()
+
+
+def Debug(*args):
+  sys.stderr.write("DEBUG: ")
+  for arg in args:
+    sys.stderr.write(str(arg))

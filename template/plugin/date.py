@@ -2,8 +2,8 @@ import locale as Locale
 import re
 import time as Time
 
-from template.base import TemplateException
 from template.plugin import Plugin
+from template.util import TemplateException
 
 
 # Default strftime() format:

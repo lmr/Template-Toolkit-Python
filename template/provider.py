@@ -4,11 +4,10 @@ import sys
 import time
 import types
 
-from template.base import Base, TemplateException
 from template.config import Config
 from template.constants import *
 from template.document import Document
-from template.util import Literal, can, slurp
+from template.util import Literal, TemplateException, can, slurp
 
 
 """
@@ -393,7 +392,7 @@ class Error(Exception):
   pass
 
 
-class Provider(Base):
+class Provider:
   """This class handles the loading, compiling and caching of
   templates.
 
@@ -405,7 +404,6 @@ class Provider(Base):
   further details.
   """
   def __init__(self, params):
-    Base.__init__(self)
     size = params.get("CACHE_SIZE")
     paths = params.get("INCLUDE_PATH", ".")
     cdir = params.get("COMPILE_DIR", "")
@@ -586,36 +584,32 @@ class Provider(Base):
     del data.text
 
     parsedoc = self.__parser.parse(text, data)
-    if parsedoc:
-      parsedoc["METADATA"].setdefault("name", data.name)
-      parsedoc["METADATA"].setdefault("modtime", data.time)
-      # write the Python code to the file compfile, if defined
-      if compfile:
-        basedir = os.path.dirname(compfile)
-        if not os.path.isdir(basedir):
-          try:
-            os.makedirs(basedir)
-          except IOError, e:
-            error = Error("failed to create compiled templates "
-                          "directory: %s (%s)" % (basedir, e))
-        if not error:
-          docclass = self.__document
-          if not docclass.write_python_file(compfile, parsedoc):
-            error = Error("cache failed to write %s: %s" % (
-              os.path.basename(compfile), docclass.Error()))
-        if error is None and data.time is not None:
-          if not compfile:
-            raise Error("invalid null filename")
-          ctime = int(data.time)
-          os.utime(compfile, (ctime, ctime))
-
+    parsedoc["METADATA"].setdefault("name", data.name)
+    parsedoc["METADATA"].setdefault("modtime", data.time)
+    # write the Python code to the file compfile, if defined
+    if compfile:
+      basedir = os.path.dirname(compfile)
+      if not os.path.isdir(basedir):
+        try:
+          os.makedirs(basedir)
+        except IOError, e:
+          error = Error("failed to create compiled templates "
+                        "directory: %s (%s)" % (basedir, e))
       if not error:
-        data.data = Document(parsedoc)
-        return data
+        try:
+          self.__document.write_python_file(compfile, parsedoc)
+        except Exception, e:
+          error = Error("cache failed to write %s: %s" % (
+            os.path.basename(compfile), e))
+      if error is None and data.time is not None:
+        if not compfile:
+          raise Error("invalid null filename")
+        ctime = int(data.time)
+        os.utime(compfile, (ctime, ctime))
 
-    else:
-      error = TemplateException("parse", "%s %s" % (data.name,
-                                                    self.__parser.error()))
+    if not error:
+      data.data = Document(parsedoc)
+      return data
 
     if self.__tolerant:
       return None

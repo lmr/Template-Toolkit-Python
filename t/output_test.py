@@ -1,8 +1,16 @@
 import os
 
 import template
-from template import Template
+from template import Template, util
 from template.test import TestCase, main
+
+
+class InterceptDebug:
+  def __init__(self):
+    self.message = None
+
+  def __call__(self, *args):
+    self.message = "".join(args)
 
 
 class MyTemplate(Template):
@@ -35,17 +43,17 @@ class OutputTest(TestCase):
     self.assertEquals("This is the foo file, a is alpha", out)
     os.remove(file2)
 
+    intercept = InterceptDebug()
     template.DEBUG = True
-    tt = MyTemplate({ "INCLUDE_PATH": "test/src:test/lib",
-                      "OUTPUT_PATH": "test/tmp",
-                      "OUTPUT": f2 })
+    util.Debug = intercept
     tt.process("foo", self._callsign(), { "binmode": 1 })
     self.assert_(os.path.exists(file2))
-    self.assertEquals("set binmode\n", MyTemplate.MESSAGE)
+    self.assertEquals("set binmode\n", intercept.message)
     MyTemplate.MESSAGE = "reset"
+    intercept.message = "reset"
     tt.process("foo", self._callsign(), { "binmode": 1 })
     self.assert_(os.path.exists(file2))
-    self.assertEquals("set binmode\n", MyTemplate.MESSAGE)
+    self.assertEquals("set binmode\n", intercept.message)
 
 
 main()

@@ -28,7 +28,7 @@ class String(Plugin):
       return self._text
     _text = self._text
     for name, args in self.filters:
-      code = self._CONTEXT.filter(name, args) or self.throw(context.error())
+      code = self._CONTEXT.filter(name, args)
       _text = code(_text)
     return _text
 
@@ -105,7 +105,7 @@ class String(Plugin):
     return self
 
   def filter(self, name, *args):
-    code = self._CONTEXT.filter(name, args) or self.throw(self._CONTEXT.error())
+    code = self._CONTEXT.filter(name, args)
     return code(self._text)
 
   def upper(self):
