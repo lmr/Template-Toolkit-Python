@@ -503,10 +503,8 @@ class Provider:
     if alias is None and isinstance(name, str):
       alias = name
     if isinstance(name, Literal):
-      # name can be a Literal wrapper around the input text...
       return Data(name.text(), alias, alt="input text", load=0)
     elif not isinstance(name, str):
-      # ...or a file handle...
       return Data(name.read(), alias, alt="input file", load=0)
     elif os.path.isfile(name):
       try:

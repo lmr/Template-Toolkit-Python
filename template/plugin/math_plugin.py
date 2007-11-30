@@ -6,6 +6,142 @@ from template.plugin import Plugin
 from template.util import numify
 
 
+"""
+template.plugin.math_plugin - Plugin interface to mathematical functions
+
+
+SYNOPSIS
+
+    [% USE Math %]
+
+    [% Math.sqrt(9) %]
+
+
+DESCRIPTION
+
+The Math plugin provides numerous mathematical functions for use
+within templates.
+
+
+METHODS
+
+All function arguments are automatically converted to numbers, if
+necessary, using Perlish semantics:
+
+  print math_plugin.cos('0')  # prints '1'
+  print math_plugin.exp('x')  # also prints '1'
+
+* abs
+
+Python's abs() function always returns a float, but this one returns an
+instance of whatever type was passed in (after conversion).  For example,
+math_plugin.abs('-42') return 42, not 42.0.
+
+* atan2
+
+* cos
+
+* exp
+
+* hex
+
+* int
+
+* log
+
+* oct
+
+This is a Perlish oct() that stringifies its argument and parses it into
+an integer, using a base of 2, 8, or 16 if the string has a leading '0b',
+'0', or '0x', respectively.  Without a leading zero, the string is parsed
+as an octal number.  Parsing stops at the first character that is out of
+range for the chosen base.
+
+* rand
+
+* sin
+
+* sqrt
+
+* srand
+
+* pi
+
+* tan
+
+* csc
+
+* cosec
+
+* sec
+
+* cot
+
+* cotan
+
+* asin
+
+* acos
+
+* atan
+
+* acsc
+
+* acosec
+
+* asec
+
+* acot
+
+* acotan
+
+* sinh
+
+* cosh
+
+* tanh
+
+* csch
+
+* cosech
+
+* sech
+
+* coth
+
+* cotanh
+
+* asinh
+
+* atanh
+
+* acsch
+
+* acosech
+
+* acoth
+
+* acotanh
+
+* rad2deg
+
+* rad2grad
+
+* deg2rad
+
+* deg2grad
+
+* grad2rad
+
+* grad2deg
+
+If you have a function which generates 'truly' random numbers, set the
+module global variable TrulyRandomFunction to it, and it will be
+available as the function 'truly_random_number'.
+
+"""
+
+
 OCT_REGEX = re.compile(r'^\s*(0[xb]?)?')
 
 OCT_DIGITS = {
@@ -30,15 +166,17 @@ class Error(Exception):
 
 
 class Math(Plugin):
+  """Plugin implementing numerous mathematical functions."""
   def __init__(self, context, config=None):
     Plugin.__init__(self)
     self.__config = config  # unused
 
   def abs(self, x):
+    x = numify(x)
     # The built-in abs always returns a float, which is here cast back to
     # the type of the input argument, so that (for example) the absolute
     # value of an int is returned as an int.
-    return type(x)(abs(numify(x)))
+    return type(x)(abs(x))
 
   def atan2(self, x, y):
     return math.atan2(numify(x), numify(y))
@@ -159,7 +297,7 @@ class Math(Plugin):
     return math.log(x + math.sqrt(x*x + 1))
 
   def acosh(self, x):
-    pass  # Not sure what to do here...
+    raise NotImplementedError  # Not sure what to do here...
 
   def atanh(self, x):
     x = numify(x)
@@ -175,7 +313,7 @@ class Math(Plugin):
   acosech = acsch
 
   def asech(self, x):
-    pass  # Not sure what to do here either...
+    raise NotImplementedError  # Not sure what to do here either...
 
   def acoth(self, x):
     x = numify(x)

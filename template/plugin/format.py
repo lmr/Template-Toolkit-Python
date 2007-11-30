@@ -1,5 +1,40 @@
 from template.plugin import Plugin
 
+"""
+template.plugin.format - Plugin to create formatting functions
+
+
+SYNOPSIS
+
+    [% USE format %]
+    [% commented = format('# %s') %]
+    [% commented('The cat sat on the mat') %]
+
+    [% USE bold = format('<b>%s</b>') %]
+    [% bold('Hello') %]
+
+
+DESCRIPTION
+
+The format plugin constructs sub-routines which format text according to
+a printf()-like format string.
+
+"""
+
+
+class Format(Plugin):
+  """Simple Template Toolkit Plugin which creates formatting functions."""
+  @classmethod
+  def load(cls, context=None):
+    return cls.factory
+
+  @classmethod
+  def factory(cls, context, format=None):
+    if format is not None:
+      return make_formatter(format)
+    else:
+      return make_formatter
+
 
 def make_formatter(format="%s"):
   def formatter(*args):
@@ -18,17 +53,3 @@ def make_formatter(format="%s"):
         else:
           raise
   return formatter
-
-
-class Format(Plugin):
-  @classmethod
-  def load(cls, context=None):
-    return cls.factory
-
-  @classmethod
-  def factory(cls, context, format=None):
-    if format is not None:
-      return make_formatter(format)
-    else:
-      return make_formatter
-

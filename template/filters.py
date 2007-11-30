@@ -96,8 +96,7 @@ in which each key represents the name of a filter.  The corresponding
 value should be a callable object.  If the object has an attribute
 "dynamic_filter" which is true, the filter is taken to by dynamic;
 otherwise, it is taken to be static.  The template.util module offers
-a function decorator dynamic_filter which wraps a function in a wrapper
-that has this attribute set to True.
+a function decorator dynamic_filter which sets the attribute to True:
 
     @template.util.dynamic_filter
     def my_dynamic_factory(*args):
@@ -295,6 +294,16 @@ is removed, as per trim.
 output:
 
     The cat sat on the mat
+
+
+repr
+
+Passes text to Python's builtin 'repr' function.  Useful for escaping
+strings in a PYTHON block, eg:
+
+[% PYTHON %]
+  print 'My name is', [% name | repr %], 'and I live at', [% address | repr %]
+[% END %]
 
 
 html
@@ -762,6 +771,11 @@ def null(text):
 @register("collapse")
 def collapse(text):
   return re.sub(r"\s+", " ", str(text).strip())
+
+
+@register("repr")
+def repr_(text):
+  return repr(str(text))
 
 
 ENTITY_REGEX = re.compile(r"[^\n\r\t !#$%'-;=?-~]")

@@ -5145,7 +5145,7 @@ RULES = {
 
 
 def define(index, lhs, size):
-  """Decorator for adding additional rules to RULES."""
+  """Decorator that adds additional rules to RULES."""
   def decorator(func):
     RULES[index] = (lhs, size, func)
     return func

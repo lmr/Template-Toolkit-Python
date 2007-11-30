@@ -1,6 +1,6 @@
 """
 
-template.config.Config - Factory module for instantiating other TT2 modules
+template.config.Config - Factory class for instantiating other TT2 modules
 
 
 SYNOPSIS
@@ -26,30 +26,34 @@ to load and instantiate an object from the new class.
 
 PUBLIC METHODS
 
-parser(config)
+context(config)
 
-Instantiate a new parser object of the class whose module and name is
-denoted by the global 2-tuple PARSER (default: ('template.parser',
-'Parser')).
-
-
-provider(config)
-
-Instantiate a new template provider object (default:
-template.provider.Provider).
-
-
-plugins(config)
-
-Instantiate a new plugins provider object (default:
-template.plugins.Plugins).
-
+Instantiate a new template context object (default:
+template.context.Context).
 
 filters(config)
 
 Instantiate a new filter provider object (default:
 template.filters.Filters).
 
+parser(config)
+
+Instantiate a new parser object (default: template.parser.Parser).
+
+plugins(config)
+
+Instantiate a new plugins provider object (default:
+template.plugins.Plugins).
+
+provider(config)
+
+Instantiate a new template provider object (default:
+template.provider.Provider).
+
+service(config)
+
+Instantiate a new template service object (default:
+template.service.Service).
 
 stash(vars)
 
@@ -57,19 +61,8 @@ Instantiate a new stash object (default: template.stash.Stash) using
 the contents of the optional dictionary passed by parameter as initial
 variable definitions.
 
-
-context(config)
-
-Instantiate a new template context object (default:
-template.context.Context).
-
-
-service(config)
-
-Instantiate a new template service object (default:
-template.service.Service).
-
 """
+
 
 CONSTANTS = ('template.namespace.constants', 'Constants')
 CONTEXT = ('template.context', 'Context')
@@ -90,16 +83,12 @@ class Config:
     return klass(params)
 
   @classmethod
-  def parser(cls, params):
-    return cls.__create(PARSER, params)
+  def constants(cls, params):
+    return cls.__create(CONSTANTS, params)
 
   @classmethod
-  def provider(cls, params):
-    return cls.__create(PROVIDER, params)
-
-  @classmethod
-  def plugins(cls, params):
-    return cls.__create(PLUGINS, params)
+  def context(cls, params):
+    return cls.__create(CONTEXT, params)
 
   @classmethod
   def filters(cls, params):
@@ -110,17 +99,21 @@ class Config:
     return cls.__create(ITERATOR, params)
 
   @classmethod
-  def stash(cls, params):
-    return cls.__create(STASH, params)
+  def parser(cls, params):
+    return cls.__create(PARSER, params)
 
   @classmethod
-  def context(cls, params):
-    return cls.__create(CONTEXT, params)
+  def plugins(cls, params):
+    return cls.__create(PLUGINS, params)
+
+  @classmethod
+  def provider(cls, params):
+    return cls.__create(PROVIDER, params)
 
   @classmethod
   def service(cls, params):
     return cls.__create(SERVICE, params)
 
   @classmethod
-  def constants(cls, params):
-    return cls.__create(CONSTANTS, params)
+  def stash(cls, params):
+    return cls.__create(STASH, params)

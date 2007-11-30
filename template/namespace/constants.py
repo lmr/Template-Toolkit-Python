@@ -84,7 +84,7 @@ class Constants:
         args = ident[e * 2 + 1]
         try:
           comp = eval(args, {"scalar": PerlScalar})
-        except Exception, ex:
+        except:
           return Directive.Ident(save)
         ident[e * 2 + 1] = comp
 

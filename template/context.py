@@ -1,4 +1,5 @@
 import cStringIO
+import operator
 import os
 import re
 import time
@@ -764,7 +765,7 @@ class Context:
       self.__stash.update(params)
 
     output = cStringIO.StringIO()
-    error = None
+
     try:
       # save current component
       try:
@@ -772,23 +773,17 @@ class Context:
       except:
         component = None
       for name, compiled in zip(template, compileds):
-        if callable(compiled):
-          element = {"modtime": time.time()}
-          if isinstance(name, str):
-            element["name"] = name
-          else:
-            element["name"] = ""
-        else:
+        if not callable(compiled):
           element = compiled
+        else:
+          element = { "name": isinstance(name, str) and name or "",
+                      "modtime": time.time() }
         if isinstance(component, Document):
-          if isinstance(element, dict):
-            element["caller"] = component.name
-            element["callers"] = getattr(component, "callers") or []
-            element["callers"].append(element["caller"])
-          else:
-            element.caller = component.name
-            element.callers = getattr(component, "callers") or []
-            element.callers.append(element.caller)
+          # FIXME: This block is not exercised by any test.
+          elt = Accessor(element)
+          elt["caller"] = component.name
+          elt["callers"] = getattr(component, "callers", [])
+          elt["callers"].append(component.name)
         self.__stash.set("component", element)
         if not localize:
           # merge any local blocks defined in the Template::Document
@@ -808,20 +803,12 @@ class Context:
         output.write(tmpout)
         # pop last item from callers
         if isinstance(component, Document):
-          if isinstance(element, dict):
-            element["callers"].pop()
-          else:
-            element.callers.pop()
+          elt["callers"].pop()
       self.__stash.set("component", component)
-    except TemplateException, e:
-      error = e
-
-    if localize:
-      # ensure stash is delocalised before dying
-      self.__stash = self.__stash.declone()
-
-    if error:
-      self.throw(error)
+    finally:
+      if localize:
+        # ensure stash is delocalised before dying
+        self.__stash = self.__stash.declone()
 
     return output.getvalue()
 
@@ -838,7 +825,7 @@ class Context:
     Returns the output of processing the template.  Errors are raised as
     TemplateException objects.
     """
-    return self.process(template, params, True)
+    return self.process(template, params, localize=True)
 
   def localise(self, *args):
     """The localise() method creates a local copy of the current stash,
@@ -1061,3 +1048,21 @@ def split_prefix(name):
   match = PREFIX_RE.match(name)
   return match and match.groups() or (None, name)
 
+
+class Accessor:
+  """Utility class that provides item access to either the items or
+  attributes of a given object--the former if it is a dict, the latter
+  otherwise.
+  """
+  def __init__(self, obj):
+    self.obj = obj
+    if isinstance(obj, dict):
+      self.get, self.set = operator.getitem, operator.setitem
+    else:
+      self.get, self.set = getattr, setattr
+
+  def __getitem__(self, attr):
+    return self.get(self.obj, attr)
+
+  def __setitem__(self, attr, value):
+    self.set(self.obj, attr, value)

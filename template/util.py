@@ -393,7 +393,7 @@ def numify(value):
   elif match.group(1) or match.group(2) or match.group(3):
     return float(match.group())
   else:
-    return long(match.group())
+    return int(match.group())
 
 
 def dynamic_filter(func):
@@ -650,3 +650,14 @@ def Debug(*args):
   sys.stderr.write("DEBUG: ")
   for arg in args:
     sys.stderr.write(str(arg))
+
+
+class Sequence:
+  """Mix-in that tags a class as supporting an as_list method.
+
+  This is a hack, made necessary by the fact that a Perl object can
+  be implemented as a list and treated as such independently of its
+  object nature; this concept does not translate to Python.
+  """
+  def as_list(self):
+    raise NotImplementedError

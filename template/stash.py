@@ -408,10 +408,11 @@ class Stash:
             return _slice(root, item)
           except TypeError:
             found = False
-    elif isinstance(root, (list, tuple)) or hasattr(root, "TT_LIST_ATTRIBUTE"):
+    elif isinstance(root, (list, tuple, util.Sequence)):
       # if root is a list then we check for a LIST_OPS pseudo-method
       # or return the numerical index into the list, or None
-      root = getattr(root, "TT_LIST_ATTRIBUTE", root)
+      if isinstance(root, util.Sequence):
+        root = root.as_list()
       try:
         value = LIST_OPS.get(item)
       except TypeError:  # Because item is not hashable, presumably.
