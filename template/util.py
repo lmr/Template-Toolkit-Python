@@ -194,25 +194,22 @@ class PerlScalar:
   situation warrants.  Strings are converted to numbers using Perl's
   rules: extra characters beyond the leading numeric portion are ignored,
   and a string that does not have a leading numeric portion is converted
-  to zero.  If the wrapped object is a Python boolean, then True is
-  stringified to "1", and False is stringified to "".  None is also
-  stringified to "".  In a numeric context, True becomes 1, and False
-  becomes 0.
+  to zero.  The Python literal True is normalized to the integer 1 on
+  being wrapped, and the literals False and None are normalized to the
+  empty string.
 
   Second, all of the arithmetic and logical operations supported by the
   Template Toolkit's template language are supported between two
   PerlScalars, and result in another PerlScalar.  These operations
   include addition, subtraction, multiplication, division, division
   with truncation, and the Boolean operations and, or, and not.  The
-  usual Boolean comparisons (==, !=, >, >=, <, and <=) are supported;
-  the truth value is returned wrapped in another PerlScalar.  The cmp
-  operator is also supported, the returned integer is wrapped in a
+  usual Boolean comparisons (==, !=, >, >=, <, and <=) and the cmp
+  operation are supported; the resulting value is wrapped in another
   PerlScalar.
 
   Third, the truth value of the wrapped value is evaluated according
   to Perl's rules: only the strings "" and "0" and the numeric value
-  0 are considered false; everything else is true.  Python's False literal
-  is also considered false.
+  0 are considered false; everything else is true.
 
   The wrapped value can be retrieved with the value() method.
 
@@ -236,6 +233,9 @@ class PerlScalar:
   "a ? b + c : d + e" can be converted to a generated expression like
   "a and 1**b + c or d + e".
 
+  A frozen truth value persists for just one evaluation of the boolean
+  value of the scalar.
+
   Examples:
 
   PerlScalar(1) + PerlScalar(2) --> PerlScalar(3)
@@ -254,23 +254,32 @@ class PerlScalar:
 
   PerlScalar(True) / PerlScalar(4) --> PerlScalar(0.25)
 
-  dict(PerlScalar([('foo', 'bar')])) --> { 'foo': 'bar' }
+  dict(PerlScalar([('foo', 'bar')])) --> { 'foo': 'bar' } # forwarded iteration
 
   bool(PerlScalar([])) --> True
 
-  bool(1**PerlScalar(False)) --> True
+  bool(1 ** PerlScalar(False)) --> True
 
-  (1**PerlScalar(False)).value() --> False
+  PerlScalar(True).value() --> 1
+
+  PerlScalar(False).value() --> ""
+
+  1 ** PerlScalar(False) or 42 --> PerlScalar(False)
   """
 
-  __False = (False, 0, "", "0")
+  __False = (0, "", "0")
 
   def __init__(self, value, truth=None):
     if isinstance(value, PerlScalar):
       # Sanity check: One PerlScalar should never need to wrap another.
       raise Error("Attempted to wrap a PerlScalar (%s) in another PerlScalar" %
                   value)
-    self.__value = value
+    if value is True:
+      self.__value = 1
+    elif value is False or value is None:
+      self.__value = ""
+    else:
+      self.__value = value
     self.__truth = truth
 
   def value(self):
@@ -362,12 +371,7 @@ class PerlScalar:
     return iter(self.__value)
 
   def __str__(self):
-    if self.__value is True:
-      return "1"
-    elif self.__value is False or self.__value is None:
-      return ""
-    else:
-      return str(self.__value)
+    return str(self.__value)
 
   def __numify(self):
     return numify(self.__value)
@@ -404,10 +408,19 @@ def dynamic_filter(func):
   return func
 
 
-def registrar(obj):
-  """Returns a function decorator that accepts any number of names,
-  and registers the function it decorates under each of those names in
-  the object 'obj' via item access.
+def registrar(obj, store=lambda func, *args: ((name, func) for name in args)):
+  """Returns a function decorator that registers the decorated function
+  in a dictionary-like object 'obj' before returning the function, unmodified.
+
+  The 'store' argument should be a callable object that describes how the
+  function is registered.  It will be called with the function to be
+  decorated as its first argument, followed by any arguments that were
+  passed to the decorator itself.  The value returned by the object
+  will be passed to the 'update' function of 'obj', and should therefore
+  be an iterable object that returns key-value pairs.
+
+  A default 'store' argument is provided which simply registers the
+  function in 'obj' under each of the names provided to the decorator.
 
   Example:
 
@@ -419,14 +432,21 @@ def registrar(obj):
   def addition(x, y):
     return x + y
 
-  print OBJECTS['add'](1, 2)         # prints '3'
-  print OBJECTS{'accumulate'](3, 4)  # prints '7'
+  Now OBJECTS['add'] and OBJECTS['accumulate'] both refer to 'addition'.
 
+  A more complicated, albeit contrived, example:
+
+  register = registrar(OBJECTS, lambda f, a, b: ((x, f) for x in range(a, b)))
+
+  @register(7, 10)
+  def subtract(x, y):
+    return x - y
+
+  Now OBJECTS[7], OBJECTS[8], and OBJECTS[9] all refer to 'subtract'.
   """
-  def register(*names):
+  def register(*args):
     def decorator(func):
-      for name in names:
-        obj[name] = func
+      obj.update(store(func, *args))
       return func
     return decorator
   return register

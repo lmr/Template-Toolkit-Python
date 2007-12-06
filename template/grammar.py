@@ -1,7 +1,7 @@
 import re
 import sys
 
-from template.util import unscalar_lex
+from template.util import registrar, unscalar_lex
 
 
 factory = None
@@ -5144,12 +5144,7 @@ RULES = {
 }
 
 
-def define(index, lhs, size):
-  """Decorator that adds additional rules to RULES."""
-  def decorator(func):
-    RULES[index] = (lhs, size, func)
-    return func
-  return decorator
+define = registrar(RULES, lambda f, key, lhs, len: ((key, (lhs, len, f)),))
 
 
 @define(1, "template", 1)
@@ -5887,3 +5882,19 @@ def rule(*args):
 @define(179, "quotable", 1)
 def rule(*args):
   return None
+
+
+keys = sorted(RULES.keys())
+
+# Did we leave any holes?
+
+assert keys == range(len(RULES))
+
+# No?  Okay, convert RULES from a dict to a tuple for faster access:
+
+RULES = tuple(RULES[key] for key in keys)
+
+# Clean up temporary variables.
+
+del keys
+del define
