@@ -465,6 +465,7 @@ STD_PLUGINS = {
   "table":     ("template.plugin.table", "Table"),
   "wrap":      ("template.plugin.wrap", "Wrap"),
   "url":       ("template.plugin.url", "Url"),
+  "view":      ("template.plugin.view", "View"),
 }
 
 

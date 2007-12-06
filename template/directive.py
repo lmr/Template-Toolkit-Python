@@ -383,7 +383,24 @@ class Directive:
     return "stash.set(%s, context.plugin(%s))" % (alias, file)
 
   def view(self, nameargs, block, defblocks):  # [% VIEW name args %]
-    raise NotImplementedError("VIEW")
+    name, args = unpack(nameargs, 2)
+    hash = args.pop(0)
+    name = name.pop(0)
+    if defblocks:
+      hash.append("('blocks', dict((%s,)))" % ", ".join("(%r, Document.evaluate(%r, 'block'))" % pair for pair in defblocks.items()))
+    return Code.format(
+      "def block():",
+      Code.indent,
+        "output = Buffer()",
+        "oldv = stash.get('view')",
+        "view = context.view(Dict(%s))" % ", ".join(hash),
+        "stash.set(%s, view)" % (name,),
+        "stash.set('view', view)",
+        block,
+        "stash.set('view', oldv)",
+        "view.seal()",
+      Code.unindent,
+      "block()")
 
   def python(self, block):
     return Code.format(

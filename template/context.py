@@ -736,10 +736,10 @@ class Context:
     else:
       return TemplateException("None", error, output)
 
-  def view(self, *args, **kwargs):
+  def view(self, params=None):
     """Create a new View object bound to this context."""
     from template.view import View
-    return View(self, *args, **kwargs)
+    return View(self, util.unscalar(params))
 
   def process(self, template, params=None, localize=False):
     """Processes the template named or referenced by the first parameter.
@@ -825,7 +825,7 @@ class Context:
     Returns the output of processing the template.  Errors are raised as
     TemplateException objects.
     """
-    return self.process(template, params, localize=True)
+    return self.process(template, params, True)
 
   def localise(self, *args):
     """The localise() method creates a local copy of the current stash,

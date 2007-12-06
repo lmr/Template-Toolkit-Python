@@ -1,0 +1,156 @@
+Script          Testing
+-----------------------------------------------------------------------------
+args.t          Passing positional and named arguments to code/object methods
+  ++ Translated as args_test.py
+autoform.t      Autoformat plugin (Template::Plugin::Autoformat)
+  -- No corresponding Python module
+base.t          Template::Base.pm module
+  -- Significant differences between Perl and Python object models preclude
+  -- a meaningful translation
+binop.t         Binary operators
+  ++ Translated as binop_test.py
+block.t         BLOCK definition
+  ++ Translated as block_test.py
+capture.t       Capture directive output and assign to a variable
+  ++ Translated as capture_test.py
+case.t          CASE option to switch case sensitivity
+  ++ Translated as case_test.py
+cgi.t           CGI plugin (Template::Plugin::CGI)
+  -- No (closely) corresponding Python module
+compile1.t      Compile templates to Perl code and save to file
+  ++ Translated as compile1_test.py
+compile2.t      Reload above compiled templates without re-parsing
+  ++ Translated as compile2_test.py
+compile3.t      Ensure that touching source template causes re-compilation 
+  ++ Translated as compile3_test.py
+compile4.t      Compiling templates to a COMPILE_DIR
+  ++ Translated as compile4_test.py
+compile5.t      Reload templates from a COMPILE_DIR
+  ++ Translated as compile5_test.py
+config.t        Template::Config factory module
+  ++ Translated as config_test.py
+context.t       Template::Context module
+  ++ Translated as context_test.py
+datafile.t      Datafile plugin (Template::Plugin::Datafile)
+  ++ Translated as datafile_test.py
+date.t          Date plugin (Template::Plugin::Date)
+  ++ Translated as date_test.py
+directive.t     Directive layout, chomping, comments, etc.
+  ++ Translated as directive_test.py
+document.t      Template::Document module
+  ++ Translated as document_test.py
+dumper.t        Data::Dumper plugin (Template::Plugin::Data::Dumper)
+  -- No (closely) corresponding Python module
+error.t         Test that errors are reported back to caller as exceptions
+  ++ Translated as error_test.py
+evalperl.t      Evaluation of PERL and RAWPERL blocks
+  ++ Reworked as evalpython_test.py
+exception.t     Template::Exception module
+  ++ Translated as exception_test.py
+factory.t
+  ++ Translated as factory_test.py
+filter.t        FILTER directive and various filters
+  ++ Translated as filter_test.py
+foreach.t       FOREACH directive
+  ++ Translated as foreach_test.py
+format.t        Format plugin (Template::Plugin::Format)
+  ++ Translated as format_test.py
+include.t       INCLUDE and PROCESS directive
+  ++ Translated as include_test.py
+iterator.t      Template::Iterator and Iterator plugin modules
+  ++ Translated as iterator_test.py
+list.t          List definition and access via various methods
+  ++ Translated as list_test.py
+macro.t         MACRO directive
+  ++ Translated as macro_test.py
+object.t        Binding objects to template variables
+  ++ Translated as object_test.py
+output.t        OUTPUT_PATH and OUTPUT options
+  ++ Translated as output_test.py
+parser.t        Template::Parser module
+  ++ Translated as parser_test.py
+plugins.t       Template::Plugins provider module (incomplete)
+  ++ Translated as plugins_test.py
+process.t       PRE_PROCESS, PROCESS and POST_PROCESS options
+  ++ Translated as process_test.py
+provider.t      Template::Provider module
+  ++ Translated as provider_test.py
+ref.t           Test the \ reference operator (currently undocumented)
+  ++ Translated as ref_test.py
+rss.t           XML::RSS plugin (Template::Plugin::XML::RSS)
+  -- Does not exist.
+service.t       Template::Service module
+  ++ Translated as service_test.py
+stash.t         Template::Stash module
+  ++ Translated as stash_test.py
+stop.t          STOP directive and throwing 'stop' exception
+  ++ Translated as stop_test.py
+string.t
+  ++ Translated as string_test.py
+switch.t        SWITCH / CASE directives
+  ++ Translated as switch_test.py
+table.t         Table plugin (Template::Plugin::Table)
+  ++ Translated as table_test.py
+tags.t          TAGS directive
+  ++ Translated as tags_test.py
+template.t      Template front-end module
+  ++ Translated as template_test.py
+text.t          Plain text blocks, ensuring all characters are reproducable
+  ++ Translated as text_test.py
+throw.t
+  ++ Translated as throw_test.py
+try.t           TRY / THROW / CATCH / FINAL directives
+  ++ Translated as try_test.py
+url.t           URL plugin (Template::Plugin::URL)
+  ++ Translated as url_test.py
+vars.t          Variable usage and GET / SET / CALL / DEFAULT directives
+  ++ Translated as vars_test.py
+varsv1.t        As above, using version 1 handling of leading '$'
+  ++ Merged into vars_test.py
+vmeth.t         Virtual scalar/hash/list methods
+  ++ Translated as vmeth_{text,list,hash,replace}_test.py
+while.t         WHILE directive
+  ++ Translated as while_test.py
+wrap.t          Wrap plugin (Template::Plugin::Wrap)
+  -- Perl's and Python's text-wrapping modules have subtly different
+     notions of how text-wrapping should work.
+wrapper.t       WRAPPER directive
+  ++ Translated as wrapper_test.py
+xpath.t         XML::XPath plugin (Template::Plugin::XML::XPath)
+  -- Not translated.
+
+
+Unrecorded tests:
+../../Template-Toolkit-2.15/t/constants.t
+  ++ Translated as constants_test.py
+../../Template-Toolkit-2.15/t/debug.t
+../../Template-Toolkit-2.15/t/directry.t
+  ++ Translated as directory_test.py
+../../Template-Toolkit-2.15/t/fileline.t
+../../Template-Toolkit-2.15/t/html.t
+  ++ Translated as html_test.py
+../../Template-Toolkit-2.15/t/image.t
+  ++ Translated as image_test.py
+../../Template-Toolkit-2.15/t/leak.t
+  -- Not clear a meaningful translation can be made.
+../../Template-Toolkit-2.15/t/math.t
+  ++ Translated as math_test.py
+../../Template-Toolkit-2.15/t/plusfile.t
+  ++ Translated as plusfile_test.py
+../../Template-Toolkit-2.15/t/pod.t
+  -- No corresponding Python module
+../../Template-Toolkit-2.15/t/prefix.t
+  ++ Translated as prefix_test.py
+../../Template-Toolkit-2.15/t/proc.t
+  -- Perl/Python OO implementation differences preclude a useful
+  -- translation the Template::Plugin::Procedural module
+../../Template-Toolkit-2.15/t/stashc.t
+  -- Scalar/list context inapplicable in a Python environment
+../../Template-Toolkit-2.15/t/strcat.t
+  ++ Translated as strcat_test.py
+../../Template-Toolkit-2.15/t/tiedhash.t
+  -- No Python counterpart to tied hashes
+../../Template-Toolkit-2.15/t/unicode.t
+  -- Skipped; not evident that a direct translation would exercise Python's
+  -- Unicode capabilities
+../../Template-Toolkit-2.15/t/view.t
