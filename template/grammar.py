@@ -5143,6 +5143,7 @@ RULES = {
   174: ("filepart", 1, None),
 }
 
+# Registration decorator for RULES:
 
 define = registrar(RULES, lambda f, key, lhs, len: ((key, (lhs, len, f)),))
 
@@ -5297,22 +5298,22 @@ def rule(*args):
 
 @define(44, "condition", 6)
 def rule(*args):
-  return factory.if_(*(args[2], args[4], args[5]))
+  return factory.if_(args[2], args[4], args[5])
 
 
 @define(45, "condition", 3)
 def rule(*args):
-  return factory.if_(*(args[3], args[1]))
+  return factory.if_(args[3], args[1])
 
 
 @define(46, "condition", 6)
 def rule(*args):
-  return factory.if_(*("not (%s)" % args[2], args[4], args[5]))
+  return factory.if_("not (%s)" % args[2], args[4], args[5])
 
 
 @define(47, "condition", 3)
 def rule(*args):
-  return factory.if_(*("not (%s)" % args[3], args[1]))
+  return factory.if_("not (%s)" % args[3], args[1])
 
 
 @define(48, "else", 5)
@@ -5333,7 +5334,7 @@ def rule(*args):
 
 @define(51, "switch", 6)
 def rule(*args):
-  return factory.switch(*(args[2], args[5]))
+  return factory.switch(args[2], args[5])
 
 
 @define(52, "case", 5)
@@ -5385,12 +5386,12 @@ def rule(*args):
 @define(60, "loop", 6)
 def rule(*args):
   args[0].inwhile -= 1
-  return factory.while_(*(args[2], args[5]))
+  return factory.while_(args[2], args[5])
 
 
 @define(61, "loop", 3)
 def rule(*args):
-  return factory.while_(*(args[3], args[1]))
+  return factory.while_(args[3], args[1])
 
 
 @define(62, "loopvar", 4)
@@ -5410,17 +5411,17 @@ def rule(*args):
 
 @define(65, "wrapper", 5)
 def rule(*args):
-  return factory.wrapper(*(args[2], args[4]))
+  return factory.wrapper(args[2], args[4])
 
 
 @define(66, "wrapper", 3)
 def rule(*args):
-  return factory.wrapper(*(args[3], args[1]))
+  return factory.wrapper(args[3], args[1])
 
 
 @define(67, "try", 5)
 def rule(*args):
-  return factory.try_(*(args[3], args[4]))
+  return factory.try_(args[3], args[4])
 
 
 @define(68, "final", 5)
@@ -5463,7 +5464,7 @@ def rule(*args):
 
 @define(75, "view", 6)
 def rule(*args):
-  return factory.view(*(args[2], args[5], args[0].pop_defblock()))
+  return factory.view(args[2], args[5], args[0].pop_defblock())
 
 
 @define(76, "@4-2", 0)
@@ -5498,12 +5499,12 @@ def rule(*args):
 
 @define(80, "filter", 5)
 def rule(*args):
-  return factory.filter(*(args[2], args[4]))
+  return factory.filter(args[2], args[4])
 
 
 @define(81, "filter", 3)
 def rule(*args):
-  return factory.filter(*(args[3], args[1]))
+  return factory.filter(args[3], args[1])
 
 
 @define(82, "defblock", 5)
@@ -5535,17 +5536,17 @@ def rule(*args):
 
 @define(89, "capture", 3)
 def rule(*args):
-  return factory.capture(*(args[1], args[3]))
+  return factory.capture(args[1], args[3])
 
 
 @define(90, "macro", 6)
 def rule(*args):
-  return factory.macro(*(args[2], args[6], args[4]))
+  return factory.macro(args[2], args[6], args[4])
 
 
 @define(91, "macro", 3)
 def rule(*args):
-  return factory.macro(*(args[2], args[3]))
+  return factory.macro(args[2], args[3])
 
 
 @define(93, "mdir", 4)
@@ -5791,7 +5792,7 @@ def rule(*args):
 
 @define(154, "args", 4)
 def rule(*args):
-  args[1][0].append("'', %s" % factory.assign(*(args[2], args[4])))
+  args[1][0].append("'', %s" % factory.assign(args[2], args[4]))
   return args[1]
 
 

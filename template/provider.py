@@ -740,7 +740,7 @@ class Provider:
 
   def __load_compiled(self, path):
     try:
-      return Document.evaluate_file(path, "document")
+      return Document.evaluate_file(path)
     except TemplateException, e:
       raise Error("compiled template %s: %s" % (path, e))
 
