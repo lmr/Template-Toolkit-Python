@@ -372,10 +372,10 @@ class View:
           return args[0]
         match = re.match(self._view_prefix, attr)
         if match:
-          return self.view(attr[len(match.group()):], *args)
+          return self.view(attr[match.end():], *args)
         match = re.match(self._include_prefix, attr)
         if match:
-          return self.include(attr[len(match.group()):], *args)
+          return self.include(attr[match.end():], *args)
         if self._include_naked:
           return self.include(attr, *args)
         if self._view_naked:

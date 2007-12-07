@@ -507,15 +507,15 @@ TAG_STYLE["template"] = TAG_STYLE["tt2"] = TAG_STYLE["default"]
 DEFAULT_STYLE = {
   "START_TAG":   TAG_STYLE["default"][0],
   "END_TAG":     TAG_STYLE["default"][1],
-  "ANYCASE":     False,
-  "INTERPOLATE": False,
-  "PRE_CHOMP":   False,
-  "POST_CHOMP":  False,
-  "V1DOLLAR":    False,
-  "EVAL_PYTHON": False,
+  "ANYCASE":     0,
+  "INTERPOLATE": 0,
+  "PRE_CHOMP":   0,
+  "POST_CHOMP":  0,
+  "V1DOLLAR":    0,
+  "EVAL_PYTHON": 0,
 }
 
-QUOTED_ESCAPES = {"n": "\n", "r": "\r", "t": "\t"}
+ESCAPE = {"n": "\n", "r": "\r", "t": "\t"}
 
 CHOMP_FLAGS = r"[-=~+]"
 
@@ -529,6 +529,30 @@ CHOMP_CONST = {
   "=": CHOMP_COLLAPSE,
   "~": CHOMP_GREEDY,
   "+": CHOMP_NONE
+}
+
+PRE_CHOMP = {
+  CHOMP_ALL:      lambda x: re.sub(r"(\n|^)[^\S\n]*\Z", "", x),
+  CHOMP_COLLAPSE: lambda x: re.sub(r"\s+\Z", " ", x),
+  CHOMP_GREEDY:   lambda x: re.sub(r"\s+\Z", "", x),
+  CHOMP_NONE:     lambda x: x,
+}
+
+def postchomp(regex, prefix):
+  regex = re.compile(regex)
+  def strip(text, postlines):
+    match = regex.match(text)
+    if match:
+      text = prefix + text[match.end():]
+      postlines += match.group().count("\n")
+    return text, postlines
+  return strip
+
+POST_CHOMP = {
+  CHOMP_ALL:      postchomp(r"[^\S\n]*\n", ""),
+  CHOMP_COLLAPSE: postchomp(r"\s+", " "),
+  CHOMP_GREEDY:   postchomp(r"\s+", ""),
+  CHOMP_NONE:     lambda x, y: (x, y),
 }
 
 def Chomp(x):
@@ -616,7 +640,6 @@ class Parser:
     self.infor = 0
     self.inwhile = 0
     self.style = []
-    self._ERROR = ""
 
     # Build a FACTORY object to include any NAMESPACE definitions,
     # but only if FACTORY isn't already an object.
@@ -627,6 +650,15 @@ class Parser:
     self.states = self.grammar.states
     self.rules = self.grammar.rules
     self.new_style(param)
+
+    self.tokenize = (
+      ((1,), self._comment),
+      ((2, 3), self._string),
+      ((4,), self._number),
+      ((5,), self._filename),
+      ((6,), self._identifier),
+      ((7,), self._word),
+    )
 
   def new_style(self, config):
     """Install a new (stacked) parser style.
@@ -669,7 +701,7 @@ class Parser:
     """Return Python comment indicating current parser file and line."""
     if not self.file_info:
       return "\n"
-    line = self.line[0]
+    line = self.line
     info = self.fileinfo[-1]
     file = info and (info.path or info.name) or "(unknown template)"
     line = re.sub(r"-.*", "", str(line))  # might be 'n-n'
@@ -682,7 +714,6 @@ class Parser:
     """
     self.defblock = {}
     self.metadata = {}
-    self._ERROR = ""
     tokens = self.split_text(text)
     if tokens is None:
       return None
@@ -690,9 +721,9 @@ class Parser:
     block = self._parse(tokens, info)
     self.fileinfo.pop()
     if block:
-      return {"BLOCK": block,
-              "DEFBLOCKS": self.defblock,
-              "METADATA": self.metadata}
+      return { "BLOCK": block,
+               "DEFBLOCKS": self.defblock,
+               "METADATA": self.metadata }
     else:
       return None
 
@@ -717,7 +748,7 @@ class Parser:
         # commment out entire directive except for any end chomp flag
         match = re.search(CHOMP_FLAGS + "$", dir)
         if match:
-          dir = match.group(0)
+          dir = match.group()
         else:
           dir = ""
       else:
@@ -726,35 +757,14 @@ class Parser:
         chomp = Chomp(match and match.group(1) or style["PRE_CHOMP"])
         if match:
           dir = dir[match.end():]
-        if chomp and pre:
-          if chomp == CHOMP_ALL:
-            pre = re.sub(r"(\n|^)[^\S\n]*\Z", "", pre)
-          elif chomp == CHOMP_COLLAPSE:
-            pre = re.sub(r"(\s+)\Z", " ", pre)
-          elif chomp == CHOMP_GREEDY:
-            pre = re.sub(r"(\s+)\Z", "", pre)
+        pre = PRE_CHOMP[chomp](pre)
 
       # POST_CHOMP: process whitespace after tag
       match = re.search(r"\s*(%s)?\s*$" % CHOMP_FLAGS, dir)
       chomp = Chomp(match and match.group(1) or style["POST_CHOMP"])
       if match:
         dir = dir[:match.start()]
-      if chomp:
-        if chomp == CHOMP_ALL:
-          match = re.match(r"[^\S\n]*\n", text)
-          if match:
-            text = text[match.end():]
-            postlines += 1
-        elif chomp == CHOMP_COLLAPSE:
-          match = re.match(r"\s+", text)
-          if match:
-            text = " " + text[match.end():]
-            postlines += match.group().count("\n")
-        elif chomp == CHOMP_GREEDY:
-          match = re.match(r"\s+", text)
-          if match:
-            text = text[match.end():]
-            postlines += match.group().count("\n")
+      text, postlines = POST_CHOMP[chomp](text, postlines)
 
       if pre:
         if style["INTERPOLATE"]:
@@ -789,6 +799,52 @@ class Parser:
 
     return tokens
 
+  def _comment(self, token):
+    """Tokenizes a comment."""
+    return ()
+
+  def _string(self, quote, token):
+    """Tokenizes a string."""
+    if quote == '"':
+      if re.search(r"[$\\]", token):
+        # unescape " and \ but leave \$ escaped so that
+        # interpolate_text() doesn't incorrectly treat it
+        # as a variable reference
+        token = re.sub(r'\\([\\"])', r'\1', token)
+        token = re.sub(r'\\([^$nrt])', r'\1', token)
+        token = re.sub(r'\\([nrt])', lambda m: ESCAPE[m.group(1)], token)
+        return ['"', '"'] + self.interpolate_text(token) + ['"', '"']
+      else:
+        return "LITERAL", "scalar(%r)" % token
+    else:
+      # Remove escaped single quotes and backslashes:
+      token = re.sub(r"\\(.)", lambda m: m.group(m.group(1) in "'\\"), token)
+      return "LITERAL", "scalar(%r)" % token
+
+  def _number(self, token):
+    """Tokenizes a number."""
+    return "NUMBER", "scalar(%s)" % token
+
+  def _filename(self, token):
+    """Tokenizes a filename."""
+    return "FILENAME", token
+
+  def _identifier(self, token):
+    """Tokenizes an identifier."""
+    if self.anycase:
+      uctoken = token.upper()
+    else:
+      uctoken = token
+    toktype = self.lextable.get(uctoken)
+    if toktype is not None:
+      return toktype, uctoken
+    else:
+      return "IDENT", token
+
+  def _word(self, token):
+    """Tokenizes an unquoted word or symbol ."""
+    return self.lextable.get(token, "UNQUOTED"), token
+
   def tokenise_directive(self, dirtext):
     """Called by the private _parse() method when it encounters a
     DIRECTIVE token in the list provided by the split_text() or
@@ -810,62 +866,10 @@ class Parser:
     """
     tokens = []
     for match in GRAMMAR.finditer(dirtext):
-      # ignore comments to EOL
-      if match.group(1):
-        continue
-      # quoted string
-      token = match.group(3)
-      if token is not None:
-        # double-quoted string may include $variable references
-        if match.group(2) == '"':
-          if re.search(r"[$\\]", token):
-            toktype = "QUOTED"
-            # unescape " and \ but leave \$ escaped so that
-            # interpolate_text() doesn't incorrectly treat it
-            # as a variable reference
-            token = re.sub(r'\\([\\"])', r'\1', token)
-            token = re.sub(r'\\([^$nrt])', r'\1', token)
-            token = re.sub(r'\\([nrt])', lambda m: QUOTED_ESCAPES[m.group(1)],
-                           token)
-            tokens.extend(['"', '"'])
-            tokens.extend(self.interpolate_text(token))
-            tokens.extend(['"', '"'])
-            continue
-          else:
-            toktype = "LITERAL"
-            token = "scalar(%r)" % token
-        else:
-          toktype = "LITERAL"
-          # Remove escaped single quotes and backslashes:
-          token = re.sub(r"\\(.)",
-                         lambda m: m.group(m.group(1) in "'\\"), token)
-          token = "scalar(%r)" % token
-      else:
-        token = match.group(4)
-        if token is not None:
-          token = "scalar(%s)" % token
-          toktype = "NUMBER"
-        else:
-          token = match.group(5)
-          if token is not None:
-            toktype = "FILENAME"
-          else:
-            token = match.group(6)
-            if token is not None:
-              # reserved words may be in lower case unless case sensitive
-              if self.anycase:
-                uctoken = token.upper()
-              else:
-                uctoken = token
-              toktype = self.lextable.get(uctoken)
-              if toktype is not None:
-                token = uctoken
-              else:
-                toktype = "IDENT"
-            else:
-              token = match.group(7)
-              toktype = self.lextable.get(token, "UNQUOTED")
-      tokens.extend([toktype, token])
+      for indices, method in self.tokenize:
+        if match.group(indices[0]):
+          tokens.extend(method(*map(match.group, indices)))
+          break
     return tokens
 
   def _parse(self, tokens, info):
@@ -875,10 +879,6 @@ class Parser:
 
     This is the main parser DFA loop.  See embedded comments for
     further details.
-
-    On error, None is returned and the internal _ERROR field is set
-    to indicate the error.  This can be retrieved by calling the
-    error() method.
     """
     self.grammar.install_factory(self.factory)
     stack = [[0, None]]  # DFA stack
@@ -886,18 +886,17 @@ class Parser:
     token = None
     in_string = False
     in_python = False
-    line = [0]
     status = CONTINUE
     lhs = None
     text = None
-    self.line = line
+    self.line = 0
     self.file = info and info.name
     self.inpython = 0
     value = None
 
     while True:
       stateno = stack[-1][0]
-      state   = self.states[stateno]
+      state = self.states[stateno]
 
       # see if any lookaheads exist for the current state
       if "ACTIONS" in state:
@@ -906,8 +905,7 @@ class Parser:
         while token is None and tokens:
           token = tokens.pop(0)
           if isinstance(token, (list, tuple)):
-            # text, line, token = token
-            text, line[0], token = util.unpack(token, 3)
+            text, self.line, token = util.unpack(token, 3)
             if isinstance(token, (list, tuple)):
               tokens[:0] = token + [";", ";"]
               token = None  # force redo
@@ -917,7 +915,7 @@ class Parser:
                 token = "TEXT"
                 value = text
               else:
-                tokens[:0] = self.interpolate_text(text, line[0])
+                tokens[:0] = self.interpolate_text(text, self.line)
                 token = None  # force redo
           else:
             # toggle string flag to indicate if we're crossing
@@ -992,9 +990,7 @@ class Parser:
     """Method used to handle errors encountered during the parse process
     in the _parse() method.
     """
-    line = self.line[0]
-    if not line:
-      line = "unknown"
+    line = self.line or "unknown"
     if text is not None:
       msg += "\n  [%% %s %%]" % text
     raise TemplateException("parse", "%s line %s: %s" % (name, line, msg))

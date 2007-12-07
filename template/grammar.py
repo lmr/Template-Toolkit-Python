@@ -5484,7 +5484,7 @@ def rule(*args):
 def rule(*args):
   global rawstart
   args[0].inpython += 1
-  rawstart = args[0].line[0]
+  rawstart = args[0].line
 
 
 @define(79, "rawperl", 5)
