@@ -476,7 +476,7 @@ def EvaluateCode(code, context, stash):
   The global variables "context" and "stash" are set to the two
   function arguments of the same names, the variable "stdout" is set
   to sys.stdout (temporarily reassigned to a StringIO buffer object),
-  and the variable "out" is set to the StringBuffer wrapper around
+  and the variable "output" is set to the StringBuffer wrapper around
   sys.stdout.
   """
   code = unindent(code)
@@ -486,7 +486,7 @@ def EvaluateCode(code, context, stash):
   vars = { "context": context,
            "stash": stash,
            "stdout": sys.stdout,
-           "out": stringbuf }
+           "output": stringbuf }
   try:
     exec code in vars
   finally:
