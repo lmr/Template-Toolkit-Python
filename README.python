@@ -8,6 +8,10 @@ information about the Template Toolkit, please see:
 
   http://template-toolkit.org/
 
+For up-to-date information relating to the Python port, please see:
+
+  http://template-toolkit.org/python/
+
 This file documents many of the design differences between the Perl
 and Python implementations of the Template Toolkit.
 
