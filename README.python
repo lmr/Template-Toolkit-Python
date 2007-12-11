@@ -1,8 +1,17 @@
+Introduction
+------------
+
+This is a port to Python of the Perl Template Toolkit (TT): a fast, flexible
+and extensible template processing system. The Python port is by Sean McAfee
+and is based on the original Perl version by Andy Wardley. For more
+information about the Template Toolkit, please see:
+
+  http://template-toolkit.org/
+
 This file documents many of the design differences between the Perl
 and Python implementations of the Template Toolkit.
 
 In no particular order:
-
 
 Documentation
 -------------
