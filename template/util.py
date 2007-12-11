@@ -81,7 +81,7 @@ class StringBuffer:
     """Initializes the object.  If the contents argument is not None, it
     is immediately passed to the write method.
     """
-    self.__buffer = cStringIO.StringIO()
+    self.buffer = cStringIO.StringIO()
     if contents is not None:
       self.write(contents)
 
@@ -90,12 +90,12 @@ class StringBuffer:
     buffer.
     """
     for arg in args:
-      self.__buffer.write(str(arg))
+      self.buffer.write(str(arg))
 
   def clear(self):
     """Clears the contents of the internal buffer."""
-    self.__buffer.seek(0)
-    self.__buffer.truncate(0)
+    self.buffer.seek(0)
+    self.buffer.truncate(0)
 
   def reset(self, *args):
     """Clears the internal buffer, then passes all of the arguments
@@ -106,7 +106,7 @@ class StringBuffer:
 
   def get(self):
     """Returns the contents of the internal buffer."""
-    return self.__buffer.getvalue()
+    return self.buffer.getvalue()
 
 
 class Code:
@@ -474,16 +474,22 @@ def EvaluateCode(code, context, stash):
   object.
 
   The two global variables "context" and "stash" are set to the two
-  function arguments of the same names.
+  function arguments of the same names, and "sys" refers to the standard
+  sys module--primarily for access to sys.stdout.
   """
   code = unindent(code)
+  stringbuf = StringBuffer()
   old_stdout = sys.stdout
-  sys.stdout = tmpbuf = cStringIO.StringIO()
+  sys.stdout = stringbuf.buffer
+  vars = { "context": context,
+           "stash": stash,
+           "stdout": sys.stdout,
+           "out": stringbuf }
   try:
-    exec code in {"context": context, "stash": stash}
+    exec code in vars
   finally:
     sys.stdout = old_stdout
-  return tmpbuf.getvalue()
+  return stringbuf.get()
 
 
 def unscalar(arg):
