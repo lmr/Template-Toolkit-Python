@@ -556,7 +556,7 @@ POST_CHOMP = {
 }
 
 def Chomp(x):
-  return re.sub(r"[-=~+]", lambda m: CHOMP_CONST[m.group(0)], str(x))
+  return re.sub(r"[-=~+]", lambda m: CHOMP_CONST[m.group()], str(x))
 
 
 GRAMMAR = re.compile(r"""

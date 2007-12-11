@@ -1,4 +1,5 @@
-from template import stash, Template, TemplateException
+from template import Template, TemplateException
+from template.stash import Stash
 from template.test import TestCase, main
 
 
@@ -33,7 +34,7 @@ class VarsTest(TestCase):
     def halt():
       raise TemplateException("stop", "stopped")
     def expose():
-      stash.PRIVATE = None
+      Stash.PRIVATE = None
     return {
       "a": c["a"],
       "b": c["b"],

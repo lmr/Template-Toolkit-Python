@@ -373,17 +373,13 @@ directories returned merged into the output list.
 
 It is possible to provide a generator which returns itself, thus
 sending this method into an infinite loop.  To detect and prevent this
-from happening, the MAX_DIRS global module variable, set to 64 by
-default, limits the maximum number of paths that can be added to, or
-generated for the output list.  If this number is exceeded then the
-method will immediately return an error reporting as much.
+from happening, the MAX_DIRS class variable, set to 64 by default,
+limits the maximum number of paths that can be added to, or generated
+for the output list.  If this number is exceeded then the method will
+immediately return an error reporting as much.
 
 """
 
-
-MAX_DIRS = 64
-STAT_TTL = 1
-DEBUG = 0
 
 RELATIVE_PATH = re.compile(r"(?:^|/)\.+/")
 
@@ -403,6 +399,13 @@ class Provider:
   providers to attempt to deliver it.  See 'Design Patterns' for
   further details.
   """
+
+  MAX_DIRS = 64
+
+  STAT_TTL = 1
+
+  DEBUG = False
+
   def __init__(self, params):
     size = params.get("CACHE_SIZE")
     paths = params.get("INCLUDE_PATH", ".")
@@ -417,7 +420,7 @@ class Provider:
     if debug is not None:
       self.__debug = debug & (DEBUG_PROVIDER & DEBUG_FLAGS)
     else:
-      self.__debug = DEBUG
+      self.__debug = self.DEBUG
     if cdir:
       for path in paths:
         if not isinstance(path, str):
@@ -706,7 +709,7 @@ class Provider:
     """
     data = None
     now = time.time()
-    if now - slot.stat > STAT_TTL:
+    if now - slot.stat > self.STAT_TTL:
       try:
         stat = os.stat(slot.name)
       except OSError:
@@ -799,7 +802,7 @@ class Provider:
     """
     ipaths = self.__include_path[:]
     opaths = []
-    count = MAX_DIRS
+    count = self.MAX_DIRS
     while ipaths and count > 0:
       count -= 1
       dir = ipaths.pop(0)
@@ -815,7 +818,7 @@ class Provider:
         opaths.append(dir)
 
     if ipaths:
-      raise Error("INCLUDE_PATH exceeds %d directories" % (MAX_DIRS,))
+      raise Error("INCLUDE_PATH exceeds %d directories" % (self.MAX_DIRS,))
     else:
       return opaths
 

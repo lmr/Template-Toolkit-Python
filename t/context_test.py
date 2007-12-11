@@ -97,11 +97,10 @@ class ContextTest(TestCase):
     error = None
     try:
       plugin = ctx.plugin('no_such_plugin')
+      self.fail('Exception not raised')
     except Exception, e:
-      error = e
-    self.failUnless(error)
-    self.assertEquals('plugin error - no_such_plugin: plugin not found',
-                      str(error))
+      self.assertEquals('plugin error - no_such_plugin: plugin not found',
+                        str(e))
 
     # filter()
 

@@ -1,6 +1,7 @@
 import re
 
-from template import Template, stash
+from template import Template
+from template.stash import Stash
 from template.test import TestCase, main
 
 
@@ -18,7 +19,7 @@ def commify(text, c=",", n=3):
 
 class TextVmethodsTest(TestCase):
   def testTextVmethods(self):
-    stash.SCALAR_OPS["commify"] = commify
+    Stash.SCALAR_OPS["commify"] = commify
     Template().context().define_vmethod("item", "commas", commify)
     params = { "undef": None,
                "zero": 0,

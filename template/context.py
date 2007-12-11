@@ -590,14 +590,13 @@ will be reinstated.
 """
 
 
-DEBUG = None
-
-
 class Context:
   """Class defining a context in which a template document is processed.
   This is the runtime processing interface through which templates
   can access the functionality of the Template Toolkit.
   """
+
+  DEBUG = None
 
   def __init__(self, config):
     self.__load_templates = util.listify(
@@ -647,7 +646,7 @@ class Context:
     if config.get("DEBUG") is not None:
       self.__debug = config["DEBUG"] & (DEBUG_CONTEXT | DEBUG_FLAGS)
     else:
-      self.__debug = DEBUG
+      self.__debug = self.DEBUG
 
   def config(self):
     return self.__config

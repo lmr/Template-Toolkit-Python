@@ -1,4 +1,5 @@
-from template import Template, stash
+from template import Template
+from template.stash import Stash
 from template.test import TestCase, main
 
 
@@ -18,9 +19,9 @@ def jumble(seq, chop=1):
 class ListVmethodsTest(TestCase):
   def testListVmethods(self):
     odd = lambda seq: [x for x in seq if x % 2 != 0]
-    stash.LIST_OPS["sum"] = lambda seq: sum(seq, 0)
-    stash.LIST_OPS["odd"] = odd
-    stash.LIST_OPS["jumble"] = jumble
+    Stash.LIST_OPS["sum"] = lambda seq: sum(seq, 0)
+    Stash.LIST_OPS["odd"] = odd
+    Stash.LIST_OPS["jumble"] = jumble
     params = { "metavars": ("foo", "bar", "baz", "qux", "wiz", "waz", "woz"),
                "people": [ { "id": "tom", "name": "Tom" },
                            { "id": "dick", "name": "Richard" },

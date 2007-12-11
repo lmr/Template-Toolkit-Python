@@ -1,9 +1,6 @@
 from template.util import Code, chop, unpack, unindent
 
 
-WHILE_MAX = 1000
-
-
 class Directive:
   def __init__(self, config):
     self.__namespace = config.get("NAMESPACE")
@@ -239,11 +236,13 @@ class Directive:
       Code.unindent,
       "output.write(block())")
 
+  WHILE_MAX = 1000
+
   def while_(self, expr, block):  # [% WHILE x < 10 %] ... [% END %]
     return Code.format(
       "def block():",
       Code.indent,
-        "failsafe = %d" % (WHILE_MAX - 1),
+        "failsafe = %d" % (self.WHILE_MAX - 1),
         "while failsafe and (%s):" % expr,
         Code.indent,
           "try:",
@@ -258,7 +257,7 @@ class Directive:
         Code.unindent,
         "if not failsafe:",
         " raise Error(None, 'WHILE loop terminated (> %d iterations)')"
-          % WHILE_MAX,
+          % self.WHILE_MAX,
       Code.unindent,
       "block()")
 

@@ -2,8 +2,6 @@ import cStringIO
 import re
 import sys
 
-from template.config import Config
-
 
 class Error(Exception):
   """A trivial local exception class."""
@@ -664,6 +662,49 @@ def slurp(path):
   finally:
     if f:
       f.close()
+
+
+class InvalidClassIdentifier(Exception):
+  pass
+
+
+def _load_class(modname, clsname, base):
+  if base is not None:
+    modname = "%s.%s" % (base, modname)
+  module = __import__(modname, globals(), [], ["."])
+  return getattr(module, clsname)
+
+
+def get_class(classid, base=None):
+  """Returns an object generator (typically but not necessarily a
+  class object) identified by two-element tuple or name.
+
+  If classid is a callable object, it is returned immediately.
+
+  If classid is a two-element tuple, the elements are taken to be
+  a module name and class name, in that order.  The module is imported,
+  and the class is fetched by name and returned.
+
+  If classid is a string, it is taken to be a module name.  The named
+  module is imported.  The class name is taken to be the final component
+  of the module name with its first character capitalized.
+
+  In the latter two cases, the parameter 'base' is prepended to the
+  module name along with a separating period, if it is not None.
+
+  If classid is not one of the above types, an exception is raised.
+  """
+  if callable(classid):
+    return classid
+  elif isinstance(classid, tuple):
+    if len(classid) == 2:
+      return _load_class(classid[0], classid[1], base)
+  elif isinstance(classid, str):
+    dot = classid.rfind(".")
+    if dot != len(classid) - 1:
+      clsname = classid[dot+1].upper() + classid[dot+2:]
+      return _load_class(classid, clsname, base)
+  raise InvalidClassIdentifier(classid)
 
 
 def Debug(*args):

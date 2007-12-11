@@ -64,10 +64,10 @@ fetch(name, args, context)
 Called to request that a filter of a given name be provided.  The name
 of the filter should be specified as the first parameter.  This should
 be one of the standard filters or one specified in the FILTERS
-configuration hash.  The second argument should be a list containing
-configuration parameters for the filter.  This may be specified as 0,
-or None where no parameters are provided.  The third argument should
-be the current template.context.Context object.
+configuration dictionary.  The second argument should be a list
+containing configuration parameters for the filter.  This may be
+specified as 0, or None where no parameters are provided.  The third
+argument should be the current template.context.Context object.
 
 The method returns a filter sub-routine on success.  It may also
 return None to decline the request, to allow delegation onto other
@@ -626,12 +626,9 @@ generates output to stdout.
 """
 
 
-# A global dictionary of built-in filters.
-
-FILTERS = {}
-
-
 class Filters:
+  FILTERS = {}  # Built-in filters
+
   def __init__(self, params):
     self.__filters = params.get("FILTERS") or {}
     self.__tolerant = bool(params.get("TOLERANT"))
@@ -651,7 +648,7 @@ class Filters:
         return name
       factory = name.factory()
     else:
-      factory = self.__filters.get(name) or FILTERS.get(name)
+      factory = self.__filters.get(name) or self.FILTERS.get(name)
       if not factory:
         return None
 
@@ -688,7 +685,7 @@ class Error(Exception):
   pass
 
 
-register = util.registrar(FILTERS)
+register = util.registrar(Filters.FILTERS)
 
 
 @register("html")

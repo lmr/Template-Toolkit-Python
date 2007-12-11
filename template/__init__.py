@@ -584,15 +584,16 @@ Ignored and deleted.
 
 """
 
-DEBUG = False
-
-BINMODE = False
-
 
 class Template:
   """Module implementing a simple, user-oriented front-end to the Template
   Toolkit.
   """
+
+  DEBUG = False
+
+  BINMODE = False
+
   def __init__(self, config=None):
     config = config or {}
     # Prepare a namespace handler for any CONSTANTS definition.
@@ -616,7 +617,7 @@ class Template:
     processing effort to the underlying Service object.
     """
     options = options or {}
-    if options.setdefault("binmode", BINMODE) and DEBUG:
+    if options.setdefault("binmode", self.BINMODE) and self.DEBUG:
       util.Debug("set binmode\n")
 
     output = self.__service.process(template, vars)

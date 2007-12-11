@@ -1,6 +1,5 @@
 import os
 
-import template
 from template import Template, util
 from template.test import TestCase, main
 
@@ -44,7 +43,7 @@ class OutputTest(TestCase):
     os.remove(file2)
 
     intercept = InterceptDebug()
-    template.DEBUG = True
+    Template.DEBUG = True
     util.Debug = intercept
     tt.process("foo", self._callsign(), { "binmode": 1 })
     self.assert_(os.path.exists(file2))

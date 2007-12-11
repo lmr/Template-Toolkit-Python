@@ -1,3 +1,6 @@
+from template.util import get_class
+
+
 """
 
 template.config.Config - Factory class for instantiating other TT2 modules
@@ -15,11 +18,11 @@ other modules that comprise the Template Toolkit.  It provides a
 consistent way to create toolkit components and allows custom modules
 to be used in place of the regular ones.
 
-Global variables such as STASH, SERVICE, CONTEXT, etc., contain the
+Class variables such as STASH, SERVICE, CONTEXT, etc., contain the
 default module/package name for each component (template.stash.Stash,
 template.service.Service and template.context.Context, respectively)
 and are used by the various factory methods (stash(), service() and
-context()) to load the appropriate module.  Changing these global
+context()) to load the appropriate module.  Changing these class
 variables will cause subsequent calls to the relevant factory method
 to load and instantiate an object from the new class.
 
@@ -64,56 +67,36 @@ variable definitions.
 """
 
 
-CONSTANTS = ('template.namespace.constants', 'Constants')
-CONTEXT = ('template.context', 'Context')
-FILTERS = ('template.filters', 'Filters')
-ITERATOR = ('template.iterator', 'Iterator')
-PARSER = ('template.parser', 'Parser')
-PLUGINS = ('template.plugins', 'Plugins')
-PROVIDER = ('template.provider', 'Provider')
-SERVICE = ('template.service', 'Service')
-STASH = ('template.stash', 'Stash')
+def _loader(field):
+  def load(cls, params):
+    return get_class(getattr(cls, field))(params)
+  return classmethod(load)
 
 
 class Config:
-  @classmethod
-  def __create(cls, (modname, classname), params):
-    module = __import__(modname, globals(), [], ["."])
-    klass = getattr(module, classname)
-    return klass(params)
+  CONSTANTS = ("template.namespace.constants", "Constants")
+  constants = _loader("CONSTANTS")
 
-  @classmethod
-  def constants(cls, params):
-    return cls.__create(CONSTANTS, params)
+  CONTEXT = ("template.context", "Context")
+  context = _loader("CONTEXT")
 
-  @classmethod
-  def context(cls, params):
-    return cls.__create(CONTEXT, params)
+  FILTERS = ("template.filters", "Filters")
+  filters = _loader("FILTERS")
 
-  @classmethod
-  def filters(cls, params):
-    return cls.__create(FILTERS, params)
+  ITERATOR = ("template.iterator", "Iterator")
+  iterator = _loader("ITERATOR")
 
-  @classmethod
-  def iterator(cls, params):
-    return cls.__create(ITERATOR, params)
+  PARSER = ("template.parser", "Parser")
+  parser = _loader("PARSER")
 
-  @classmethod
-  def parser(cls, params):
-    return cls.__create(PARSER, params)
+  PLUGINS = ("template.plugins", "Plugins")
+  plugins = _loader("PLUGINS")
 
-  @classmethod
-  def plugins(cls, params):
-    return cls.__create(PLUGINS, params)
+  PROVIDER = ("template.provider", "Provider")
+  provider = _loader("PROVIDER")
 
-  @classmethod
-  def provider(cls, params):
-    return cls.__create(PROVIDER, params)
+  SERVICE = ("template.service", "Service")
+  service = _loader("SERVICE")
 
-  @classmethod
-  def service(cls, params):
-    return cls.__create(SERVICE, params)
-
-  @classmethod
-  def stash(cls, params):
-    return cls.__create(STASH, params)
+  STASH = ("template.stash", "Stash")
+  stash = _loader("STASH")

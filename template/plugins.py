@@ -1,7 +1,7 @@
 import types
 
 from template.constants import *
-from template.util import TemplateException, listify
+from template.util import TemplateException, get_class, listify
 
 
 """
@@ -171,16 +171,15 @@ example 2:
                        or Module         template.plugin.Foo, class Foo
 
 If you don't want the default template.plugin.Plugin namespace added
-to the end of the PLUGIN_BASE, then set the global variable
-template.plugins.PLUGIN_BASE to a false value before instantiating the
-Plugins object.  This is shown in the example below where the 'Foo' is
-located as 'my.plugin.Foo' or 'your.plugin.foo' but not as
-'template.plugin.Foo'.
+to the end of the PLUGIN_BASE, then set the class variable PLUGIN_BASE
+to a false value before instantiating the Plugins object.  This is
+shown in the example below where the 'Foo' is located as
+'my.plugin.Foo' or 'your.plugin.foo' but not as 'template.plugin.Foo'.
 
 example 3:
 
     import template.plugins
-    template.plugins.PLUGIN_BASE = ""
+    template.plugins.Plugins.PLUGIN_BASE = ""
 
     plugins = template.plugins.Plugins({
         'PLUGIN_BASE': [   'my.plugin',
@@ -449,26 +448,6 @@ the same way that Perl's Text::Wrap module does.
 """
 
 
-PLUGIN_BASE = "template.plugin"
-
-STD_PLUGINS = {
-  "datafile":  ("template.plugin.datafile", "Datafile"),
-  "date":      ("template.plugin.date", "Date"),
-  "directory": ("template.plugin.directory", "Directory"),
-  "file":      ("template.plugin.file", "File"),
-  "format":    ("template.plugin.format", "Format"),
-  "html":      ("template.plugin.html", "Html"),
-  "image":     ("template.plugin.image", "Image"),
-  "iterator":  ("template.plugin.iterator", "Iterator"),
-  "math":      ("template.plugin.math_plugin", "Math"),
-  "string":    ("template.plugin.string", "String"),
-  "table":     ("template.plugin.table", "Table"),
-  "wrap":      ("template.plugin.wrap", "Wrap"),
-  "url":       ("template.plugin.url", "Url"),
-  "view":      ("template.plugin.view", "View"),
-}
-
-
 class Error(Exception):
   pass
 
@@ -478,14 +457,33 @@ class Plugins:
   instantiation of plugin objects.
   """
 
+  PLUGIN_BASE = "template.plugin"
+
+  STD_PLUGINS = {
+    "datafile":  ("template.plugin.datafile", "Datafile"),
+    "date":      ("template.plugin.date", "Date"),
+    "directory": ("template.plugin.directory", "Directory"),
+    "file":      ("template.plugin.file", "File"),
+    "format":    ("template.plugin.format", "Format"),
+    "html":      ("template.plugin.html", "Html"),
+    "image":     ("template.plugin.image", "Image"),
+    "iterator":  ("template.plugin.iterator", "Iterator"),
+    "math":      ("template.plugin.math_plugin", "Math"),
+    "string":    ("template.plugin.string", "String"),
+    "table":     ("template.plugin.table", "Table"),
+    "wrap":      ("template.plugin.wrap", "Wrap"),
+    "url":       ("template.plugin.url", "Url"),
+    "view":      ("template.plugin.view", "View"),
+  }
+
   def __init__(self, params):
     pbase = listify(params.get("PLUGIN_BASE") or [])
     plugins = params.get("PLUGINS") or {}
     factory = params.get("PLUGIN_FACTORY")
-    if PLUGIN_BASE:
-      pbase.append(PLUGIN_BASE)
+    if self.PLUGIN_BASE:
+      pbase.append(self.PLUGIN_BASE)
     self.__plugin_base = pbase
-    self.__plugins = STD_PLUGINS.copy()
+    self.__plugins = self.STD_PLUGINS.copy()
     self.__plugins.update(plugins)
     self.__tolerant = bool(params.get("TOLERANT"))
     self.__load_python = bool(params.get("LOAD_PYTHON"))
@@ -511,52 +509,24 @@ class Plugins:
   def _load(self, name, context):
     impl = self.__plugins.get(name) or self.__plugins.get(name.lower())
 
-    if isinstance(impl, types.ClassType):
-      return impl.load(context)
-
     if impl:
-      modname, clsname = deduce_class(impl)
-      return get_plugin(modname, clsname, context)
+      return get_class(impl).load(context)
 
     if name:
       for pbase in self.__plugin_base:
-        modname, clsname = deduce_class(name)
-        modname = "%s.%s" % (pbase, modname)
         try:
-          return get_plugin(modname, clsname, context)
+          return get_class(name, pbase).load(context)
         except ImportError:
           pass
 
     if not self.__load_python:
       return None
 
-    modname, clsname = deduce_class(name)
-    cls = get_class(modname, clsname)
-    return lambda _, *args: cls(*args)  # Discard first context arg.
+    cls = get_class(name)
+    return lambda _, *args: cls(*args)  # Discard first context argument
 
   def plugin_base(self):
     return self.__plugin_base
 
   def load_python(self):
     return self.__load_python
-
-
-def get_class(modname, clsname):
-  module = __import__(modname, globals(), None, ["."])
-  return getattr(module, clsname)
-
-
-def get_plugin(modname, clsname, context):
-  return get_class(modname, clsname).load(context)
-
-
-def deduce_class(obj):
-  if isinstance(obj, tuple):
-    if len(obj) == 2:
-      return obj
-  elif isinstance(obj, str):
-    dot = obj.rfind(".")
-    if dot != len(obj) - 1:
-      clsname = obj[dot + 1:]
-      return obj, clsname[0].upper() + clsname[1:]
-  raise Error("Invalid plugin identifier %r" % (obj,))

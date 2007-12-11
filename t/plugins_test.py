@@ -1,7 +1,8 @@
 import os
 import sys
 
-from template import Template, plugins
+from template import Template
+from template.plugins import Plugins
 from template.test import TestCase, main
 
 
@@ -13,8 +14,8 @@ class PluginsTest(TestCase):
                                   "baz": ("MyPlugs.Foo", "Foo"),
                                   "cgi": ("MyPlugs.Bar", "Bar") } })
     tt3 = Template({ "LOAD_PYTHON": 1 })
-    del plugins.STD_PLUGINS["date"]
-    plugins.PLUGIN_BASE = ""
+    del Plugins.STD_PLUGINS["date"]
+    Plugins.PLUGIN_BASE = ""
     tt4 = Template({ "PLUGIN_BASE": "MyPlugs" })
     tt5 = Template()
     tt = (("def", Template()),

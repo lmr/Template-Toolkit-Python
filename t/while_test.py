@@ -1,7 +1,5 @@
-from template import directive
+from template.directive import Directive
 from template.test import TestCase, main
-
-directive.WHILE_MAX = 100
 
 
 class WhileTest(TestCase):
@@ -30,6 +28,7 @@ class WhileTest(TestCase):
                 "reset": reset,
                 "next": next,
                 "true": 1 }
+    Directive.WHILE_MAX = 100
     self.Expect(DATA, config, replace)
 
 

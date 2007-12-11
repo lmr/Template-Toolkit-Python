@@ -1,12 +1,14 @@
 import os
 import time
 
-from template import constants, provider, Template
+from template import Template
 from template.config import Config
+from template.provider import Provider
 from template.test import TestCase, main
 
-# To test the $MAX_DIRS runaway limit:
-provider.MAX_DIRS = 42
+
+# To test the MAX_DIRS runaway limit:
+Provider.MAX_DIRS = 42
 
 
 def delivered(provider, file):

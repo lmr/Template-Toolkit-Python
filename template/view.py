@@ -257,21 +257,21 @@ TODO
 """
 
 
-MAP = { "HASH": "hash",
-        "ARRAY": "list",
-        "TEXT": "text",
-        "default": "" }
-
-CONFIG = dict((item, None) for item in (
-  "data", "default", "map", "blocks", "method", "sealed", "base", "prefix",
-  "suffix", "notfound", "silent", "item", "include_prefix", "include_naked",
-  "view_prefix", "view_naked"))
-
-
 class View:
   """A custom view of a template processing context.  Can be used to
   implement custom "skins".
   """
+
+  MAP = { "HASH": "hash",
+          "ARRAY": "list",
+          "TEXT": "text",
+          "default": "" }
+
+  CONFIG = dict((item, None) for item in (
+    "data", "default", "map", "blocks", "method", "sealed", "base", "prefix",
+    "suffix", "notfound", "silent", "item", "include_prefix", "include_naked",
+    "view_prefix", "view_naked"))
+
   def __init__(self, context, config=None):
     config = config or {}
     self._context = context
@@ -296,7 +296,7 @@ class View:
     else:
       map = config.get("map") or {}
       map.setdefault("default", config.get("default"))
-      self._map = MAP.copy()
+      self._map = self.MAP.copy()
       self._map.update(map)
       self._blocks = config.get("blocks") or {}
       self._method = config.get("method") or "present"
@@ -311,7 +311,7 @@ class View:
       self._include_naked = bool(config.get("include_naked", True))
       self._view_prefix = config.get("view_prefix") or "view_"
       self._view_naked = config.get("view_naked") or 0
-      for item in CONFIG:
+      for item in self.CONFIG:
         try:
           del config[item]
         except KeyError:
@@ -343,7 +343,7 @@ class View:
     if re.match(r"[._]", attr):
       self._context.throw(ERROR_VIEW, "attempt to view private member: %s" %
                           attr)
-    if attr in CONFIG:
+    if attr in self.CONFIG:
       def accessor(*args):
         if args:
           if self._SEALED:

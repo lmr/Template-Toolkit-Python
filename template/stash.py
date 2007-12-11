@@ -137,27 +137,23 @@ to restore the state of a stash as described above.
 """
 
 
-# Regular expression that identifies "private" stash entries.
-
-PRIVATE = r"^[_.]"
-
-
-# Global dictionary of scalar operations.
-
-SCALAR_OPS = {}
-
-
-# Global dictionary of list operations.
-
-LIST_OPS = {}
-
-
-# Global dictionary of hash operations.
-
-HASH_OPS = {}
-
-
 class Stash:
+  """Definition of an object class which stores and manages access to
+  variables for the Template Toolkit.
+  """
+
+  # Regular expression that identifies "private" stash entries.
+  PRIVATE = r"^[_.]"
+
+  # Dictionary of scalar operations.
+  SCALAR_OPS = {}
+
+  # Dictionary of list operations.
+  LIST_OPS = {}
+
+  # Dictionary of hash operations.
+  HASH_OPS = {}
+
   def __init__(self, params=None):
     params = params or {}
     self.__contents = {"global": {}}
@@ -203,7 +199,7 @@ class Stash:
     clone.__debug = self.__debug
     clone.__parent = self
     if import_:
-      HASH_OPS["import"](clone, import_)
+      self.HASH_OPS["import"](clone, import_)
     return clone
 
   def declone(self):
@@ -307,7 +303,7 @@ class Stash:
     atroot = root is self
     if root is None or item is None:
       return None
-    elif PRIVATE and re.search(PRIVATE, item):
+    elif self.PRIVATE and re.search(self.PRIVATE, item):
       return None
     elif isinstance(root, dict) or atroot:
       if not (default and root.get(item)):
@@ -360,7 +356,9 @@ class Stash:
       return None
 
     # or if an attempt is made to access a private member, starting _ or .
-    if PRIVATE and isinstance(item, str) and re.search(PRIVATE, item):
+    if (self.PRIVATE
+        and isinstance(item, str)
+        and re.search(self.PRIVATE, item)):
       return None
 
     found = True
@@ -398,7 +396,7 @@ class Stash:
       # ugly hack: only allow import vmeth to be called on root stash
       else:
         try:
-          value = HASH_OPS.get(item)
+          value = self.HASH_OPS.get(item)
         except TypeError:  # Because item is not hashable, presumably.
           value = None
         if (value and not atroot) or item == "import":
@@ -414,7 +412,7 @@ class Stash:
       if isinstance(root, util.Sequence):
         root = root.as_list()
       try:
-        value = LIST_OPS.get(item)
+        value = self.LIST_OPS.get(item)
       except TypeError:  # Because item is not hashable, presumably.
         value = None
       if value:
@@ -441,7 +439,7 @@ class Stash:
       except (AttributeError, TypeError):
         # Failed to get object method, so try some fallbacks.
         try:
-          func = HASH_OPS[item]
+          func = self.HASH_OPS[item]
         except (KeyError, TypeError):
           pass
         else:
@@ -451,10 +449,10 @@ class Stash:
           return value(*args)
         else:
           return value
-    elif item in SCALAR_OPS and not lvalue:
-      result = SCALAR_OPS[item](root, *args)
-    elif item in LIST_OPS and not lvalue:
-      result = LIST_OPS[item]([root], *args)
+    elif item in self.SCALAR_OPS and not lvalue:
+      result = self.SCALAR_OPS[item](root, *args)
+    elif item in self.LIST_OPS and not lvalue:
+      result = self.LIST_OPS[item]([root], *args)
     elif self.__debug:
       raise Error("don't know how to access [%r].%s" % (root, item))
     else:
@@ -521,11 +519,11 @@ class Stash:
     """
     type = type.lower()
     if type in ("scalar", "item"):
-      SCALAR_OPS[name] = func
+      self.SCALAR_OPS[name] = func
     elif type == "hash":
-      HASH_OPS[name] = func
+      self.HASH_OPS[name] = func
     elif type in ("list", "array"):
-      LIST_OPS[name] = func
+      self.LIST_OPS[name] = func
     else:
       raise Error("invalid vethod type: %s\n" % type)
 
@@ -535,11 +533,11 @@ class Error(Exception):
   pass
 
 
-scalar_op = util.registrar(SCALAR_OPS)
+scalar_op = util.registrar(Stash.SCALAR_OPS)
 
-list_op = util.registrar(LIST_OPS)
+list_op = util.registrar(Stash.LIST_OPS)
 
-hash_op = util.registrar(HASH_OPS)
+hash_op = util.registrar(Stash.HASH_OPS)
 
 
 @scalar_op("item")
@@ -668,7 +666,7 @@ def scalar_substr(scalar="", offset=0, length=None, replacement=None):
 
 @hash_op("item")
 def hash_item(hash, item=""):
-  if PRIVATE and re.search(PRIVATE, item):
+  if Stash.PRIVATE and re.search(Stash.PRIVATE, item):
     return None
   else:
     return hash.get(item)
