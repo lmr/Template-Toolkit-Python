@@ -275,7 +275,7 @@ words are currently:
 
         GET CALL SET DEFAULT INSERT INCLUDE PROCESS WRAPPER
     IF UNLESS ELSE ELSIF FOR FOREACH WHILE SWITCH CASE
-    USE PLUGIN FILTER MACRO PERL RAWPERL BLOCK META
+    USE PLUGIN FILTER MACRO PYTHON RAWPYTHON BLOCK META
     TRY THROW CATCH FINAL NEXT LAST BREAK RETURN STOP
     CLEAR TO STEP AND OR NOT MOD DIV END
 
@@ -946,7 +946,6 @@ class Parser:
       if action > 0:
         stack.append([action, value])
         token = value = None
-        # PERL: redo;
       else:
         # reduce (negative ACTION)
         lhs, len_, code = self.rules[-action]

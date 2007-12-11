@@ -1,4 +1,5 @@
-from template import document, context, Template
+from template import context, Template
+from template.document import Document
 from template.test import TestCase, main
 from template.plugin.table import Table
 
@@ -8,24 +9,27 @@ class ContextTest(TestCase):
     tt = Template({ 'INCLUDE_PATH': 'test/src:test/lib',
                     'TRIM': True,
                     'POST_CHOMP': 1 })
-    ttperl = tt
+    ttpython = Template({ 'INCLUDE_PATH': 'test/src:test/lib',
+                          'TRIM': True,
+                          'POST_CHOMP': 1,
+                          'EVAL_PYTHON': True })
 
     ctx = tt.service().context()
     self.failUnless(ctx)
     self.assertEquals(ctx, tt.context())
     self.failUnless(ctx.trim())
-    # self.failUnless(not context.eval_perl())
-    # context = ttperl.service().context()
-    # self.failUnless(context)
-    # self.failUnless(context.trim())
-    # self.failUnless(context.eval_perl())
+    self.failUnless(not ctx.eval_python())
+    ctx = ttpython.service().context()
+    self.failUnless(ctx)
+    self.failUnless(ctx.trim())
+    self.failUnless(ctx.eval_python())
 
     # template()
 
     # Test that we can fetch a template via template()
     tmpl = ctx.template('header')
     self.failUnless(tmpl)
-    self.failUnless(isinstance(tmpl, document.Document))
+    self.failUnless(isinstance(tmpl, Document))
 
     # Test that non-existence of a template is reported
     error = None

@@ -24,7 +24,6 @@ class FilterTest(TestCase):
                'text': 'The cat sat on the mat',
                'outfile': file,
                'stderr': lambda *_: sys.stderr.getvalue(),
-               'despace': despace,
                }
     filters = { 'nonfilt': 'nonsense',
                 'microjive': microjive,
@@ -86,9 +85,6 @@ def barf_up(context, foad=0):
   else:
     raise TemplateException('unwell', 'sick as a parrot')
 
-
-def despace(text):
-  return re.sub(r'\s+', '_', text)
 
 
 def another(context, n):
@@ -559,22 +555,22 @@ ERROR [% error.type %]: [% error.info %]
 before
 ERROR redirect: OUTPUT_PATH is not set
 
-# -- test --
-# -- use evalpython --
-# [% FILTER python %]
-#    a = 10
-#    b = 20
-#    stash['foo'] = a + b
-#    stash['bar'] = context.config()['BARVAL']
-#    "all done"
-# [% END +%]
-# foo: [% foo +%]
-# bar: [% bar %]
-# -- expect --
-# all done
-# foo: 30
-# bar: some random value
-# 
+-- test --
+-- use evalpython --
+[% FILTER python %]
+   a = 10
+   b = 20
+   stash['foo'] = a + b
+   stash['bar'] = context.config()['BARVAL']
+   print "all done",
+[% END +%]
+foo: [% foo +%]
+bar: [% bar %]
+-- expect --
+all done
+foo: 30
+bar: some random value
+
 -- test --
 -- use evalpython --
 [% TRY -%]
@@ -592,57 +588,56 @@ ERROR [% error.type %]: [% error.info %]
 before
 after
 
+-- test --
+[% PYTHON %]
+# static filter subroutine
+import re
+from template.filters import register
+@register("bar")
+def bar(text):
+  return re.sub(r"(?ms)^(?=.)", "bar: ", text)
+[% END -%]
+[% FILTER bar -%]
+The cat sat on the mat
+The dog sat on the log
+[% END %]
+-- expect --
+bar: The cat sat on the mat
+bar: The dog sat on the log
+
+-- test --
+[% PYTHON %]
+# dynamic filter factory
+import re
+from template.filters import dynamic_filter, register
+@register("baz")
+@dynamic_filter
+def baz_factory(context, word="baz"):
+  def baz(text):
+    return re.sub(r"(?ms)^(?=.)", lambda _: "%s: " % word, text)
+  return baz
+[% END -%]
+[% FILTER baz -%]
+The cat sat on the mat
+The dog sat on the log
+[% END %]
+[% FILTER baz('wiz') -%]
+The cat sat on the mat
+The dog sat on the log
+[% END %]
+
+-- expect --
+baz: The cat sat on the mat
+baz: The dog sat on the log
+
+wiz: The cat sat on the mat
+wiz: The dog sat on the log
+
+
 # -- test --
-# [% PERL %]
-# # static filter subroutine
-# $Template::Filters::FILTERS->{ bar } = sub {
-#     my $text = shift; 
-#     $text =~ s/^/bar: /gm;
-#     return $text;
-# };
-# [% END -%]
-# [% FILTER bar -%]
-# The cat sat on the mat
-# The dog sat on the log
-# [% END %]
-# -- expect --
-# bar: The cat sat on the mat
-# bar: The dog sat on the log
-# 
-# -- test --
-# [% PERL %]
-# # dynamic filter factory
-# $Template::Filters::FILTERS->{ baz } = [
-#     sub {
-# 	my $context = shift;
-# 	my $word = shift || 'baz';
-# 	return sub {
-# 	    my $text = shift; 
-#             $text =~ s/^/$word: /gm;
-# 	    return $text;
-# 	};
-#     }, 1 ];
-# [% END -%]
-# [% FILTER baz -%]
-# The cat sat on the mat
-# The dog sat on the log
-# [% END %]
-# [% FILTER baz('wiz') -%]
-# The cat sat on the mat
-# The dog sat on the log
-# [% END %]
-# 
-# -- expect --
-# baz: The cat sat on the mat
-# baz: The dog sat on the log
-# 
-# wiz: The cat sat on the mat
-# wiz: The dog sat on the log
-# 
-# 
-# -- test --
-# -- use evalperl --
-# [% PERL %]
+# -- use evalpython --
+# [% PYTHON %]
+# stash.set("merlyn", 
 # $stash->set('merlyn', bless \&merlyn1, 'ttfilter');
 # sub merlyn1 {
 #     my $text = shift || '<no text>';
@@ -655,23 +650,20 @@ after
 # [% END %]
 # -- expect --
 # Let him who is without sin cast the first henge.
-# 
-# -- test --
-# -- use evalperl --
-# [% PERL %]
-# $stash->set('merlyn', sub { \&merlyn2 });
-# sub merlyn2 {
-#     my $text = shift || '<no text>';
-#     $text =~ s/stone/henge/g;
-#     return $text;
-# }
-# [% END -%]
-# [% FILTER $merlyn -%]
-# Let him who is without sin cast the first stone.
-# [% END %]
-# -- expect --
-# Let him who is without sin cast the first henge.
-# 
+
+-- test --
+-- use evalpython --
+[% PYTHON %]
+def merlyn2(text="<no text>"):
+  return text.replace("stone", "henge")
+stash.set("merlyn", lambda: merlyn2)
+[% END -%]
+[% FILTER $merlyn -%]
+Let him who is without sin cast the first stone.
+[% END %]
+-- expect --
+Let him who is without sin cast the first henge.
+
 -- test --
 [% myfilter = 'html' -%]
 [% FILTER $myfilter -%]
@@ -680,45 +672,34 @@ after
 -- expect --
 &lt;html&gt;
 
-# -- test --
-# [% FILTER $despace -%]
-# blah blah blah
-# [%- END %]
-# -- expect --
-# blah_blah_blah
-#
-# -- test --
-# -- use evalperl --
-# [% PERL %]
-# $context->filter(\&newfilt, undef, 'myfilter');
-# sub newfilt {
-#     my $text = shift;
-#     $text =~ s/\s+/=/g;
-#     return $text;
-# }
-# [% END -%]
-# [% FILTER myfilter -%]
-# This is a test
-# [%- END %]
-# -- expect --
-# This=is=a=test
-# 
-# -- test --
-# [% PERL %]
-# $context->define_filter('xfilter', \&xfilter);
-# sub xfilter {
-#     my $text = shift;
-#     $text =~ s/\s+/X/g;
-#     return $text;
-# }
-# [% END -%]
-# [% FILTER xfilter -%]
-# blah blah blah
-# [%- END %]
-# -- expect --
-# blahXblahXblah
-# 
-# 
+-- test --
+-- use evalpython --
+[% PYTHON %]
+import re
+def newfilt(text):
+  return re.sub(r"\s+", "=", text)
+context.filter(newfilt, None, "myfilter")
+[% END -%]
+[% FILTER myfilter -%]
+This is a test
+[%- END %]
+-- expect --
+This=is=a=test
+
+-- test --
+[% PYTHON %]
+import re
+def xfilter(text):
+  return re.sub(r"\s+", "X", text)
+context.define_filter("xfilter", xfilter)
+[% END -%]
+[% FILTER xfilter -%]
+blah blah blah
+[%- END %]
+-- expect --
+blahXblahXblah
+
+
 -- test --
 [% FILTER another(3) -%]
 foo bar baz
@@ -728,20 +709,18 @@ foo bar baz
 foo bar baz
 foo bar baz
 
-# -- test --
-# [% '$stash->{ a } = 25' FILTER evalperl %]
-# [% a %]
-# -- expect --
-# 25
-# 25
-# 
-# -- test --
-# [% '$stash->{ a } = 25' FILTER perl %]
-# [% a %]
-# -- expect --
-# 25
-# 25
-# 
+-- test --
+[% "stash['a'] = 25" | python -%]
+[% a %]
+-- expect --
+25
+
+-- test --
+[% "stash['a'] = 25" FILTER python -%]
+[% a %]
+-- expect --
+25
+
 -- test --
 [% FILTER indent -%]
 The cat sat

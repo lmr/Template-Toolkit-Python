@@ -5,8 +5,7 @@ args.t          Passing positional and named arguments to code/object methods
 autoform.t      Autoformat plugin (Template::Plugin::Autoformat)
   -- No corresponding Python module
 base.t          Template::Base.pm module
-  -- Significant differences between Perl and Python object models preclude
-  -- a meaningful translation
+  -- No corresponding template.base module
 binop.t         Binary operators
   ++ Translated as binop_test.py
 block.t         BLOCK definition

@@ -546,7 +546,7 @@ after
 
 
 #------------------------------------------------------------------------
-# test throwing from Perl code via die()
+# test throwing from Python code via raise
 #------------------------------------------------------------------------
 -- test --
 [% TRY %]

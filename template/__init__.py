@@ -63,7 +63,7 @@ configuration items may be passed as a parameter.
 
     tt = template.Template({
     	'INCLUDE_PATH': '/usr/local/templates',
-	'EVAL_PERL': 1,
+	'EVAL_PYTHON': 1,
     })
 
 A reference to a new Template object is returned.  A

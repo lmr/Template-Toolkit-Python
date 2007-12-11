@@ -87,7 +87,7 @@ Hello World!
 # parser/eval options to be set for different blocks
 
 -- test --
-[% BLOCK foo eval_perl=0 tags="star" -%]
+[% BLOCK foo eval_python=0 tags="star" -%]
 This is the foo block
 [% END -%]
 foo: [% INCLUDE foo %]
@@ -95,7 +95,7 @@ foo: [% INCLUDE foo %]
 foo: This is the foo block
 
 -- test --
-[% BLOCK eval_perl=0 tags="star" -%]
+[% BLOCK eval_python=0 tags="star" -%]
 This is an anonymous block
 [% END -%]
 -- expect --

@@ -473,9 +473,11 @@ def EvaluateCode(code, context, stash):
   writes to sys.stdout, which is temporarily redirected to a StringIO
   object.
 
-  The two global variables "context" and "stash" are set to the two
-  function arguments of the same names, and "sys" refers to the standard
-  sys module--primarily for access to sys.stdout.
+  The global variables "context" and "stash" are set to the two
+  function arguments of the same names, the variable "stdout" is set
+  to sys.stdout (temporarily reassigned to a StringIO buffer object),
+  and the variable "out" is set to the StringBuffer wrapper around
+  sys.stdout.
   """
   code = unindent(code)
   stringbuf = StringBuffer()
