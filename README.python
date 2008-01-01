@@ -198,7 +198,7 @@ two-element array reference, where the second element is true, eg:
   sub password_filter_factory {
     my $char = shift;
     return sub {
-      return $char * length $_[0];
+      return $char x length $_[0];
     }
   }
 
@@ -384,7 +384,7 @@ print "number", and the other cases are exhibited thusly:
 
   mydict = { 1: "one", "2": "two" }
 
-  [% x = "1"; y = 2; x = 3.0 %]
+  [% x = "1"; y = 2 %]
   [% mydict.x  # "one" %]
   [% mydict.y  # "two" %]
 
