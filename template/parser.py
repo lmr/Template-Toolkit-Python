@@ -1,6 +1,5 @@
 import re
 import sys
-import types
 
 from template import util
 from template.constants import *
@@ -642,8 +641,8 @@ class Parser:
     self.style = []
 
     # Build a FACTORY object to include any NAMESPACE definitions,
-    # but only if FACTORY isn't already an object.
-    if not isinstance(self.factory, types.InstanceType):
+    # but only if FACTORY isn't already a (non-callable) object.
+    if callable(self.factory):
       self.factory = self.factory(param)
 
     self.lextable = self.grammar.lextable
@@ -667,10 +666,7 @@ class Parser:
     previous behaviour with regard to TAG_STYLE, START_TAG, END_TAG,
     etc.
     """
-    if self.style:
-      style = self.style[-1]
-    else:
-      style = DEFAULT_STYLE
+    style = self.style[-1] if self.style else DEFAULT_STYLE
     style = style.copy()
     tagstyle = config.get("TAG_STYLE")
     if tagstyle:
@@ -831,10 +827,7 @@ class Parser:
 
   def _identifier(self, token):
     """Tokenizes an identifier."""
-    if self.anycase:
-      uctoken = token.upper()
-    else:
-      uctoken = token
+    uctoken = token.upper() if self.anycase else token
     toktype = self.lextable.get(uctoken)
     if toktype is not None:
       return toktype, uctoken

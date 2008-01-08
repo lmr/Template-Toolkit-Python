@@ -2,7 +2,6 @@ import os
 import re
 import sys
 import time
-import types
 
 from template.config import Config
 from template.constants import *
@@ -812,9 +811,15 @@ class Provider:
       # to a dynamically generated list of search paths
       if callable(dir):
         ipaths[:0] = dir()
-      elif isinstance(dir, types.InstanceType) and can(dir, "paths"):
-        ipaths[:0] = dir.paths()
       else:
+        try:
+          paths = dir.paths
+        except AttributeError:
+          pass
+        else:
+          if callable(paths):
+            ipaths[:0] = paths()
+            continue
         opaths.append(dir)
 
     if ipaths:

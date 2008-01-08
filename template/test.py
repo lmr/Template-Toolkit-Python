@@ -6,14 +6,12 @@ from template import Template, TemplateException
 
 main = unittest.main
 
-words = (
-  "alpha", "bravo", "charlie", "delta", "echo", "foxtrot", "golf",
-  "hotel", "india", "juliet", "kilo", "lima", "mike", "november",
-  "oscar", "papa", "quebec", "romeo", "sierra", "tango", "umbrella",
-  "victor", "whisky", "x-ray", "yankee", "zulu"
-)
-
-words = dict((word[0], word) for word in words)
+words = dict((word[0], word) for word in (
+    "alpha", "bravo", "charlie", "delta", "echo", "foxtrot", "golf",
+    "hotel", "india", "juliet", "kilo", "lima", "mike", "november",
+    "oscar", "papa", "quebec", "romeo", "sierra", "tango", "umbrella",
+    "victor", "whisky", "x-ray", "yankee", "zulu"
+))
 
 class TestCase(unittest.TestCase):
   @classmethod

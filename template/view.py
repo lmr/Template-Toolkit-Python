@@ -1,6 +1,5 @@
 import cStringIO
 import re
-import types
 
 from template.constants import ERROR_VIEW
 from template.util import can, is_seq
@@ -448,14 +447,14 @@ class View:
       return clone.print_(*args)
     output = cStringIO.StringIO()
     for item in args:
-      if isinstance(item, types.InstanceType):
-        type = item.__class__.__name__
-      elif isinstance(item, (tuple, list)):
+      if isinstance(item, (tuple, list)):
         type = "ARRAY"
       elif isinstance(item, dict):
         type = "HASH"
-      else:
+      elif isinstance(item, (basestring, int, long)):
         type = "TEXT"
+      else:
+        type = item.__class__.__name__
       template = self._map.get(type)
       if template is None:
         # No specific map entry for object, maybe it implements a

@@ -17,9 +17,8 @@ class EvalPythonTest(TestCase):
 
 
 DATA = r"""
-
 -- test --
-[% META 
+[% META
    author  = 'Andy Wardley'
    title   = 'Test Template $foo #6'
    version = 1.23

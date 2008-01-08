@@ -166,7 +166,6 @@ class Date(Plugin):
       # Otherwise, we try to parse it as a 'H:M:S D:M:Y' string:
       date = re.split(r"[-/ :]", str(time))
       if len(date) < 6:
-        # return None,
         raise TemplateException(
           "date", "bad time/date string:  expects 'h:m:s d:m:y'  got: '%s'"
           % time)

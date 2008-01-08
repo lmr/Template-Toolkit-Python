@@ -27,7 +27,11 @@ RESERVED = (
   "LAST", "RETURN", "STOP", "CLEAR", "VIEW", "DEBUG"
 )
 
-CMPOP = dict((op, op) for op in ("!=", "==", "<", ">", ">=", "<="))
+CMPOP = dict((op, op) for op in (
+    "!=", "==", "<", ">", ">=", "<=",
+    # Add these items to enable the eq, lt, and gt operators:
+    # "eq", "lt", "gt"
+    ))
 
 LEXTABLE = {
   "FOREACH": "FOR",
@@ -66,8 +70,8 @@ for token in tokens:
 
 
 STATES = [
-  {#State 0
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'SET': 1,
       'PYTHON': 40,
       'NOT': 38,
@@ -75,7 +79,7 @@ STATES = [
       'CLEAR': 41,
       'UNLESS': 3,
       'IF': 44,
-      "$": 43,
+      '$': 43,
       'STOP': 6,
       'CALL': 45,
       'THROW': 8,
@@ -93,10 +97,10 @@ STATES = [
       'WRAPPER': 55,
       ";": -18,
       'FOR': 21,
-      'NEXT': 22,
       'LITERAL': 57,
+      'NEXT': 22,
+      '"': 60,
       'TEXT': 24,
-      "\"": 60,
       'PROCESS': 61,
       'RETURN': 64,
       'FILTER': 25,
@@ -109,52 +113,52 @@ STATES = [
       "{": 30,
       'USE': 32,
       'VIEW': 36,
-      "${": 37
+      '${': 37
     },
-    "DEFAULT":  -3,
-    "GOTOS":  {
+    'DEFAULT': -3,
+    'GOTOS': {
       'item': 39,
-      'node': 23,
-      'rawpython': 59,
-      'term': 58,
       'loop': 4,
-      'use': 63,
-      'expr': 62,
       'capture': 42,
       'statement': 5,
       'view': 7,
       'wrapper': 46,
       'atomexpr': 48,
       'chunk': 11,
-      'defblock': 66,
       'atomdir': 12,
       'anonblock': 50,
       'template': 52,
-      'sterm': 68,
       'defblockname': 14,
-      'filter': 29,
       'ident': 16,
-      'python': 31,
-      'setlist': 70,
-      'chunks': 33,
-      'switch': 34,
-      'try': 35,
       'assign': 19,
-      'block': 72,
-      'directive': 71,
       'macro': 20,
-      'condition': 73,
-      'lterm': 56
+      'lterm': 56,
+      'node': 23,
+      'term': 58,
+      'rawpython': 59,
+      'expr': 62,
+      'use': 63,
+      'defblock': 66,
+      'filter': 29,
+      'sterm': 68,
+      'python': 31,
+      'chunks': 33,
+      'setlist': 70,
+      'try': 35,
+      'switch': 34,
+      'directive': 71,
+      'block': 72,
+      'condition': 73
     }
   },
-  {#State 1
-    "ACTIONS":  {
-      "$": 43,
+  {
+    'ACTIONS': {
+      '$': 43,
       'LITERAL': 75,
       'IDENT': 2,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'setlist': 76,
       'item': 39,
       'assign': 19,
@@ -162,24 +166,24 @@ STATES = [
       'ident': 74
     }
   },
-  {#State 2
-    "DEFAULT":  -130
+  {
+    'DEFAULT': -130
   },
-  {#State 3
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'NOT': 38,
       "{": 30,
       'LITERAL': 78,
       'IDENT': 2,
-      "\"": 60,
+      '"': 60,
       "(": 53,
-      "$": 43,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'expr': 79,
       'sterm': 68,
       'item': 39,
@@ -189,30 +193,30 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 4
-    "DEFAULT":  -23
+  {
+    'DEFAULT': -23
   },
-  {#State 5
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       ";": 80
     }
   },
-  {#State 6
-    "DEFAULT":  -37
+  {
+    'DEFAULT': -37
   },
-  {#State 7
-    "DEFAULT":  -14
+  {
+    'DEFAULT': -14
   },
-  {#State 8
-    "ACTIONS":  {
-      "\"": 89,
-      "$": 86,
+  {
+    'ACTIONS': {
+      '"': 89,
+      '$': 86,
       'LITERAL': 88,
       'FILENAME': 83,
       'IDENT': 81,
       'NUMBER': 84
     },
-    "GOTOS":  {
+    'GOTOS': {
       'filepart': 87,
       'names': 91,
       'nameargs': 90,
@@ -220,87 +224,87 @@ STATES = [
       'name': 82
     }
   },
-  {#State 9
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       "{": 30,
       'LITERAL': 78,
       'IDENT': 2,
-      "\"": 60,
-      "$": 43,
+      '"': 60,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
       "]": 94,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'sterm': 96,
       'item': 39,
       'range': 93,
       'node': 23,
       'ident': 77,
       'term': 95,
-      'list': 92,
-      'lterm': 56
+      'lterm': 56,
+      'list': 92
     }
   },
-  {#State 10
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       ";": 97
     }
   },
-  {#State 11
-    "DEFAULT":  -5
+  {
+    'DEFAULT': -5
   },
-  {#State 12
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       ";": -20
     },
-    "DEFAULT":  -27
+    'DEFAULT': -27
   },
-  {#State 13
-    "DEFAULT":  -78,
-    "GOTOS":  {
+  {
+    'DEFAULT': -78,
+    'GOTOS': {
       '@5-1': 98
     }
   },
-  {#State 14
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'IDENT': 99
     },
-    "DEFAULT":  -87,
-    "GOTOS":  {
+    'DEFAULT': -87,
+    'GOTOS': {
       'blockargs': 102,
       'metadata': 101,
       'meta': 100
     }
   },
-  {#State 15
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'IDENT': 99
     },
-    "GOTOS":  {
+    'GOTOS': {
       'metadata': 103,
       'meta': 100
     }
   },
-  {#State 16
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'DOT': 104,
       'ASSIGN': 105
     },
-    "DEFAULT":  -109
+    'DEFAULT': -109
   },
-  {#State 17
-    "ACTIONS":  {
-      "\"": 89,
-      "$": 86,
+  {
+    'ACTIONS': {
+      '"': 89,
+      '$': 86,
       'LITERAL': 88,
       'FILENAME': 83,
       'IDENT': 81,
       'NUMBER': 84
     },
-    "GOTOS":  {
+    'GOTOS': {
       'filepart': 87,
       'names': 91,
       'nameargs': 106,
@@ -308,30 +312,30 @@ STATES = [
       'name': 82
     }
   },
-  {#State 18
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'IDENT': 107
     }
   },
-  {#State 19
-    "DEFAULT":  -149
+  {
+    'DEFAULT': -149
   },
-  {#State 20
-    "DEFAULT":  -12
+  {
+    'DEFAULT': -12
   },
-  {#State 21
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       "{": 30,
       'LITERAL': 78,
       'IDENT': 108,
-      "\"": 60,
-      "$": 43,
+      '"': 60,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'sterm': 68,
       'item': 39,
       'loopvar': 110,
@@ -341,60 +345,60 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 22
-    "DEFAULT":  -40
+  {
+    'DEFAULT': -40
   },
-  {#State 23
-    "DEFAULT":  -127
+  {
+    'DEFAULT': -127
   },
-  {#State 24
-    "DEFAULT":  -6
+  {
+    'DEFAULT': -6
   },
-  {#State 25
-    "ACTIONS":  {
-      "\"": 117,
-      "$": 114,
+  {
+    'ACTIONS': {
+      '"': 117,
+      '$': 114,
       'LITERAL': 116,
       'FILENAME': 83,
       'IDENT': 111,
       'NUMBER': 84,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
-      'filepart': 87,
+    'GOTOS': {
       'names': 91,
-      'nameargs': 118,
-      'filename': 85,
       'lvalue': 112,
-      'lnameargs': 115,
       'item': 113,
-      'name': 82
+      'name': 82,
+      'filepart': 87,
+      'filename': 85,
+      'nameargs': 118,
+      'lnameargs': 115
     }
   },
-  {#State 26
-    "DEFAULT":  -113
+  {
+    'DEFAULT': -113
   },
-  {#State 27
-    "ACTIONS":  {
-      "$": 43,
+  {
+    'ACTIONS': {
+      '$': 43,
       'IDENT': 2,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'item': 39,
       'node': 23,
       'ident': 119
     }
   },
-  {#State 28
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'LITERAL': 124,
       'FILENAME': 83,
       'IDENT': 120,
       'NUMBER': 84
     },
-    "DEFAULT":  -87,
-    "GOTOS":  {
+    'DEFAULT': -87,
+    'GOTOS': {
       'blockargs': 123,
       'filepart': 87,
       'filename': 122,
@@ -403,50 +407,50 @@ STATES = [
       'meta': 100
     }
   },
-  {#State 29
-    "DEFAULT":  -43
+  {
+    'DEFAULT': -43
   },
-  {#State 30
-    "ACTIONS":  {
-      "$": 43,
+  {
+    'ACTIONS': {
+      '$': 43,
       'LITERAL': 129,
       'IDENT': 2,
-      "${": 37
+      '${': 37
     },
-    "DEFAULT":  -119,
-    "GOTOS":  {
+    'DEFAULT': -119,
+    'GOTOS': {
       'params': 128,
       'hash': 125,
       'item': 126,
       'param': 127
     }
   },
-  {#State 31
-    "DEFAULT":  -25
+  {
+    'DEFAULT': -25
   },
-  {#State 32
-    "ACTIONS":  {
-      "\"": 117,
-      "$": 114,
+  {
+    'ACTIONS': {
+      '"': 117,
+      '$': 114,
       'LITERAL': 116,
       'FILENAME': 83,
       'IDENT': 111,
       'NUMBER': 84,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
-      'filepart': 87,
+    'GOTOS': {
       'names': 91,
-      'nameargs': 118,
-      'filename': 85,
       'lvalue': 112,
-      'lnameargs': 130,
       'item': 113,
-      'name': 82
+      'name': 82,
+      'filepart': 87,
+      'filename': 85,
+      'nameargs': 118,
+      'lnameargs': 130
     }
   },
-  {#State 33
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'SET': 1,
       'PYTHON': 40,
       'NOT': 38,
@@ -454,7 +458,7 @@ STATES = [
       'CLEAR': 41,
       'UNLESS': 3,
       'IF': 44,
-      "$": 43,
+      '$': 43,
       'STOP': 6,
       'CALL': 45,
       'THROW': 8,
@@ -472,10 +476,10 @@ STATES = [
       'WRAPPER': 55,
       ";": -18,
       'FOR': 21,
-      'NEXT': 22,
       'LITERAL': 57,
+      'NEXT': 22,
+      '"': 60,
       'TEXT': 24,
-      "\"": 60,
       'PROCESS': 61,
       'RETURN': 64,
       'FILTER': 25,
@@ -488,10 +492,10 @@ STATES = [
       "{": 30,
       'USE': 32,
       'VIEW': 36,
-      "${": 37
+      '${': 37
     },
-    "DEFAULT":  -2,
-    "GOTOS":  {
+    'DEFAULT': -2,
+    'GOTOS': {
       'item': 39,
       'node': 23,
       'rawpython': 59,
@@ -523,22 +527,22 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 34
-    "DEFAULT":  -22
+  {
+    'DEFAULT': -22
   },
-  {#State 35
-    "DEFAULT":  -24
+  {
+    'DEFAULT': -24
   },
-  {#State 36
-    "ACTIONS":  {
-      "\"": 89,
-      "$": 86,
+  {
+    'ACTIONS': {
+      '"': 89,
+      '$': 86,
       'LITERAL': 88,
       'FILENAME': 83,
       'IDENT': 81,
       'NUMBER': 84
     },
-    "GOTOS":  {
+    'GOTOS': {
       'filepart': 87,
       'names': 91,
       'nameargs': 132,
@@ -546,38 +550,38 @@ STATES = [
       'name': 82
     }
   },
-  {#State 37
-    "ACTIONS":  {
-      "\"": 60,
-      "$": 43,
+  {
+    'ACTIONS': {
+      '"': 60,
+      '$': 43,
       'LITERAL': 78,
       'IDENT': 2,
       'REF': 27,
       'NUMBER': 26,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'sterm': 133,
       'item': 39,
       'node': 23,
       'ident': 77
     }
   },
-  {#State 38
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'NOT': 38,
       "{": 30,
       'LITERAL': 78,
       'IDENT': 2,
-      "\"": 60,
+      '"': 60,
       "(": 53,
-      "$": 43,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'expr': 134,
       'sterm': 68,
       'item': 39,
@@ -587,43 +591,43 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 39
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       "(": 135
     },
-    "DEFAULT":  -128
+    'DEFAULT': -128
   },
-  {#State 40
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       ";": 136
     }
   },
-  {#State 41
-    "DEFAULT":  -38
+  {
+    'DEFAULT': -38
   },
-  {#State 42
-    "DEFAULT":  -11
+  {
+    'DEFAULT': -11
   },
-  {#State 43
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'IDENT': 137
     }
   },
-  {#State 44
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'NOT': 38,
       "{": 30,
       'LITERAL': 78,
       'IDENT': 2,
-      "\"": 60,
+      '"': 60,
       "(": 53,
-      "$": 43,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'expr': 138,
       'sterm': 68,
       'item': 39,
@@ -633,21 +637,21 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 45
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'NOT': 38,
       "{": 30,
       'LITERAL': 78,
       'IDENT': 2,
-      "\"": 60,
+      '"': 60,
       "(": 53,
-      "$": 43,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'expr': 139,
       'sterm': 68,
       'item': 39,
@@ -657,24 +661,24 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 46
-    "DEFAULT":  -42
+  {
+    'DEFAULT': -42
   },
-  {#State 47
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'NOT': 38,
       "{": 30,
       'LITERAL': 78,
       'IDENT': 2,
-      "\"": 60,
+      '"': 60,
       "(": 53,
-      "$": 43,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'expr': 140,
       'sterm': 68,
       'item': 39,
@@ -684,8 +688,8 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 48
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'IF': 144,
       'FILTER': 143,
       'FOR': 142,
@@ -694,22 +698,22 @@ STATES = [
       'UNLESS': 141
     }
   },
-  {#State 49
-    "DEFAULT":  -39
+  {
+    'DEFAULT': -39
   },
-  {#State 50
-    "DEFAULT":  -10
+  {
+    'DEFAULT': -10
   },
-  {#State 51
-    "ACTIONS":  {
-      "\"": 89,
-      "$": 86,
+  {
+    'ACTIONS': {
+      '"': 89,
+      '$': 86,
       'LITERAL': 88,
       'FILENAME': 83,
       'IDENT': 81,
       'NUMBER': 84
     },
-    "GOTOS":  {
+    'GOTOS': {
       'filepart': 87,
       'names': 91,
       'nameargs': 147,
@@ -717,51 +721,51 @@ STATES = [
       'name': 82
     }
   },
-  {#State 52
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       '': 148
     }
   },
-  {#State 53
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'NOT': 38,
       "{": 30,
       'LITERAL': 57,
       'IDENT': 2,
-      "\"": 60,
+      '"': 60,
       "(": 53,
-      "$": 43,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
+      'expr': 151,
       'sterm': 68,
       'item': 39,
+      'assign': 150,
       'node': 23,
       'ident': 149,
       'term': 58,
-      'expr': 151,
-      'assign': 150,
       'lterm': 56
     }
   },
-  {#State 54
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'NOT': 38,
       "{": 30,
       'LITERAL': 78,
       'IDENT': 2,
-      "\"": 60,
+      '"': 60,
       "(": 53,
-      "$": 43,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'expr': 152,
       'sterm': 68,
       'item': 39,
@@ -771,16 +775,16 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 55
-    "ACTIONS":  {
-      "\"": 89,
-      "$": 86,
+  {
+    'ACTIONS': {
+      '"': 89,
+      '$': 86,
       'LITERAL': 88,
       'FILENAME': 83,
       'IDENT': 81,
       'NUMBER': 84
     },
-    "GOTOS":  {
+    'GOTOS': {
       'filepart': 87,
       'names': 91,
       'nameargs': 153,
@@ -788,37 +792,37 @@ STATES = [
       'name': 82
     }
   },
-  {#State 56
-    "DEFAULT":  -103
+  {
+    'DEFAULT': -103
   },
-  {#State 57
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'ASSIGN': 154
     },
-    "DEFAULT":  -112
+    'DEFAULT': -112
   },
-  {#State 58
-    "DEFAULT":  -146
+  {
+    'DEFAULT': -146
   },
-  {#State 59
-    "DEFAULT":  -15
+  {
+    'DEFAULT': -15
   },
-  {#State 60
-    "DEFAULT":  -176,
-    "GOTOS":  {
+  {
+    'DEFAULT': -176,
+    'GOTOS': {
       'quoted': 155
     }
   },
-  {#State 61
-    "ACTIONS":  {
-      "\"": 89,
-      "$": 86,
+  {
+    'ACTIONS': {
+      '"': 89,
+      '$': 86,
       'LITERAL': 88,
       'FILENAME': 83,
       'IDENT': 81,
       'NUMBER': 84
     },
-    "GOTOS":  {
+    'GOTOS': {
       'filepart': 87,
       'names': 91,
       'nameargs': 156,
@@ -826,8 +830,8 @@ STATES = [
       'name': 82
     }
   },
-  {#State 62
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       ";": -16,
       "+": 157,
       'CAT': 163,
@@ -840,24 +844,24 @@ STATES = [
       'BINOP': 161,
       'OR': 162
     },
-    "DEFAULT":  -26
+    'DEFAULT': -26
   },
-  {#State 63
-    "DEFAULT":  -13
+  {
+    'DEFAULT': -13
   },
-  {#State 64
-    "DEFAULT":  -36
+  {
+    'DEFAULT': -36
   },
-  {#State 65
-    "ACTIONS":  {
-      "\"": 89,
-      "$": 86,
+  {
+    'ACTIONS': {
+      '"': 89,
+      '$': 86,
       'LITERAL': 88,
       'FILENAME': 83,
       'IDENT': 81,
       'NUMBER': 84
     },
-    "GOTOS":  {
+    'GOTOS': {
       'filepart': 87,
       'names': 91,
       'nameargs': 167,
@@ -865,24 +869,24 @@ STATES = [
       'name': 82
     }
   },
-  {#State 66
-    "DEFAULT":  -9
+  {
+    'DEFAULT': -9
   },
-  {#State 67
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'NOT': 38,
       "{": 30,
       'LITERAL': 78,
       'IDENT': 2,
-      "\"": 60,
+      '"': 60,
       "(": 53,
-      "$": 43,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'expr': 168,
       'sterm': 68,
       'item': 39,
@@ -892,17 +896,17 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 68
-    "DEFAULT":  -104
+  {
+    'DEFAULT': -104
   },
-  {#State 69
-    "ACTIONS":  {
-      "$": 43,
+  {
+    'ACTIONS': {
+      '$': 43,
       'LITERAL': 75,
       'IDENT': 2,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'setlist': 169,
       'item': 39,
       'assign': 19,
@@ -910,69 +914,69 @@ STATES = [
       'ident': 74
     }
   },
-  {#State 70
-    "ACTIONS":  {
-      "$": 43,
+  {
+    'ACTIONS': {
+      '$': 43,
       'COMMA': 171,
       'LITERAL': 75,
       'IDENT': 2,
-      "${": 37
+      '${': 37
     },
-    "DEFAULT":  -19,
-    "GOTOS":  {
+    'DEFAULT': -19,
+    'GOTOS': {
       'item': 39,
       'assign': 170,
       'node': 23,
       'ident': 74
     }
   },
-  {#State 71
-    "DEFAULT":  -8
+  {
+    'DEFAULT': -8
   },
-  {#State 72
-    "DEFAULT":  -1
+  {
+    'DEFAULT': -1
   },
-  {#State 73
-    "DEFAULT":  -21
+  {
+    'DEFAULT': -21
   },
-  {#State 74
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'ASSIGN': 172,
       'DOT': 104
     }
   },
-  {#State 75
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'ASSIGN': 154
     }
   },
-  {#State 76
-    "ACTIONS":  {
-      "$": 43,
+  {
+    'ACTIONS': {
       'COMMA': 171,
       'LITERAL': 75,
       'IDENT': 2,
-      "${": 37
+      '$': 43,
+      '${': 37
     },
-    "DEFAULT":  -30,
-    "GOTOS":  {
+    'DEFAULT': -30,
+    'GOTOS': {
       'item': 39,
       'assign': 170,
       'node': 23,
       'ident': 74
     }
   },
-  {#State 77
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'DOT': 104
     },
-    "DEFAULT":  -109
+    'DEFAULT': -109
   },
-  {#State 78
-    "DEFAULT":  -112
+  {
+    'DEFAULT': -112
   },
-  {#State 79
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'CMPOP': 164,
       "?": 158,
       ";": 173,
@@ -986,79 +990,79 @@ STATES = [
       'OR': 162
     }
   },
-  {#State 80
-    "DEFAULT":  -7
+  {
+    'DEFAULT': -7
   },
-  {#State 81
-    "DEFAULT":  -173
+  {
+    'DEFAULT': -173
   },
-  {#State 82
-    "DEFAULT":  -166
+  {
+    'DEFAULT': -166
   },
-  {#State 83
-    "DEFAULT":  -172
+  {
+    'DEFAULT': -172
   },
-  {#State 84
-    "DEFAULT":  -174
+  {
+    'DEFAULT': -174
   },
-  {#State 85
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'DOT': 174
     },
-    "DEFAULT":  -168
+    'DEFAULT': -168
   },
-  {#State 86
-    "ACTIONS":  {
-      "$": 43,
+  {
+    'ACTIONS': {
+      '$': 43,
       'IDENT': 2,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'item': 39,
       'node': 23,
       'ident': 175
     }
   },
-  {#State 87
-    "DEFAULT":  -171
+  {
+    'DEFAULT': -171
   },
-  {#State 88
-    "DEFAULT":  -169
+  {
+    'DEFAULT': -169
   },
-  {#State 89
-    "DEFAULT":  -176,
-    "GOTOS":  {
+  {
+    'DEFAULT': -176,
+    'GOTOS': {
       'quoted': 176
     }
   },
-  {#State 90
-    "DEFAULT":  -35
+  {
+    'DEFAULT': -35
   },
-  {#State 91
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       "+": 177,
       "(": 178
     },
-    "DEFAULT":  -156,
-    "GOTOS":  {
+    'DEFAULT': -156,
+    'GOTOS': {
       'args': 179
     }
   },
-  {#State 92
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       "{": 30,
       'COMMA': 182,
       'LITERAL': 78,
       'IDENT': 2,
-      "\"": 60,
-      "$": 43,
+      '"': 60,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
       "]": 180,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'sterm': 68,
       'item': 39,
       'node': 23,
@@ -1067,25 +1071,25 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 93
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       "]": 183
     }
   },
-  {#State 94
-    "DEFAULT":  -107
+  {
+    'DEFAULT': -107
   },
-  {#State 95
-    "DEFAULT":  -116
+  {
+    'DEFAULT': -116
   },
-  {#State 96
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'TO': 184
     },
-    "DEFAULT":  -104
+    'DEFAULT': -104
   },
-  {#State 97
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'SET': 1,
       'PYTHON': 40,
       'NOT': 38,
@@ -1093,7 +1097,7 @@ STATES = [
       'CLEAR': 41,
       'UNLESS': 3,
       'IF': 44,
-      "$": 43,
+      '$': 43,
       'STOP': 6,
       'CALL': 45,
       'THROW': 8,
@@ -1111,10 +1115,10 @@ STATES = [
       'WRAPPER': 55,
       ";": -18,
       'FOR': 21,
-      'NEXT': 22,
       'LITERAL': 57,
+      'NEXT': 22,
+      '"': 60,
       'TEXT': 24,
-      "\"": 60,
       'PROCESS': 61,
       'RETURN': 64,
       'FILTER': 25,
@@ -1127,10 +1131,10 @@ STATES = [
       "{": 30,
       'USE': 32,
       'VIEW': 36,
-      "${": 37
+      '${': 37
     },
-    "DEFAULT":  -3,
-    "GOTOS":  {
+    'DEFAULT': -3,
+    'GOTOS': {
       'item': 39,
       'node': 23,
       'rawpython': 59,
@@ -1164,58 +1168,58 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 98
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       ";": 186
     }
   },
-  {#State 99
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'ASSIGN': 187
     }
   },
-  {#State 100
-    "DEFAULT":  -99
+  {
+    'DEFAULT': -99
   },
-  {#State 101
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'COMMA': 189,
       'IDENT': 99
     },
-    "DEFAULT":  -86,
-    "GOTOS":  {
+    'DEFAULT': -86,
+    'GOTOS': {
       'meta': 188
     }
   },
-  {#State 102
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       ";": 190
     }
   },
-  {#State 103
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'COMMA': 189,
       'IDENT': 99
     },
-    "DEFAULT":  -17,
-    "GOTOS":  {
+    'DEFAULT': -17,
+    'GOTOS': {
       'meta': 188
     }
   },
-  {#State 104
-    "ACTIONS":  {
-      "$": 43,
+  {
+    'ACTIONS': {
+      '$': 43,
       'IDENT': 2,
       'NUMBER': 192,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'item': 39,
       'node': 191
     }
   },
-  {#State 105
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'SET': 1,
       'PYTHON': 40,
       'NOT': 38,
@@ -1223,7 +1227,7 @@ STATES = [
       'CLEAR': 41,
       'UNLESS': 3,
       'IF': 44,
-      "$": 43,
+      '$': 43,
       'STOP': 6,
       'CALL': 45,
       'THROW': 8,
@@ -1239,7 +1243,7 @@ STATES = [
       'FOR': 21,
       'NEXT': 22,
       'LITERAL': 57,
-      "\"": 60,
+      '"': 60,
       'PROCESS': 61,
       'FILTER': 25,
       'RETURN': 64,
@@ -1250,9 +1254,9 @@ STATES = [
       'BLOCK': 193,
       'DEFAULT': 69,
       "{": 30,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'item': 39,
       'node': 23,
       'term': 58,
@@ -1262,24 +1266,24 @@ STATES = [
       'atomexpr': 48,
       'atomdir': 12,
       'mdir': 194,
-      'sterm': 68,
       'filter': 29,
+      'sterm': 68,
       'ident': 149,
       'python': 31,
       'setlist': 70,
-      'switch': 34,
       'try': 35,
+      'switch': 34,
       'assign': 19,
       'directive': 196,
       'condition': 73,
       'lterm': 56
     }
   },
-  {#State 106
-    "DEFAULT":  -33
+  {
+    'DEFAULT': -33
   },
-  {#State 107
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'SET': 1,
       'PYTHON': 40,
       'NOT': 38,
@@ -1287,7 +1291,7 @@ STATES = [
       'CLEAR': 41,
       'UNLESS': 3,
       'IF': 44,
-      "$": 43,
+      '$': 43,
       'STOP': 6,
       'CALL': 45,
       'THROW': 8,
@@ -1303,7 +1307,7 @@ STATES = [
       'FOR': 21,
       'NEXT': 22,
       'LITERAL': 57,
-      "\"": 60,
+      '"': 60,
       'PROCESS': 61,
       'FILTER': 25,
       'RETURN': 64,
@@ -1314,9 +1318,9 @@ STATES = [
       'BLOCK': 193,
       'DEFAULT': 69,
       "{": 30,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'item': 39,
       'node': 23,
       'term': 58,
@@ -1326,189 +1330,189 @@ STATES = [
       'atomexpr': 48,
       'atomdir': 12,
       'mdir': 197,
-      'sterm': 68,
       'filter': 29,
+      'sterm': 68,
       'ident': 149,
       'python': 31,
       'setlist': 70,
-      'switch': 34,
       'try': 35,
+      'switch': 34,
       'assign': 19,
       'directive': 196,
       'condition': 73,
       'lterm': 56
     }
   },
-  {#State 108
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'IN': 201,
       'ASSIGN': 200
     },
-    "DEFAULT":  -130
+    'DEFAULT': -130
   },
-  {#State 109
-    "DEFAULT":  -156,
-    "GOTOS":  {
+  {
+    'DEFAULT': -156,
+    'GOTOS': {
       'args': 202
     }
   },
-  {#State 110
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       ";": 203
     }
   },
-  {#State 111
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'ASSIGN': -130
     },
-    "DEFAULT":  -173
+    'DEFAULT': -173
   },
-  {#State 112
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'ASSIGN': 204
     }
   },
-  {#State 113
-    "DEFAULT":  -159
+  {
+    'DEFAULT': -159
   },
-  {#State 114
-    "ACTIONS":  {
-      "$": 43,
+  {
+    'ACTIONS': {
+      '$': 43,
       'IDENT': 205,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'item': 39,
       'node': 23,
       'ident': 175
     }
   },
-  {#State 115
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       ";": 206
     }
   },
-  {#State 116
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'ASSIGN': -161
     },
-    "DEFAULT":  -169
+    'DEFAULT': -169
   },
-  {#State 117
-    "DEFAULT":  -176,
-    "GOTOS":  {
+  {
+    'DEFAULT': -176,
+    'GOTOS': {
       'quoted': 207
     }
   },
-  {#State 118
-    "DEFAULT":  -158
+  {
+    'DEFAULT': -158
   },
-  {#State 119
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'DOT': 104
     },
-    "DEFAULT":  -110
+    'DEFAULT': -110
   },
-  {#State 120
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'ASSIGN': 187
     },
-    "DEFAULT":  -173
+    'DEFAULT': -173
   },
-  {#State 121
-    "DEFAULT":  -83
+  {
+    'DEFAULT': -83
   },
-  {#State 122
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'DOT': 174
     },
-    "DEFAULT":  -84
+    'DEFAULT': -84
   },
-  {#State 123
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       ";": 208
     }
   },
-  {#State 124
-    "DEFAULT":  -85
+  {
+    'DEFAULT': -85
   },
-  {#State 125
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       "}": 209
     }
   },
-  {#State 126
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'ASSIGN': 210
     }
   },
-  {#State 127
-    "DEFAULT":  -122
+  {
+    'DEFAULT': -122
   },
-  {#State 128
-    "ACTIONS":  {
-      "$": 43,
+  {
+    'ACTIONS': {
+      '$': 43,
       'COMMA': 212,
       'LITERAL': 129,
       'IDENT': 2,
-      "${": 37
+      '${': 37
     },
-    "DEFAULT":  -118,
-    "GOTOS":  {
+    'DEFAULT': -118,
+    'GOTOS': {
       'item': 126,
       'param': 211
     }
   },
-  {#State 129
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'ASSIGN': 213
     }
   },
-  {#State 130
-    "DEFAULT":  -73
+  {
+    'DEFAULT': -73
   },
-  {#State 131
-    "DEFAULT":  -4
+  {
+    'DEFAULT': -4
   },
-  {#State 132
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       ";": 214
     }
   },
-  {#State 133
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       "}": 215
     }
   },
-  {#State 134
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
+      'DIV': 159,
+      'BINOP': 161,
       "+": 157,
       'CAT': 163,
       'CMPOP': 164,
-      'DIV': 159,
       'MOD': 165,
-      "/": 166,
-      'BINOP': 161
+      "/": 166
     },
-    "DEFAULT":  -142
+    'DEFAULT': -142
   },
-  {#State 135
-    "DEFAULT":  -156,
-    "GOTOS":  {
+  {
+    'DEFAULT': -156,
+    'GOTOS': {
       'args': 216
     }
   },
-  {#State 136
-    "DEFAULT":  -76,
-    "GOTOS":  {
+  {
+    'DEFAULT': -76,
+    'GOTOS': {
       '@4-2': 217
     }
   },
-  {#State 137
-    "DEFAULT":  -132
+  {
+    'DEFAULT': -132
   },
-  {#State 138
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'CMPOP': 164,
       "?": 158,
       ";": 218,
@@ -1522,8 +1526,8 @@ STATES = [
       'OR': 162
     }
   },
-  {#State 139
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       "+": 157,
       'CAT': 163,
       'CMPOP': 164,
@@ -1535,10 +1539,10 @@ STATES = [
       'BINOP': 161,
       'OR': 162
     },
-    "DEFAULT":  -29
+    'DEFAULT': -29
   },
-  {#State 140
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       "+": 157,
       'CAT': 163,
       'CMPOP': 164,
@@ -1550,23 +1554,23 @@ STATES = [
       'BINOP': 161,
       'OR': 162
     },
-    "DEFAULT":  -28
+    'DEFAULT': -28
   },
-  {#State 141
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'NOT': 38,
       "{": 30,
       'LITERAL': 78,
       'IDENT': 2,
-      "\"": 60,
+      '"': 60,
       "(": 53,
-      "$": 43,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'expr': 219,
       'sterm': 68,
       'item': 39,
@@ -1576,19 +1580,19 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 142
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       "{": 30,
       'LITERAL': 78,
       'IDENT': 108,
-      "\"": 60,
-      "$": 43,
+      '"': 60,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'sterm': 68,
       'item': 39,
       'loopvar': 220,
@@ -1598,42 +1602,42 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 143
-    "ACTIONS":  {
-      "\"": 117,
-      "$": 114,
+  {
+    'ACTIONS': {
+      '"': 117,
+      '$': 114,
       'LITERAL': 116,
       'FILENAME': 83,
       'IDENT': 111,
       'NUMBER': 84,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
-      'filepart': 87,
+    'GOTOS': {
       'names': 91,
-      'nameargs': 118,
-      'filename': 85,
       'lvalue': 112,
-      'lnameargs': 221,
       'item': 113,
-      'name': 82
+      'name': 82,
+      'filepart': 87,
+      'filename': 85,
+      'nameargs': 118,
+      'lnameargs': 221
     }
   },
-  {#State 144
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'NOT': 38,
       "{": 30,
       'LITERAL': 78,
       'IDENT': 2,
-      "\"": 60,
+      '"': 60,
       "(": 53,
-      "$": 43,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'expr': 222,
       'sterm': 68,
       'item': 39,
@@ -1643,16 +1647,16 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 145
-    "ACTIONS":  {
-      "\"": 89,
-      "$": 86,
+  {
+    'ACTIONS': {
+      '"': 89,
+      '$': 86,
       'LITERAL': 88,
       'FILENAME': 83,
       'IDENT': 81,
       'NUMBER': 84
     },
-    "GOTOS":  {
+    'GOTOS': {
       'filepart': 87,
       'names': 91,
       'nameargs': 223,
@@ -1660,21 +1664,21 @@ STATES = [
       'name': 82
     }
   },
-  {#State 146
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'NOT': 38,
       "{": 30,
       'LITERAL': 78,
       'IDENT': 2,
-      "\"": 60,
+      '"': 60,
       "(": 53,
-      "$": 43,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'expr': 224,
       'sterm': 68,
       'item': 39,
@@ -1684,26 +1688,26 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 147
-    "DEFAULT":  -41
+  {
+    'DEFAULT': -41
   },
-  {#State 148
-    "DEFAULT":  0
+  {
+    'DEFAULT': 0
   },
-  {#State 149
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'DOT': 104,
       'ASSIGN': 172
     },
-    "DEFAULT":  -109
+    'DEFAULT': -109
   },
-  {#State 150
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       ")": 225
     }
   },
-  {#State 151
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'CMPOP': 164,
       "?": 158,
       "+": 157,
@@ -1717,8 +1721,8 @@ STATES = [
       'OR': 162
     }
   },
-  {#State 152
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'CMPOP': 164,
       "?": 158,
       ";": 227,
@@ -1732,26 +1736,26 @@ STATES = [
       'OR': 162
     }
   },
-  {#State 153
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       ";": 228
     }
   },
-  {#State 154
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'NOT': 38,
       "{": 30,
       'LITERAL': 78,
       'IDENT': 2,
-      "\"": 60,
+      '"': 60,
       "(": 53,
-      "$": 43,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'expr': 229,
       'sterm': 68,
       'item': 39,
@@ -1761,40 +1765,40 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 155
-    "ACTIONS":  {
-      "\"": 234,
+  {
+    'ACTIONS': {
+      '"': 234,
       'TEXT': 231,
       ";": 233,
-      "$": 43,
+      '$': 43,
       'IDENT': 2,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'item': 39,
       'node': 23,
       'ident': 230,
       'quotable': 232
     }
   },
-  {#State 156
-    "DEFAULT":  -34
+  {
+    'DEFAULT': -34
   },
-  {#State 157
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'NOT': 38,
       "{": 30,
       'LITERAL': 78,
       'IDENT': 2,
-      "\"": 60,
+      '"': 60,
       "(": 53,
-      "$": 43,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'expr': 235,
       'sterm': 68,
       'item': 39,
@@ -1804,21 +1808,21 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 158
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'NOT': 38,
       "{": 30,
       'LITERAL': 78,
       'IDENT': 2,
-      "\"": 60,
+      '"': 60,
       "(": 53,
-      "$": 43,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'expr': 236,
       'sterm': 68,
       'item': 39,
@@ -1828,21 +1832,21 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 159
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'NOT': 38,
       "{": 30,
       'LITERAL': 78,
       'IDENT': 2,
-      "\"": 60,
+      '"': 60,
       "(": 53,
-      "$": 43,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'expr': 237,
       'sterm': 68,
       'item': 39,
@@ -1852,21 +1856,21 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 160
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'NOT': 38,
       "{": 30,
       'LITERAL': 78,
       'IDENT': 2,
-      "\"": 60,
+      '"': 60,
       "(": 53,
-      "$": 43,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'expr': 238,
       'sterm': 68,
       'item': 39,
@@ -1876,21 +1880,21 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 161
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'NOT': 38,
       "{": 30,
       'LITERAL': 78,
       'IDENT': 2,
-      "\"": 60,
+      '"': 60,
       "(": 53,
-      "$": 43,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'expr': 239,
       'sterm': 68,
       'item': 39,
@@ -1900,21 +1904,21 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 162
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'NOT': 38,
       "{": 30,
       'LITERAL': 78,
       'IDENT': 2,
-      "\"": 60,
+      '"': 60,
       "(": 53,
-      "$": 43,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'expr': 240,
       'sterm': 68,
       'item': 39,
@@ -1924,21 +1928,21 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 163
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'NOT': 38,
       "{": 30,
       'LITERAL': 78,
       'IDENT': 2,
-      "\"": 60,
+      '"': 60,
       "(": 53,
-      "$": 43,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'expr': 241,
       'sterm': 68,
       'item': 39,
@@ -1948,21 +1952,21 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 164
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'NOT': 38,
       "{": 30,
       'LITERAL': 78,
       'IDENT': 2,
-      "\"": 60,
+      '"': 60,
       "(": 53,
-      "$": 43,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'expr': 242,
       'sterm': 68,
       'item': 39,
@@ -1972,21 +1976,21 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 165
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'NOT': 38,
       "{": 30,
       'LITERAL': 78,
       'IDENT': 2,
-      "\"": 60,
+      '"': 60,
       "(": 53,
-      "$": 43,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'expr': 243,
       'sterm': 68,
       'item': 39,
@@ -1996,21 +2000,21 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 166
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'NOT': 38,
       "{": 30,
       'LITERAL': 78,
       'IDENT': 2,
-      "\"": 60,
+      '"': 60,
       "(": 53,
-      "$": 43,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'expr': 244,
       'sterm': 68,
       'item': 39,
@@ -2020,11 +2024,11 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 167
-    "DEFAULT":  -32
+  {
+    'DEFAULT': -32
   },
-  {#State 168
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'CMPOP': 164,
       "?": 158,
       ";": 245,
@@ -2038,43 +2042,43 @@ STATES = [
       'OR': 162
     }
   },
-  {#State 169
-    "ACTIONS":  {
-      "$": 43,
+  {
+    'ACTIONS': {
       'COMMA': 171,
       'LITERAL': 75,
       'IDENT': 2,
-      "${": 37
+      '$': 43,
+      '${': 37
     },
-    "DEFAULT":  -31,
-    "GOTOS":  {
+    'DEFAULT': -31,
+    'GOTOS': {
       'item': 39,
       'assign': 170,
       'node': 23,
       'ident': 74
     }
   },
-  {#State 170
-    "DEFAULT":  -147
+  {
+    'DEFAULT': -147
   },
-  {#State 171
-    "DEFAULT":  -148
+  {
+    'DEFAULT': -148
   },
-  {#State 172
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'NOT': 38,
       "{": 30,
       'LITERAL': 78,
       'IDENT': 2,
-      "\"": 60,
+      '"': 60,
       "(": 53,
-      "$": 43,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'expr': 246,
       'sterm': 68,
       'item': 39,
@@ -2084,8 +2088,8 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 173
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'SET': 1,
       'PYTHON': 40,
       'NOT': 38,
@@ -2093,7 +2097,7 @@ STATES = [
       'CLEAR': 41,
       'UNLESS': 3,
       'IF': 44,
-      "$": 43,
+      '$': 43,
       'STOP': 6,
       'CALL': 45,
       'THROW': 8,
@@ -2111,10 +2115,10 @@ STATES = [
       'WRAPPER': 55,
       ";": -18,
       'FOR': 21,
-      'NEXT': 22,
       'LITERAL': 57,
+      'NEXT': 22,
+      '"': 60,
       'TEXT': 24,
-      "\"": 60,
       'PROCESS': 61,
       'RETURN': 64,
       'FILTER': 25,
@@ -2127,10 +2131,10 @@ STATES = [
       "{": 30,
       'USE': 32,
       'VIEW': 36,
-      "${": 37
+      '${': 37
     },
-    "DEFAULT":  -3,
-    "GOTOS":  {
+    'DEFAULT': -3,
+    'GOTOS': {
       'item': 39,
       'node': 23,
       'rawpython': 59,
@@ -2164,144 +2168,147 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 174
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'FILENAME': 83,
       'IDENT': 81,
       'NUMBER': 84
     },
-    "GOTOS":  {
+    'GOTOS': {
       'filepart': 248
     }
   },
-  {#State 175
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'DOT': 104
     },
-    "DEFAULT":  -156,
-    "GOTOS":  {
+    'DEFAULT': -156,
+    'GOTOS': {
       'args': 249
     }
   },
-  {#State 176
-    "ACTIONS":  {
-      "\"": 250,
+  {
+    'ACTIONS': {
+      '"': 250,
       'TEXT': 231,
       ";": 233,
-      "$": 43,
+      '$': 43,
       'IDENT': 2,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'item': 39,
       'node': 23,
       'ident': 230,
       'quotable': 232
     }
   },
-  {#State 177
-    "ACTIONS":  {
-      "\"": 89,
+  {
+    'ACTIONS': {
+      '"': 89,
       'LITERAL': 88,
       'FILENAME': 83,
       'IDENT': 81,
       'NUMBER': 84
     },
-    "GOTOS":  {
+    'GOTOS': {
       'filepart': 87,
       'filename': 85,
       'name': 251
     }
   },
-  {#State 178
-    "DEFAULT":  -156,
-    "GOTOS":  {
+  {
+    'DEFAULT': -156,
+    'GOTOS': {
       'args': 252
     }
   },
-  {#State 179
-    "ACTIONS":  {
-      "{": 30,
-      'COMMA': 258,
+  {
+    'ACTIONS': {
+      'NOT': 38,
       'LITERAL': 256,
       'IDENT': 2,
-      "\"": 60,
-      "$": 43,
+      '"': 60,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      "{": 30,
+      'COMMA': 258,
+      "(": 53,
+      '${': 37
     },
-    "DEFAULT":  -163,
-    "GOTOS":  {
+    'DEFAULT': -163,
+    'GOTOS': {
+      'expr': 257,
       'sterm': 68,
       'item': 254,
       'param': 255,
       'node': 23,
       'ident': 253,
-      'term': 257,
+      'term': 58,
       'lterm': 56
     }
   },
-  {#State 180
-    "DEFAULT":  -105
+  {
+    'DEFAULT': -105
   },
-  {#State 181
-    "DEFAULT":  -114
+  {
+    'DEFAULT': -114
   },
-  {#State 182
-    "DEFAULT":  -115
+  {
+    'DEFAULT': -115
   },
-  {#State 183
-    "DEFAULT":  -106
+  {
+    'DEFAULT': -106
   },
-  {#State 184
-    "ACTIONS":  {
-      "\"": 60,
-      "$": 43,
+  {
+    'ACTIONS': {
+      '"': 60,
+      '$': 43,
       'LITERAL': 78,
       'IDENT': 2,
       'REF': 27,
       'NUMBER': 26,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'sterm': 259,
       'item': 39,
       'node': 23,
       'ident': 77
     }
   },
-  {#State 185
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'FINAL': 260,
       'CATCH': 262
     },
-    "DEFAULT":  -72,
-    "GOTOS":  {
+    'DEFAULT': -72,
+    'GOTOS': {
       'final': 261
     }
   },
-  {#State 186
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'TEXT': 263
     }
   },
-  {#State 187
-    "ACTIONS":  {
-      "\"": 266,
+  {
+    'ACTIONS': {
+      '"': 266,
       'LITERAL': 265,
       'NUMBER': 264
     }
   },
-  {#State 188
-    "DEFAULT":  -97
+  {
+    'DEFAULT': -97
   },
-  {#State 189
-    "DEFAULT":  -98
+  {
+    'DEFAULT': -98
   },
-  {#State 190
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'SET': 1,
       'PYTHON': 40,
       'NOT': 38,
@@ -2309,7 +2316,7 @@ STATES = [
       'CLEAR': 41,
       'UNLESS': 3,
       'IF': 44,
-      "$": 43,
+      '$': 43,
       'STOP': 6,
       'CALL': 45,
       'THROW': 8,
@@ -2327,10 +2334,10 @@ STATES = [
       'WRAPPER': 55,
       ";": -18,
       'FOR': 21,
-      'NEXT': 22,
       'LITERAL': 57,
+      'NEXT': 22,
+      '"': 60,
       'TEXT': 24,
-      "\"": 60,
       'PROCESS': 61,
       'RETURN': 64,
       'FILTER': 25,
@@ -2343,66 +2350,66 @@ STATES = [
       "{": 30,
       'USE': 32,
       'VIEW': 36,
-      "${": 37
+      '${': 37
     },
-    "DEFAULT":  -3,
-    "GOTOS":  {
+    'DEFAULT': -3,
+    'GOTOS': {
       'item': 39,
-      'node': 23,
-      'rawpython': 59,
-      'term': 58,
       'loop': 4,
-      'use': 63,
-      'expr': 62,
       'capture': 42,
       'statement': 5,
       'view': 7,
       'wrapper': 46,
       'atomexpr': 48,
       'chunk': 11,
-      'defblock': 66,
       'atomdir': 12,
       'anonblock': 50,
       'template': 267,
-      'sterm': 68,
       'defblockname': 14,
-      'filter': 29,
       'ident': 16,
-      'python': 31,
-      'setlist': 70,
-      'chunks': 33,
-      'try': 35,
-      'switch': 34,
       'assign': 19,
-      'block': 72,
-      'directive': 71,
       'macro': 20,
-      'condition': 73,
-      'lterm': 56
+      'lterm': 56,
+      'node': 23,
+      'term': 58,
+      'rawpython': 59,
+      'expr': 62,
+      'use': 63,
+      'defblock': 66,
+      'filter': 29,
+      'sterm': 68,
+      'python': 31,
+      'chunks': 33,
+      'setlist': 70,
+      'switch': 34,
+      'try': 35,
+      'directive': 71,
+      'block': 72,
+      'condition': 73
     }
   },
-  {#State 191
-    "DEFAULT":  -125
+  {
+    'DEFAULT': -125
   },
-  {#State 192
-    "DEFAULT":  -126
+  {
+    'DEFAULT': -126
   },
-  {#State 193
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       ";": 268
     }
   },
-  {#State 194
-    "DEFAULT":  -89
+  {
+    'DEFAULT': -89
   },
-  {#State 195
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       ";": -150,
       "+": 157,
       'LITERAL': -150,
       'IDENT': -150,
       'CAT': 163,
-      "$": -150,
+      '$': -150,
       'CMPOP': 164,
       "?": 158,
       'DIV': 159,
@@ -2412,44 +2419,44 @@ STATES = [
       'AND': 160,
       'BINOP': 161,
       'OR': 162,
-      "${": -150
+      '${': -150
     },
-    "DEFAULT":  -26
+    'DEFAULT': -26
   },
-  {#State 196
-    "DEFAULT":  -92
+  {
+    'DEFAULT': -92
   },
-  {#State 197
-    "DEFAULT":  -91
+  {
+    'DEFAULT': -91
   },
-  {#State 198
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'NOT': 38,
       "{": 30,
       'LITERAL': 57,
       'IDENT': 269,
-      "\"": 60,
+      '"': 60,
       "(": 53,
-      "$": 43,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
+      'expr': 151,
       'sterm': 68,
       'item': 39,
+      'assign': 150,
       'margs': 270,
       'node': 23,
       'ident': 149,
       'term': 58,
-      'expr': 151,
-      'assign': 150,
       'lterm': 56
     }
   },
-  {#State 199
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       "+": 157,
       'CAT': 163,
       'CMPOP': 164,
@@ -2461,21 +2468,21 @@ STATES = [
       'BINOP': 161,
       'OR': 162
     },
-    "DEFAULT":  -26
+    'DEFAULT': -26
   },
-  {#State 200
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       "{": 30,
       'LITERAL': 78,
       'IDENT': 2,
-      "\"": 60,
-      "$": 43,
+      '"': 60,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'sterm': 68,
       'item': 39,
       'node': 23,
@@ -2484,19 +2491,19 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 201
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       "{": 30,
       'LITERAL': 78,
       'IDENT': 2,
-      "\"": 60,
-      "$": 43,
+      '"': 60,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'sterm': 68,
       'item': 39,
       'node': 23,
@@ -2505,46 +2512,49 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 202
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
+      'NOT': 38,
       "{": 30,
       'COMMA': 258,
       'LITERAL': 256,
       'IDENT': 2,
-      "\"": 60,
-      "$": 43,
+      '"': 60,
+      "(": 53,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      '${': 37
     },
-    "DEFAULT":  -64,
-    "GOTOS":  {
+    'DEFAULT': -64,
+    'GOTOS': {
+      'expr': 257,
       'sterm': 68,
       'item': 254,
       'param': 255,
       'node': 23,
       'ident': 253,
-      'term': 257,
+      'term': 58,
       'lterm': 56
     }
   },
-  {#State 203
-    "DEFAULT":  -56,
-    "GOTOS":  {
+  {
+    'DEFAULT': -56,
+    'GOTOS': {
       '@1-3': 273
     }
   },
-  {#State 204
-    "ACTIONS":  {
-      "\"": 89,
-      "$": 86,
+  {
+    'ACTIONS': {
+      '"': 89,
+      '$': 86,
       'LITERAL': 88,
       'FILENAME': 83,
       'IDENT': 81,
       'NUMBER': 84
     },
-    "GOTOS":  {
+    'GOTOS': {
       'filepart': 87,
       'names': 91,
       'nameargs': 274,
@@ -2552,14 +2562,14 @@ STATES = [
       'name': 82
     }
   },
-  {#State 205
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'ASSIGN': -132
     },
-    "DEFAULT":  -130
+    'DEFAULT': -130
   },
-  {#State 206
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'SET': 1,
       'PYTHON': 40,
       'NOT': 38,
@@ -2567,7 +2577,7 @@ STATES = [
       'CLEAR': 41,
       'UNLESS': 3,
       'IF': 44,
-      "$": 43,
+      '$': 43,
       'STOP': 6,
       'CALL': 45,
       'THROW': 8,
@@ -2585,10 +2595,10 @@ STATES = [
       'WRAPPER': 55,
       ";": -18,
       'FOR': 21,
-      'NEXT': 22,
       'LITERAL': 57,
+      'NEXT': 22,
+      '"': 60,
       'TEXT': 24,
-      "\"": 60,
       'PROCESS': 61,
       'RETURN': 64,
       'FILTER': 25,
@@ -2601,10 +2611,10 @@ STATES = [
       "{": 30,
       'USE': 32,
       'VIEW': 36,
-      "${": 37
+      '${': 37
     },
-    "DEFAULT":  -3,
-    "GOTOS":  {
+    'DEFAULT': -3,
+    'GOTOS': {
       'item': 39,
       'node': 23,
       'rawpython': 59,
@@ -2638,24 +2648,24 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 207
-    "ACTIONS":  {
-      "\"": 276,
+  {
+    'ACTIONS': {
+      '"': 276,
       'TEXT': 231,
       ";": 233,
-      "$": 43,
+      '$': 43,
       'IDENT': 2,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'item': 39,
       'node': 23,
       'ident': 230,
       'quotable': 232
     }
   },
-  {#State 208
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'SET': 1,
       'PYTHON': 40,
       'NOT': 38,
@@ -2663,7 +2673,7 @@ STATES = [
       'CLEAR': 41,
       'UNLESS': 3,
       'IF': 44,
-      "$": 43,
+      '$': 43,
       'STOP': 6,
       'CALL': 45,
       'THROW': 8,
@@ -2681,10 +2691,10 @@ STATES = [
       'WRAPPER': 55,
       ";": -18,
       'FOR': 21,
-      'NEXT': 22,
       'LITERAL': 57,
+      'NEXT': 22,
+      '"': 60,
       'TEXT': 24,
-      "\"": 60,
       'PROCESS': 61,
       'RETURN': 64,
       'FILTER': 25,
@@ -2697,10 +2707,10 @@ STATES = [
       "{": 30,
       'USE': 32,
       'VIEW': 36,
-      "${": 37
+      '${': 37
     },
-    "DEFAULT":  -3,
-    "GOTOS":  {
+    'DEFAULT': -3,
+    'GOTOS': {
       'item': 39,
       'node': 23,
       'rawpython': 59,
@@ -2734,24 +2744,24 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 209
-    "DEFAULT":  -108
+  {
+    'DEFAULT': -108
   },
-  {#State 210
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'NOT': 38,
       "{": 30,
       'LITERAL': 78,
       'IDENT': 2,
-      "\"": 60,
+      '"': 60,
       "(": 53,
-      "$": 43,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'expr': 278,
       'sterm': 68,
       'item': 39,
@@ -2761,27 +2771,27 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 211
-    "DEFAULT":  -120
+  {
+    'DEFAULT': -120
   },
-  {#State 212
-    "DEFAULT":  -121
+  {
+    'DEFAULT': -121
   },
-  {#State 213
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'NOT': 38,
       "{": 30,
       'LITERAL': 78,
       'IDENT': 2,
-      "\"": 60,
+      '"': 60,
       "(": 53,
-      "$": 43,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'expr': 279,
       'sterm': 68,
       'item': 39,
@@ -2791,41 +2801,44 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 214
-    "DEFAULT":  -74,
-    "GOTOS":  {
+  {
+    'DEFAULT': -74,
+    'GOTOS': {
       '@3-3': 280
     }
   },
-  {#State 215
-    "DEFAULT":  -131
+  {
+    'DEFAULT': -131
   },
-  {#State 216
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
+      'NOT': 38,
       "{": 30,
       'COMMA': 258,
       'LITERAL': 256,
       'IDENT': 2,
-      "\"": 60,
-      "$": 43,
+      '"': 60,
+      "(": 53,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
       ")": 281,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
+      'expr': 257,
       'sterm': 68,
       'item': 254,
       'param': 255,
       'node': 23,
       'ident': 253,
-      'term': 257,
+      'term': 58,
       'lterm': 56
     }
   },
-  {#State 217
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'SET': 1,
       'PYTHON': 40,
       'NOT': 38,
@@ -2833,7 +2846,7 @@ STATES = [
       'CLEAR': 41,
       'UNLESS': 3,
       'IF': 44,
-      "$": 43,
+      '$': 43,
       'STOP': 6,
       'CALL': 45,
       'THROW': 8,
@@ -2851,10 +2864,10 @@ STATES = [
       'WRAPPER': 55,
       ";": -18,
       'FOR': 21,
-      'NEXT': 22,
       'LITERAL': 57,
+      'NEXT': 22,
+      '"': 60,
       'TEXT': 24,
-      "\"": 60,
       'PROCESS': 61,
       'RETURN': 64,
       'FILTER': 25,
@@ -2867,10 +2880,10 @@ STATES = [
       "{": 30,
       'USE': 32,
       'VIEW': 36,
-      "${": 37
+      '${': 37
     },
-    "DEFAULT":  -3,
-    "GOTOS":  {
+    'DEFAULT': -3,
+    'GOTOS': {
       'item': 39,
       'node': 23,
       'rawpython': 59,
@@ -2904,8 +2917,8 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 218
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'SET': 1,
       'PYTHON': 40,
       'NOT': 38,
@@ -2913,7 +2926,7 @@ STATES = [
       'CLEAR': 41,
       'UNLESS': 3,
       'IF': 44,
-      "$": 43,
+      '$': 43,
       'STOP': 6,
       'CALL': 45,
       'THROW': 8,
@@ -2931,10 +2944,10 @@ STATES = [
       'WRAPPER': 55,
       ";": -18,
       'FOR': 21,
-      'NEXT': 22,
       'LITERAL': 57,
+      'NEXT': 22,
+      '"': 60,
       'TEXT': 24,
-      "\"": 60,
       'PROCESS': 61,
       'RETURN': 64,
       'FILTER': 25,
@@ -2947,10 +2960,10 @@ STATES = [
       "{": 30,
       'USE': 32,
       'VIEW': 36,
-      "${": 37
+      '${': 37
     },
-    "DEFAULT":  -3,
-    "GOTOS":  {
+    'DEFAULT': -3,
+    'GOTOS': {
       'item': 39,
       'node': 23,
       'rawpython': 59,
@@ -2984,8 +2997,8 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 219
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'CMPOP': 164,
       "?": 158,
       "+": 157,
@@ -2997,16 +3010,16 @@ STATES = [
       'BINOP': 161,
       'OR': 162
     },
-    "DEFAULT":  -47
+    'DEFAULT': -47
   },
-  {#State 220
-    "DEFAULT":  -58
+  {
+    'DEFAULT': -58
   },
-  {#State 221
-    "DEFAULT":  -81
+  {
+    'DEFAULT': -81
   },
-  {#State 222
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'CMPOP': 164,
       "?": 158,
       "+": 157,
@@ -3018,13 +3031,13 @@ STATES = [
       'BINOP': 161,
       'OR': 162
     },
-    "DEFAULT":  -45
+    'DEFAULT': -45
   },
-  {#State 223
-    "DEFAULT":  -66
+  {
+    'DEFAULT': -66
   },
-  {#State 224
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'CMPOP': 164,
       "?": 158,
       "+": 157,
@@ -3036,16 +3049,16 @@ STATES = [
       'BINOP': 161,
       'OR': 162
     },
-    "DEFAULT":  -61
+    'DEFAULT': -61
   },
-  {#State 225
-    "DEFAULT":  -144
+  {
+    'DEFAULT': -144
   },
-  {#State 226
-    "DEFAULT":  -145
+  {
+    'DEFAULT': -145
   },
-  {#State 227
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'SET': 1,
       'PYTHON': 40,
       'NOT': 38,
@@ -3053,7 +3066,7 @@ STATES = [
       'CLEAR': 41,
       'UNLESS': 3,
       'IF': 44,
-      "$": 43,
+      '$': 43,
       'STOP': 6,
       'CALL': 45,
       'THROW': 8,
@@ -3071,10 +3084,10 @@ STATES = [
       'WRAPPER': 55,
       ";": -18,
       'FOR': 21,
-      'NEXT': 22,
       'LITERAL': 57,
+      'NEXT': 22,
+      '"': 60,
       'TEXT': 24,
-      "\"": 60,
       'PROCESS': 61,
       'RETURN': 64,
       'FILTER': 25,
@@ -3087,10 +3100,10 @@ STATES = [
       "{": 30,
       'USE': 32,
       'VIEW': 36,
-      "${": 37
+      '${': 37
     },
-    "DEFAULT":  -3,
-    "GOTOS":  {
+    'DEFAULT': -3,
+    'GOTOS': {
       'item': 39,
       'node': 23,
       'rawpython': 59,
@@ -3124,8 +3137,8 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 228
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'SET': 1,
       'PYTHON': 40,
       'NOT': 38,
@@ -3133,7 +3146,7 @@ STATES = [
       'CLEAR': 41,
       'UNLESS': 3,
       'IF': 44,
-      "$": 43,
+      '$': 43,
       'STOP': 6,
       'CALL': 45,
       'THROW': 8,
@@ -3151,10 +3164,10 @@ STATES = [
       'WRAPPER': 55,
       ";": -18,
       'FOR': 21,
-      'NEXT': 22,
       'LITERAL': 57,
+      'NEXT': 22,
+      '"': 60,
       'TEXT': 24,
-      "\"": 60,
       'PROCESS': 61,
       'RETURN': 64,
       'FILTER': 25,
@@ -3167,10 +3180,10 @@ STATES = [
       "{": 30,
       'USE': 32,
       'VIEW': 36,
-      "${": 37
+      '${': 37
     },
-    "DEFAULT":  -3,
-    "GOTOS":  {
+    'DEFAULT': -3,
+    'GOTOS': {
       'item': 39,
       'node': 23,
       'rawpython': 59,
@@ -3204,8 +3217,8 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 229
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       "+": 157,
       'CAT': 163,
       'CMPOP': 164,
@@ -3217,36 +3230,36 @@ STATES = [
       'BINOP': 161,
       'OR': 162
     },
-    "DEFAULT":  -151
+    'DEFAULT': -151
   },
-  {#State 230
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'DOT': 104
     },
-    "DEFAULT":  -177
+    'DEFAULT': -177
   },
-  {#State 231
-    "DEFAULT":  -178
+  {
+    'DEFAULT': -178
   },
-  {#State 232
-    "DEFAULT":  -175
+  {
+    'DEFAULT': -175
   },
-  {#State 233
-    "DEFAULT":  -179
+  {
+    'DEFAULT': -179
   },
-  {#State 234
-    "DEFAULT":  -111
+  {
+    'DEFAULT': -111
   },
-  {#State 235
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'DIV': 159,
       'MOD': 165,
       "/": 166
     },
-    "DEFAULT":  -135
+    'DEFAULT': -135
   },
-  {#State 236
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       ":": 286,
       'CMPOP': 164,
       "?": 158,
@@ -3260,84 +3273,84 @@ STATES = [
       'OR': 162
     }
   },
-  {#State 237
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'MOD': 165
     },
-    "DEFAULT":  -136
+    'DEFAULT': -136
   },
-  {#State 238
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
+      'DIV': 159,
+      'BINOP': 161,
       "+": 157,
       'CAT': 163,
       'CMPOP': 164,
-      'DIV': 159,
-      'MOD': 165,
-      "/": 166,
-      'BINOP': 161
-    },
-    "DEFAULT":  -140
-  },
-  {#State 239
-    "ACTIONS":  {
-      "+": 157,
-      'DIV': 159,
       'MOD': 165,
       "/": 166
     },
-    "DEFAULT":  -133
+    'DEFAULT': -140
   },
-  {#State 240
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
+      'DIV': 159,
+      "+": 157,
+      'MOD': 165,
+      "/": 166
+    },
+    'DEFAULT': -133
+  },
+  {
+    'ACTIONS': {
+      'DIV': 159,
+      'BINOP': 161,
       "+": 157,
       'CAT': 163,
       'CMPOP': 164,
-      'DIV': 159,
       'MOD': 165,
-      "/": 166,
-      'BINOP': 161
+      "/": 166
     },
-    "DEFAULT":  -141
+    'DEFAULT': -141
   },
-  {#State 241
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
+      'DIV': 159,
+      'BINOP': 161,
       "+": 157,
       'CMPOP': 164,
-      'DIV': 159,
       'MOD': 165,
-      "/": 166,
-      'BINOP': 161
+      "/": 166
     },
-    "DEFAULT":  -139
+    'DEFAULT': -139
   },
-  {#State 242
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
+      'DIV': 159,
+      'BINOP': 161,
       "+": 157,
-      'DIV': 159,
       'MOD': 165,
-      "/": 166,
-      'BINOP': 161
+      "/": 166
     },
-    "DEFAULT":  -138
+    'DEFAULT': -138
   },
-  {#State 243
-    "DEFAULT":  -137
+  {
+    'DEFAULT': -137
   },
-  {#State 244
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'DIV': 159,
       'MOD': 165
     },
-    "DEFAULT":  -134
+    'DEFAULT': -134
   },
-  {#State 245
-    "DEFAULT":  -59,
-    "GOTOS":  {
+  {
+    'DEFAULT': -59,
+    'GOTOS': {
       '@2-3': 287
     }
   },
-  {#State 246
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       "+": 157,
       'CAT': 163,
       'CMPOP': 164,
@@ -3349,153 +3362,171 @@ STATES = [
       'BINOP': 161,
       'OR': 162
     },
-    "DEFAULT":  -150
+    'DEFAULT': -150
   },
-  {#State 247
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'ELSIF': 290,
       'ELSE': 288
     },
-    "DEFAULT":  -50,
-    "GOTOS":  {
+    'DEFAULT': -50,
+    'GOTOS': {
       'else': 289
     }
   },
-  {#State 248
-    "DEFAULT":  -170
+  {
+    'DEFAULT': -170
   },
-  {#State 249
-    "ACTIONS":  {
-      "{": 30,
-      'COMMA': 258,
+  {
+    'ACTIONS': {
+      'NOT': 38,
       'LITERAL': 256,
       'IDENT': 2,
-      "\"": 60,
-      "$": 43,
+      '"': 60,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      "{": 30,
+      'COMMA': 258,
+      "(": 53,
+      '${': 37
     },
-    "DEFAULT":  -162,
-    "GOTOS":  {
+    'DEFAULT': -162,
+    'GOTOS': {
+      'expr': 257,
       'sterm': 68,
       'item': 254,
       'param': 255,
       'node': 23,
       'ident': 253,
-      'term': 257,
+      'term': 58,
       'lterm': 56
     }
   },
-  {#State 250
-    "DEFAULT":  -167
+  {
+    'DEFAULT': -167
   },
-  {#State 251
-    "DEFAULT":  -165
+  {
+    'DEFAULT': -165
   },
-  {#State 252
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
+      'NOT': 38,
       "{": 30,
       'COMMA': 258,
       'LITERAL': 256,
       'IDENT': 2,
-      "\"": 60,
-      "$": 43,
+      '"': 60,
+      "(": 53,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
       ")": 291,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
+      'expr': 257,
       'sterm': 68,
       'item': 254,
       'param': 255,
       'node': 23,
       'ident': 253,
-      'term': 257,
+      'term': 58,
       'lterm': 56
     }
   },
-  {#State 253
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'DOT': 104,
       'ASSIGN': 292
     },
-    "DEFAULT":  -109
+    'DEFAULT': -109
   },
-  {#State 254
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       "(": 135,
       'ASSIGN': 210
     },
-    "DEFAULT":  -128
+    'DEFAULT': -128
   },
-  {#State 255
-    "DEFAULT":  -153
+  {
+    'DEFAULT': -153
   },
-  {#State 256
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'ASSIGN': 213
     },
-    "DEFAULT":  -112
+    'DEFAULT': -112
   },
-  {#State 257
-    "DEFAULT":  -152
+  {
+    'ACTIONS': {
+      "+": 157,
+      'CAT': 163,
+      'CMPOP': 164,
+      "?": 158,
+      'DIV': 159,
+      'MOD': 165,
+      "/": 166,
+      'AND': 160,
+      'BINOP': 161,
+      'OR': 162
+    },
+    'DEFAULT': -152
   },
-  {#State 258
-    "DEFAULT":  -155
+  {
+    'DEFAULT': -155
   },
-  {#State 259
-    "DEFAULT":  -117
+  {
+    'DEFAULT': -117
   },
-  {#State 260
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       ";": 293
     }
   },
-  {#State 261
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'END': 294
     }
   },
-  {#State 262
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       ";": 296,
       'DEFAULT': 297,
       'FILENAME': 83,
       'IDENT': 81,
       'NUMBER': 84
     },
-    "GOTOS":  {
+    'GOTOS': {
       'filepart': 87,
       'filename': 295
     }
   },
-  {#State 263
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'END': 298
     }
   },
-  {#State 264
-    "DEFAULT":  -102
+  {
+    'DEFAULT': -102
   },
-  {#State 265
-    "DEFAULT":  -100
+  {
+    'DEFAULT': -100
   },
-  {#State 266
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'TEXT': 299
     }
   },
-  {#State 267
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'END': 300
     }
   },
-  {#State 268
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'SET': 1,
       'PYTHON': 40,
       'NOT': 38,
@@ -3503,7 +3534,7 @@ STATES = [
       'CLEAR': 41,
       'UNLESS': 3,
       'IF': 44,
-      "$": 43,
+      '$': 43,
       'STOP': 6,
       'CALL': 45,
       'THROW': 8,
@@ -3521,10 +3552,10 @@ STATES = [
       'WRAPPER': 55,
       ";": -18,
       'FOR': 21,
-      'NEXT': 22,
       'LITERAL': 57,
+      'NEXT': 22,
+      '"': 60,
       'TEXT': 24,
-      "\"": 60,
       'PROCESS': 61,
       'RETURN': 64,
       'FILTER': 25,
@@ -3537,10 +3568,10 @@ STATES = [
       "{": 30,
       'USE': 32,
       'VIEW': 36,
-      "${": 37
+      '${': 37
     },
-    "DEFAULT":  -3,
-    "GOTOS":  {
+    'DEFAULT': -3,
+    'GOTOS': {
       'item': 39,
       'node': 23,
       'rawpython': 59,
@@ -3574,35 +3605,35 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 269
-    "ACTIONS":  {
-      'COMMA': -96,
+  {
+    'ACTIONS': {
       'IDENT': -96,
-      ")": -96
+      ")": -96,
+      'COMMA': -96
     },
-    "DEFAULT":  -130
+    'DEFAULT': -130
   },
-  {#State 270
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'COMMA': 304,
       'IDENT': 302,
       ")": 303
     }
   },
-  {#State 271
-    "DEFAULT":  -156,
-    "GOTOS":  {
+  {
+    'DEFAULT': -156,
+    'GOTOS': {
       'args': 305
     }
   },
-  {#State 272
-    "DEFAULT":  -156,
-    "GOTOS":  {
+  {
+    'DEFAULT': -156,
+    'GOTOS': {
       'args': 306
     }
   },
-  {#State 273
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'SET': 1,
       'PYTHON': 40,
       'NOT': 38,
@@ -3610,7 +3641,7 @@ STATES = [
       'CLEAR': 41,
       'UNLESS': 3,
       'IF': 44,
-      "$": 43,
+      '$': 43,
       'STOP': 6,
       'CALL': 45,
       'THROW': 8,
@@ -3628,10 +3659,10 @@ STATES = [
       'WRAPPER': 55,
       ";": -18,
       'FOR': 21,
-      'NEXT': 22,
       'LITERAL': 57,
+      'NEXT': 22,
+      '"': 60,
       'TEXT': 24,
-      "\"": 60,
       'PROCESS': 61,
       'RETURN': 64,
       'FILTER': 25,
@@ -3644,10 +3675,10 @@ STATES = [
       "{": 30,
       'USE': 32,
       'VIEW': 36,
-      "${": 37
+      '${': 37
     },
-    "DEFAULT":  -3,
-    "GOTOS":  {
+    'DEFAULT': -3,
+    'GOTOS': {
       'item': 39,
       'node': 23,
       'rawpython': 59,
@@ -3681,57 +3712,57 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 274
-    "DEFAULT":  -157
+  {
+    'DEFAULT': -157
   },
-  {#State 275
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'END': 308
     }
   },
-  {#State 276
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'ASSIGN': -160
     },
-    "DEFAULT":  -167
+    'DEFAULT': -167
   },
-  {#State 277
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'END': 309
     }
   },
-  {#State 278
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
+      'DIV': 159,
+      'AND': 160,
+      'BINOP': 161,
+      'OR': 162,
       "+": 157,
       'CAT': 163,
       'CMPOP': 164,
       "?": 158,
-      'DIV': 159,
       'MOD': 165,
-      "/": 166,
+      "/": 166
+    },
+    'DEFAULT': -124
+  },
+  {
+    'ACTIONS': {
+      'DIV': 159,
       'AND': 160,
       'BINOP': 161,
-      'OR': 162
-    },
-    "DEFAULT":  -124
-  },
-  {#State 279
-    "ACTIONS":  {
+      'OR': 162,
       "+": 157,
       'CAT': 163,
       'CMPOP': 164,
       "?": 158,
-      'DIV': 159,
       'MOD': 165,
-      "/": 166,
-      'AND': 160,
-      'BINOP': 161,
-      'OR': 162
+      "/": 166
     },
-    "DEFAULT":  -123
+    'DEFAULT': -123
   },
-  {#State 280
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'SET': 1,
       'PYTHON': 40,
       'NOT': 38,
@@ -3739,7 +3770,7 @@ STATES = [
       'CLEAR': 41,
       'UNLESS': 3,
       'IF': 44,
-      "$": 43,
+      '$': 43,
       'STOP': 6,
       'CALL': 45,
       'THROW': 8,
@@ -3757,10 +3788,10 @@ STATES = [
       'WRAPPER': 55,
       ";": -18,
       'FOR': 21,
-      'NEXT': 22,
       'LITERAL': 57,
+      'NEXT': 22,
+      '"': 60,
       'TEXT': 24,
-      "\"": 60,
       'PROCESS': 61,
       'RETURN': 64,
       'FILTER': 25,
@@ -3773,10 +3804,10 @@ STATES = [
       "{": 30,
       'USE': 32,
       'VIEW': 36,
-      "${": 37
+      '${': 37
     },
-    "DEFAULT":  -3,
-    "GOTOS":  {
+    'DEFAULT': -3,
+    'GOTOS': {
       'item': 39,
       'node': 23,
       'rawpython': 59,
@@ -3810,53 +3841,53 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 281
-    "DEFAULT":  -129
+  {
+    'DEFAULT': -129
   },
-  {#State 282
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'END': 311
     }
   },
-  {#State 283
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'ELSIF': 290,
       'ELSE': 288
     },
-    "DEFAULT":  -50,
-    "GOTOS":  {
+    'DEFAULT': -50,
+    'GOTOS': {
       'else': 312
     }
   },
-  {#State 284
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'CASE': 313
     },
-    "DEFAULT":  -55,
-    "GOTOS":  {
+    'DEFAULT': -55,
+    'GOTOS': {
       'case': 314
     }
   },
-  {#State 285
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'END': 315
     }
   },
-  {#State 286
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'NOT': 38,
       "{": 30,
       'LITERAL': 78,
       'IDENT': 2,
-      "\"": 60,
+      '"': 60,
       "(": 53,
-      "$": 43,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'expr': 316,
       'sterm': 68,
       'item': 39,
@@ -3866,8 +3897,8 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 287
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'SET': 1,
       'PYTHON': 40,
       'NOT': 38,
@@ -3875,7 +3906,7 @@ STATES = [
       'CLEAR': 41,
       'UNLESS': 3,
       'IF': 44,
-      "$": 43,
+      '$': 43,
       'STOP': 6,
       'CALL': 45,
       'THROW': 8,
@@ -3893,10 +3924,10 @@ STATES = [
       'WRAPPER': 55,
       ";": -18,
       'FOR': 21,
-      'NEXT': 22,
       'LITERAL': 57,
+      'NEXT': 22,
+      '"': 60,
       'TEXT': 24,
-      "\"": 60,
       'PROCESS': 61,
       'RETURN': 64,
       'FILTER': 25,
@@ -3909,10 +3940,10 @@ STATES = [
       "{": 30,
       'USE': 32,
       'VIEW': 36,
-      "${": 37
+      '${': 37
     },
-    "DEFAULT":  -3,
-    "GOTOS":  {
+    'DEFAULT': -3,
+    'GOTOS': {
       'item': 39,
       'node': 23,
       'rawpython': 59,
@@ -3946,31 +3977,31 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 288
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       ";": 318
     }
   },
-  {#State 289
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'END': 319
     }
   },
-  {#State 290
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'NOT': 38,
       "{": 30,
       'LITERAL': 78,
       'IDENT': 2,
-      "\"": 60,
+      '"': 60,
       "(": 53,
-      "$": 43,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'expr': 320,
       'sterm': 68,
       'item': 39,
@@ -3980,24 +4011,24 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 291
-    "DEFAULT":  -164
+  {
+    'DEFAULT': -164
   },
-  {#State 292
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'NOT': 38,
       "{": 30,
       'LITERAL': 78,
       'IDENT': 2,
-      "\"": 60,
+      '"': 60,
       "(": 53,
-      "$": 43,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'expr': 321,
       'sterm': 68,
       'item': 39,
@@ -4007,8 +4038,8 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 293
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'SET': 1,
       'PYTHON': 40,
       'NOT': 38,
@@ -4016,7 +4047,7 @@ STATES = [
       'CLEAR': 41,
       'UNLESS': 3,
       'IF': 44,
-      "$": 43,
+      '$': 43,
       'STOP': 6,
       'CALL': 45,
       'THROW': 8,
@@ -4034,10 +4065,10 @@ STATES = [
       'WRAPPER': 55,
       ";": -18,
       'FOR': 21,
-      'NEXT': 22,
       'LITERAL': 57,
+      'NEXT': 22,
+      '"': 60,
       'TEXT': 24,
-      "\"": 60,
       'PROCESS': 61,
       'RETURN': 64,
       'FILTER': 25,
@@ -4050,10 +4081,10 @@ STATES = [
       "{": 30,
       'USE': 32,
       'VIEW': 36,
-      "${": 37
+      '${': 37
     },
-    "DEFAULT":  -3,
-    "GOTOS":  {
+    'DEFAULT': -3,
+    'GOTOS': {
       'item': 39,
       'node': 23,
       'rawpython': 59,
@@ -4087,17 +4118,17 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 294
-    "DEFAULT":  -67
+  {
+    'DEFAULT': -67
   },
-  {#State 295
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'DOT': 174,
       ";": 323
     }
   },
-  {#State 296
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'SET': 1,
       'PYTHON': 40,
       'NOT': 38,
@@ -4105,7 +4136,7 @@ STATES = [
       'CLEAR': 41,
       'UNLESS': 3,
       'IF': 44,
-      "$": 43,
+      '$': 43,
       'STOP': 6,
       'CALL': 45,
       'THROW': 8,
@@ -4123,10 +4154,10 @@ STATES = [
       'WRAPPER': 55,
       ";": -18,
       'FOR': 21,
-      'NEXT': 22,
       'LITERAL': 57,
+      'NEXT': 22,
+      '"': 60,
       'TEXT': 24,
-      "\"": 60,
       'PROCESS': 61,
       'RETURN': 64,
       'FILTER': 25,
@@ -4139,10 +4170,10 @@ STATES = [
       "{": 30,
       'USE': 32,
       'VIEW': 36,
-      "${": 37
+      '${': 37
     },
-    "DEFAULT":  -3,
-    "GOTOS":  {
+    'DEFAULT': -3,
+    'GOTOS': {
       'item': 39,
       'node': 23,
       'rawpython': 59,
@@ -4176,32 +4207,32 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 297
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       ";": 325
     }
   },
-  {#State 298
-    "DEFAULT":  -79
+  {
+    'DEFAULT': -79
   },
-  {#State 299
-    "ACTIONS":  {
-      "\"": 326
+  {
+    'ACTIONS': {
+      '"': 326
     }
   },
-  {#State 300
-    "DEFAULT":  -82
+  {
+    'DEFAULT': -82
   },
-  {#State 301
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'END': 327
     }
   },
-  {#State 302
-    "DEFAULT":  -94
+  {
+    'DEFAULT': -94
   },
-  {#State 303
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'SET': 1,
       'PYTHON': 40,
       'NOT': 38,
@@ -4209,7 +4240,7 @@ STATES = [
       'CLEAR': 41,
       'UNLESS': 3,
       'IF': 44,
-      "$": 43,
+      '$': 43,
       'STOP': 6,
       'CALL': 45,
       'THROW': 8,
@@ -4225,7 +4256,7 @@ STATES = [
       'FOR': 21,
       'NEXT': 22,
       'LITERAL': 57,
-      "\"": 60,
+      '"': 60,
       'PROCESS': 61,
       'FILTER': 25,
       'RETURN': 64,
@@ -4236,9 +4267,9 @@ STATES = [
       'BLOCK': 193,
       'DEFAULT': 69,
       "{": 30,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'item': 39,
       'node': 23,
       'term': 58,
@@ -4248,109 +4279,115 @@ STATES = [
       'atomexpr': 48,
       'atomdir': 12,
       'mdir': 328,
-      'sterm': 68,
       'filter': 29,
+      'sterm': 68,
       'ident': 149,
       'python': 31,
       'setlist': 70,
-      'switch': 34,
       'try': 35,
+      'switch': 34,
       'assign': 19,
       'directive': 196,
       'condition': 73,
       'lterm': 56
     }
   },
-  {#State 304
-    "DEFAULT":  -95
+  {
+    'DEFAULT': -95
   },
-  {#State 305
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
+      'NOT': 38,
       "{": 30,
       'COMMA': 258,
       'LITERAL': 256,
       'IDENT': 2,
-      "\"": 60,
-      "$": 43,
+      '"': 60,
+      "(": 53,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      '${': 37
     },
-    "DEFAULT":  -62,
-    "GOTOS":  {
+    'DEFAULT': -62,
+    'GOTOS': {
+      'expr': 257,
       'sterm': 68,
       'item': 254,
       'param': 255,
       'node': 23,
       'ident': 253,
-      'term': 257,
+      'term': 58,
       'lterm': 56
     }
   },
-  {#State 306
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
+      'NOT': 38,
       "{": 30,
       'COMMA': 258,
       'LITERAL': 256,
       'IDENT': 2,
-      "\"": 60,
-      "$": 43,
+      '"': 60,
+      "(": 53,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      '${': 37
     },
-    "DEFAULT":  -63,
-    "GOTOS":  {
+    'DEFAULT': -63,
+    'GOTOS': {
+      'expr': 257,
       'sterm': 68,
       'item': 254,
       'param': 255,
       'node': 23,
       'ident': 253,
-      'term': 257,
+      'term': 58,
       'lterm': 56
     }
   },
-  {#State 307
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'END': 329
     }
   },
-  {#State 308
-    "DEFAULT":  -80
+  {
+    'DEFAULT': -80
   },
-  {#State 309
-    "DEFAULT":  -88
+  {
+    'DEFAULT': -88
   },
-  {#State 310
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'END': 330
     }
   },
-  {#State 311
-    "DEFAULT":  -77
+  {
+    'DEFAULT': -77
   },
-  {#State 312
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'END': 331
     }
   },
-  {#State 313
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       ";": 332,
       'DEFAULT': 334,
       "{": 30,
       'LITERAL': 78,
       'IDENT': 2,
-      "\"": 60,
-      "$": 43,
+      '"': 60,
+      '$': 43,
       "[": 9,
       'NUMBER': 26,
       'REF': 27,
-      "${": 37
+      '${': 37
     },
-    "GOTOS":  {
+    'GOTOS': {
       'sterm': 68,
       'item': 39,
       'node': 23,
@@ -4359,36 +4396,36 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 314
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'END': 335
     }
   },
-  {#State 315
-    "DEFAULT":  -65
+  {
+    'DEFAULT': -65
   },
-  {#State 316
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
+      'DIV': 159,
+      'AND': 160,
+      'BINOP': 161,
+      'OR': 162,
       "+": 157,
       'CAT': 163,
       'CMPOP': 164,
       "?": 158,
-      'DIV': 159,
       'MOD': 165,
-      "/": 166,
-      'AND': 160,
-      'BINOP': 161,
-      'OR': 162
+      "/": 166
     },
-    "DEFAULT":  -143
+    'DEFAULT': -143
   },
-  {#State 317
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'END': 336
     }
   },
-  {#State 318
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'SET': 1,
       'PYTHON': 40,
       'NOT': 38,
@@ -4396,7 +4433,7 @@ STATES = [
       'CLEAR': 41,
       'UNLESS': 3,
       'IF': 44,
-      "$": 43,
+      '$': 43,
       'STOP': 6,
       'CALL': 45,
       'THROW': 8,
@@ -4414,10 +4451,10 @@ STATES = [
       'WRAPPER': 55,
       ";": -18,
       'FOR': 21,
-      'NEXT': 22,
       'LITERAL': 57,
+      'NEXT': 22,
+      '"': 60,
       'TEXT': 24,
-      "\"": 60,
       'PROCESS': 61,
       'RETURN': 64,
       'FILTER': 25,
@@ -4430,10 +4467,10 @@ STATES = [
       "{": 30,
       'USE': 32,
       'VIEW': 36,
-      "${": 37
+      '${': 37
     },
-    "DEFAULT":  -3,
-    "GOTOS":  {
+    'DEFAULT': -3,
+    'GOTOS': {
       'item': 39,
       'node': 23,
       'rawpython': 59,
@@ -4467,11 +4504,11 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 319
-    "DEFAULT":  -46
+  {
+    'DEFAULT': -46
   },
-  {#State 320
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'CMPOP': 164,
       "?": 158,
       ";": 338,
@@ -4485,8 +4522,8 @@ STATES = [
       'OR': 162
     }
   },
-  {#State 321
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       "+": 157,
       'CAT': 163,
       'CMPOP': 164,
@@ -4498,13 +4535,13 @@ STATES = [
       'BINOP': 161,
       'OR': 162
     },
-    "DEFAULT":  -154
+    'DEFAULT': -154
   },
-  {#State 322
-    "DEFAULT":  -71
+  {
+    'DEFAULT': -71
   },
-  {#State 323
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'SET': 1,
       'PYTHON': 40,
       'NOT': 38,
@@ -4512,7 +4549,7 @@ STATES = [
       'CLEAR': 41,
       'UNLESS': 3,
       'IF': 44,
-      "$": 43,
+      '$': 43,
       'STOP': 6,
       'CALL': 45,
       'THROW': 8,
@@ -4530,10 +4567,10 @@ STATES = [
       'WRAPPER': 55,
       ";": -18,
       'FOR': 21,
-      'NEXT': 22,
       'LITERAL': 57,
+      'NEXT': 22,
+      '"': 60,
       'TEXT': 24,
-      "\"": 60,
       'PROCESS': 61,
       'RETURN': 64,
       'FILTER': 25,
@@ -4546,10 +4583,10 @@ STATES = [
       "{": 30,
       'USE': 32,
       'VIEW': 36,
-      "${": 37
+      '${': 37
     },
-    "DEFAULT":  -3,
-    "GOTOS":  {
+    'DEFAULT': -3,
+    'GOTOS': {
       'item': 39,
       'node': 23,
       'rawpython': 59,
@@ -4583,18 +4620,18 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 324
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'FINAL': 260,
       'CATCH': 262
     },
-    "DEFAULT":  -72,
-    "GOTOS":  {
+    'DEFAULT': -72,
+    'GOTOS': {
       'final': 340
     }
   },
-  {#State 325
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'SET': 1,
       'PYTHON': 40,
       'NOT': 38,
@@ -4602,7 +4639,7 @@ STATES = [
       'CLEAR': 41,
       'UNLESS': 3,
       'IF': 44,
-      "$": 43,
+      '$': 43,
       'STOP': 6,
       'CALL': 45,
       'THROW': 8,
@@ -4620,10 +4657,10 @@ STATES = [
       'WRAPPER': 55,
       ";": -18,
       'FOR': 21,
-      'NEXT': 22,
       'LITERAL': 57,
+      'NEXT': 22,
+      '"': 60,
       'TEXT': 24,
-      "\"": 60,
       'PROCESS': 61,
       'RETURN': 64,
       'FILTER': 25,
@@ -4636,10 +4673,10 @@ STATES = [
       "{": 30,
       'USE': 32,
       'VIEW': 36,
-      "${": 37
+      '${': 37
     },
-    "DEFAULT":  -3,
-    "GOTOS":  {
+    'DEFAULT': -3,
+    'GOTOS': {
       'item': 39,
       'node': 23,
       'rawpython': 59,
@@ -4673,26 +4710,26 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 326
-    "DEFAULT":  -101
+  {
+    'DEFAULT': -101
   },
-  {#State 327
-    "DEFAULT":  -93
+  {
+    'DEFAULT': -93
   },
-  {#State 328
-    "DEFAULT":  -90
+  {
+    'DEFAULT': -90
   },
-  {#State 329
-    "DEFAULT":  -57
+  {
+    'DEFAULT': -57
   },
-  {#State 330
-    "DEFAULT":  -75
+  {
+    'DEFAULT': -75
   },
-  {#State 331
-    "DEFAULT":  -44
+  {
+    'DEFAULT': -44
   },
-  {#State 332
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'SET': 1,
       'PYTHON': 40,
       'NOT': 38,
@@ -4700,7 +4737,7 @@ STATES = [
       'CLEAR': 41,
       'UNLESS': 3,
       'IF': 44,
-      "$": 43,
+      '$': 43,
       'STOP': 6,
       'CALL': 45,
       'THROW': 8,
@@ -4718,10 +4755,10 @@ STATES = [
       'WRAPPER': 55,
       ";": -18,
       'FOR': 21,
-      'NEXT': 22,
       'LITERAL': 57,
+      'NEXT': 22,
+      '"': 60,
       'TEXT': 24,
-      "\"": 60,
       'PROCESS': 61,
       'RETURN': 64,
       'FILTER': 25,
@@ -4734,10 +4771,10 @@ STATES = [
       "{": 30,
       'USE': 32,
       'VIEW': 36,
-      "${": 37
+      '${': 37
     },
-    "DEFAULT":  -3,
-    "GOTOS":  {
+    'DEFAULT': -3,
+    'GOTOS': {
       'item': 39,
       'node': 23,
       'rawpython': 59,
@@ -4771,27 +4808,27 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 333
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       ";": 343
     }
   },
-  {#State 334
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       ";": 344
     }
   },
-  {#State 335
-    "DEFAULT":  -51
+  {
+    'DEFAULT': -51
   },
-  {#State 336
-    "DEFAULT":  -60
+  {
+    'DEFAULT': -60
   },
-  {#State 337
-    "DEFAULT":  -49
+  {
+    'DEFAULT': -49
   },
-  {#State 338
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'SET': 1,
       'PYTHON': 40,
       'NOT': 38,
@@ -4799,7 +4836,7 @@ STATES = [
       'CLEAR': 41,
       'UNLESS': 3,
       'IF': 44,
-      "$": 43,
+      '$': 43,
       'STOP': 6,
       'CALL': 45,
       'THROW': 8,
@@ -4817,10 +4854,10 @@ STATES = [
       'WRAPPER': 55,
       ";": -18,
       'FOR': 21,
-      'NEXT': 22,
       'LITERAL': 57,
+      'NEXT': 22,
+      '"': 60,
       'TEXT': 24,
-      "\"": 60,
       'PROCESS': 61,
       'RETURN': 64,
       'FILTER': 25,
@@ -4833,10 +4870,10 @@ STATES = [
       "{": 30,
       'USE': 32,
       'VIEW': 36,
-      "${": 37
+      '${': 37
     },
-    "DEFAULT":  -3,
-    "GOTOS":  {
+    'DEFAULT': -3,
+    'GOTOS': {
       'item': 39,
       'node': 23,
       'rawpython': 59,
@@ -4870,34 +4907,34 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 339
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'FINAL': 260,
       'CATCH': 262
     },
-    "DEFAULT":  -72,
-    "GOTOS":  {
+    'DEFAULT': -72,
+    'GOTOS': {
       'final': 346
     }
   },
-  {#State 340
-    "DEFAULT":  -70
+  {
+    'DEFAULT': -70
   },
-  {#State 341
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'FINAL': 260,
       'CATCH': 262
     },
-    "DEFAULT":  -72,
-    "GOTOS":  {
+    'DEFAULT': -72,
+    'GOTOS': {
       'final': 347
     }
   },
-  {#State 342
-    "DEFAULT":  -54
+  {
+    'DEFAULT': -54
   },
-  {#State 343
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'SET': 1,
       'PYTHON': 40,
       'NOT': 38,
@@ -4905,7 +4942,7 @@ STATES = [
       'CLEAR': 41,
       'UNLESS': 3,
       'IF': 44,
-      "$": 43,
+      '$': 43,
       'STOP': 6,
       'CALL': 45,
       'THROW': 8,
@@ -4923,10 +4960,10 @@ STATES = [
       'WRAPPER': 55,
       ";": -18,
       'FOR': 21,
-      'NEXT': 22,
       'LITERAL': 57,
+      'NEXT': 22,
+      '"': 60,
       'TEXT': 24,
-      "\"": 60,
       'PROCESS': 61,
       'RETURN': 64,
       'FILTER': 25,
@@ -4939,10 +4976,10 @@ STATES = [
       "{": 30,
       'USE': 32,
       'VIEW': 36,
-      "${": 37
+      '${': 37
     },
-    "DEFAULT":  -3,
-    "GOTOS":  {
+    'DEFAULT': -3,
+    'GOTOS': {
       'item': 39,
       'node': 23,
       'rawpython': 59,
@@ -4976,8 +5013,8 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 344
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'SET': 1,
       'PYTHON': 40,
       'NOT': 38,
@@ -4985,7 +5022,7 @@ STATES = [
       'CLEAR': 41,
       'UNLESS': 3,
       'IF': 44,
-      "$": 43,
+      '$': 43,
       'STOP': 6,
       'CALL': 45,
       'THROW': 8,
@@ -5003,10 +5040,10 @@ STATES = [
       'WRAPPER': 55,
       ";": -18,
       'FOR': 21,
-      'NEXT': 22,
       'LITERAL': 57,
+      'NEXT': 22,
+      '"': 60,
       'TEXT': 24,
-      "\"": 60,
       'PROCESS': 61,
       'RETURN': 64,
       'FILTER': 25,
@@ -5019,10 +5056,10 @@ STATES = [
       "{": 30,
       'USE': 32,
       'VIEW': 36,
-      "${": 37
+      '${': 37
     },
-    "DEFAULT":  -3,
-    "GOTOS":  {
+    'DEFAULT': -3,
+    'GOTOS': {
       'item': 39,
       'node': 23,
       'rawpython': 59,
@@ -5056,96 +5093,132 @@ STATES = [
       'lterm': 56
     }
   },
-  {#State 345
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'ELSIF': 290,
       'ELSE': 288
     },
-    "DEFAULT":  -50,
-    "GOTOS":  {
+    'DEFAULT': -50,
+    'GOTOS': {
       'else': 350
     }
   },
-  {#State 346
-    "DEFAULT":  -68
+  {
+    'DEFAULT': -68
   },
-  {#State 347
-    "DEFAULT":  -69
+  {
+    'DEFAULT': -69
   },
-  {#State 348
-    "ACTIONS":  {
+  {
+    'ACTIONS': {
       'CASE': 313
     },
-    "DEFAULT":  -55,
-    "GOTOS":  {
+    'DEFAULT': -55,
+    'GOTOS': {
       'case': 351
     }
   },
-  {#State 349
-    "DEFAULT":  -53
+  {
+    'DEFAULT': -53
   },
-  {#State 350
-    "DEFAULT":  -48
+  {
+    'DEFAULT': -48
   },
-  {#State 351
-    "DEFAULT":  -52
+  {
+    'DEFAULT': -52
   }
 ];
 
+RULES = [None] * 180
 
-RULES = {
-  0: ("$start", 2, None),
-  8: ("statement", 1, None),
-  9: ("statement", 1, None),
-  10: ("statement", 1, None),
-  11: ("statement", 1, None),
-  12: ("statement", 1, None),
-  13: ("statement", 1, None),
-  14: ("statement", 1, None),
-  15: ("statement", 1, None),
-  18: ("statement", 0, None),
-  20: ("directive", 1, None),
-  21: ("directive", 1, None),
-  22: ("directive", 1, None),
-  23: ("directive", 1, None),
-  24: ("directive", 1, None),
-  25: ("directive", 1, None),
-  27: ("atomexpr", 1, None),
-  42: ("atomdir", 1, None),
-  43: ("atomdir", 1, None),
-  44: ("atomdir", 1, None),
-  84: ("blockname", 1, None),
-  86: ("blockargs", 1, None),
-  87: ("blockargs", 0, None),
-  92: ("mdir", 1, None),
-  98: ("metadata", 2, None),
-  99: ("metadata", 1, None),
-  103: ("term", 1, None),
-  104: ("term", 1, None),
-  112: ("sterm", 1, None),
-  113: ("sterm", 1, None),
-  115: ("list", 2, None),
-  116: ("list", 1, None),
-  118: ("hash", 1, None),
-  121: ("params", 2, None),
-  122: ("params", 1, None),
-  127: ("ident", 1, None),
-  146: ("expr", 1, None),
-  148: ("setlist", 2, None),
-  149: ("setlist", 1, None),
-  158: ("lnameargs", 1, None),
-  159: ("lvalue", 1, None),
-  161: ("lvalue", 1, None),
-  169: ("name", 1, None),
-  171: ("filename", 1, None),
-  172: ("filepart", 1, None),
-  173: ("filepart", 1, None),
-  174: ("filepart", 1, None),
-}
+NULL_RULES = (
+  ("$start", 2, (0,)),
+  ("statement", 1, (8, 9, 10, 11, 12, 13, 14, 15)),
+  ("statement", 0, (18,)),
+  ("directive", 1, (20, 21, 22, 23, 24, 25)),
+  ("atomexpr", 1, (27,)),
+  ("atomdir", 1, (42, 43, 44)),
+  ("blockname", 1, (84, 86)),
+  ("blockargs", 1, (86,)),
+  ("blockargs", 0, (87,)),
+  ("mdir", 1, (92,)),
+  ("metadata", 2, (98,)),
+  ("metadata", 1, (99,)),
+  ("term", 1, (103, 104)),
+  ("sterm", 1, (112, 113)),
+  ("list", 2, (115,)),
+  ("list", 1, (116,)),
+  ("hash", 1, (118,)),
+  ("params", 2, (121,)),
+  ("params", 1, (122,)),
+  ("ident", 1, (127,)),
+  ("expr", 1, (146,)),
+  ("setlist", 2, (148,)),
+  ("setlist", 1, (149,)),
+  ("lnameargs", 1, (158,)),
+  ("lvalue", 1, (159, 161)),
+  ("name", 1, (169,)),
+  ("filename", 1, (171,)),
+  ("filepart", 1, (172, 173, 174))
+)
+
+# NULL_RULES = (
+#   (0, "$start", 2),
+#   (8, "statement", 1),
+#   (9, "statement", 1),
+#   (10, "statement", 1),
+#   (11, "statement", 1),
+#   (12, "statement", 1),
+#   (13, "statement", 1),
+#   (14, "statement", 1),
+#   (15, "statement", 1),
+#   (18, "statement", 0),
+#   (20, "directive", 1),
+#   (21, "directive", 1),
+#   (22, "directive", 1),
+#   (23, "directive", 1),
+#   (24, "directive", 1),
+#   (25, "directive", 1),
+#   (27, "atomexpr", 1),
+#   (42, "atomdir", 1),
+#   (43, "atomdir", 1),
+#   (44, "atomdir", 1),
+#   (84, "blockname", 1),
+#   (86, "blockargs", 1),
+#   (87, "blockargs", 0),
+#   (92, "mdir", 1),
+#   (98, "metadata", 2),
+#   (99, "metadata", 1),
+#   (103, "term", 1),
+#   (104, "term", 1),
+#   (112, "sterm", 1),
+#   (113, "sterm", 1),
+#   (115, "list", 2),
+#   (116, "list", 1),
+#   (118, "hash", 1),
+#   (121, "params", 2),
+#   (122, "params", 1),
+#   (127, "ident", 1),
+#   (146, "expr", 1),
+#   (148, "setlist", 2),
+#   (149, "setlist", 1),
+#   (158, "lnameargs", 1),
+#   (159, "lvalue", 1),
+#   (161, "lvalue", 1),
+#   (169, "name", 1),
+#   (171, "filename", 1),
+#   (172, "filepart", 1),
+#   (173, "filepart", 1),
+#   (174, "filepart", 1)
+# )
+
+for lhs, args, indices in NULL_RULES:
+  for index in indices:
+    RULES[index] = (lhs, args, None)
 
 # Registration decorator for RULES:
 
-define = registrar(RULES, lambda f, key, lhs, len: ((key, (lhs, len, f)),))
+define = registrar(RULES, lambda f, key, lhs, args: ((key, (lhs, args, f)),))
 
 
 @define(1, "template", 1)
@@ -5883,19 +5956,3 @@ def rule(*args):
 @define(179, "quotable", 1)
 def rule(*args):
   return None
-
-
-keys = sorted(RULES.keys())
-
-# Did we leave any holes?
-
-assert keys == range(len(RULES))
-
-# No?  Okay, convert RULES from a dict to a tuple for faster access:
-
-RULES = tuple(RULES[key] for key in keys)
-
-# Clean up temporary variables.
-
-del keys
-del define

@@ -1,3 +1,5 @@
+from __future__ import with_statement
+
 import cStringIO
 import os
 import re
@@ -202,10 +204,9 @@ class Document:
     context.visit(self, self.__defblocks)
     self.__hot = 1
     try:
-      try:
-        return self.__block(context)
-      except TemplateException, e:
-        raise context.catch(e)
+      return self.__block(context)
+    except TemplateException, e:
+      raise context.catch(e)
     finally:
       self.__hot = 0
       context.leave()
@@ -245,14 +246,11 @@ class Document:
       raise Error("invalid null filename")
     tmpfh, tmppath = tempfile.mkstemp(dir=os.path.dirname(path))
     try:
-      try:
-        tmpfh = os.fdopen(tmpfh, "w")
-        write_python_doc(tmpfh,
+      with os.fdopen(tmpfh, "w") as tmpfile:
+        write_python_doc(tmpfile,
                          content.get("METADATA"),
                          content.get("DEFBLOCKS", {}),
                          content["BLOCK"])
-      finally:
-        tmpfh.close()
     except:
       os.remove(tmppath)
       raise

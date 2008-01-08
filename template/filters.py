@@ -893,8 +893,7 @@ def redirect_filter_factory(context, file, options=None):
         if e.errno != errno.EEXIST:
           raise
       outpath += "/" + str(file)
-      mode = "w%s" % (options.get("binmode") and "b" or "")
-      fh = open(outpath, mode)
+      fh = open(outpath, "wb" if options.get("binmode") else "w")
       fh.write(text)
       fh.close()
     except Exception, e:

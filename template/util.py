@@ -1,3 +1,5 @@
+from __future__ import with_statement
+
 import cStringIO
 import re
 import sys
@@ -444,7 +446,8 @@ def registrar(obj, store=lambda func, *args: ((name, func) for name in args)):
   """
   def register(*args):
     def decorator(func):
-      obj.update(store(func, *args))
+      for key, value in store(func, *args):
+        obj[key] = value
       return func
     return decorator
   return register
@@ -663,13 +666,21 @@ def split_arguments(args):
 
 def slurp(path):
   """Returns the contents of the file at the given path."""
-  f = None
-  try:
-    f = open(path)
+  with open(path) as f:
     return f.read()
-  finally:
-    if f:
-      f.close()
+
+
+def is_object(x):
+  """Returns True if x has a __dict__ attribute.
+
+  This function is intended to determine if its argument is an object
+  in the "classic" sense--that is, one belonging to a type created by the
+  "class" construct, and excluding such built-in types as int, str, and
+  list, which are, strictly speaking, also objects in a general sense.
+
+  This function also returns True if x is a class or module.
+  """
+  return hasattr(x, "__dict__")
 
 
 class InvalidClassIdentifier(Exception):

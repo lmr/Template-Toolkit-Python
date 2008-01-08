@@ -457,10 +457,7 @@ class Service:
     try:
       for name in self.__preprocess:
         output.write(context.process(name))
-      if self.__process is not None:
-        proc = self.__process
-      else:
-        proc = [template]
+      proc = self.__process if self.__process is not None else [template]
       try:
         for name in proc:
           procout.write(context.process(name))

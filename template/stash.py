@@ -1,7 +1,7 @@
 import re
-import types
 
 from template import util
+from template.vmethods import VMethods
 
 
 """
@@ -145,20 +145,30 @@ class Stash:
   # Regular expression that identifies "private" stash entries.
   PRIVATE = r"^[_.]"
 
+  # Dictionary of root operations.
+  ROOT_OPS = VMethods.ROOT
+
   # Dictionary of scalar operations.
-  SCALAR_OPS = {}
+  SCALAR_OPS = VMethods.TEXT
 
   # Dictionary of list operations.
-  LIST_OPS = {}
+  LIST_OPS = VMethods.LIST
 
   # Dictionary of hash operations.
-  HASH_OPS = {}
+  HASH_OPS = VMethods.HASH
+
+  # Mapping of names to ops dictionaries, see define_vmethod method.
+  OPS = { "scalar": SCALAR_OPS,
+          "item": SCALAR_OPS,
+          "list": LIST_OPS,
+          "array": LIST_OPS,
+          "hash": HASH_OPS }
 
   def __init__(self, params=None):
     params = params or {}
     self.__contents = {"global": {}}
     self.__contents.update(params)
-    self.__contents.update(ROOT_OPS)
+    self.__contents.update(self.ROOT_OPS)
     self.__parent = None
     self.__debug = bool(params.get("_DEBUG"))
 
@@ -314,7 +324,7 @@ class Stash:
       if not (default and 0 <= item < len(root) and root[item]):
         root[item] = value
         return value
-    elif isinstance(root, types.InstanceType):
+    elif util.is_object(root):
       if not (default and getattr(root, item)()):
         args.append(value)
         return getattr(root, item)(*args)
@@ -433,7 +443,7 @@ class Stash:
             result = value(*args)
           else:
             return value
-    elif isinstance(root, types.InstanceType):
+    elif util.is_object(root):
       try:
         value = getattr(root, item)
       except (AttributeError, TypeError):
@@ -517,15 +527,10 @@ class Stash:
     It is expected that func be able to handle the type that it will
     be called upon.
     """
-    type = type.lower()
-    if type in ("scalar", "item"):
-      self.SCALAR_OPS[name] = func
-    elif type == "hash":
-      self.HASH_OPS[name] = func
-    elif type in ("list", "array"):
-      self.LIST_OPS[name] = func
-    else:
-      raise Error("invalid vethod type: %s\n" % type)
+    try:
+      self.OPS[type.lower()][name] = func
+    except KeyError:
+      raise Error("invalid vmethod type: %s\n" % type)
 
 
 class Error(Exception):

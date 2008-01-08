@@ -11,7 +11,7 @@ from template.filters import Filters
 from template.plugins import Plugins
 from template.provider import Provider
 from template.stash import Stash
-from template.util import TemplateException
+from template.util import TemplateException, is_seq, unscalar, unscalar_list
 
 
 """
@@ -654,11 +654,8 @@ class Context:
   def insert(self, files):
     """Insert the contents of a file without parsing."""
     # TODO: Clean this up; unify the way "files" is passed to this routine.
-    files = util.unscalar(files)
-    if util.is_seq(files):
-      files = util.unscalar_list(files)
-    else:
-      files = [util.unscalar(files)]
+    files = unscalar(files)
+    files = unscalar_list(files) if is_seq(files) else [unscalar(files)]
     prefix = providers = text = None
     output = cStringIO.StringIO()
 
@@ -704,8 +701,8 @@ class Context:
     to propagate output back to the user, but it can safely be ignored
     in most cases.
     """
-    error = util.unscalar(error)
-    info = util.unscalar(info)
+    error = unscalar(error)
+    info = unscalar(info)
     if isinstance(error, TemplateException):
       raise error
     elif info is not None:
@@ -738,7 +735,7 @@ class Context:
   def view(self, params=None):
     """Create a new View object bound to this context."""
     from template.view import View
-    return View(self, util.unscalar(params))
+    return View(self, unscalar(params))
 
   def process(self, template, params=None, localize=False):
     """Processes the template named or referenced by the first parameter.
@@ -753,8 +750,8 @@ class Context:
     output of processing the template.  Errors are raised as
     TemplateException objects.
     """
-    template = util.listify(util.unscalar(template))
-    params = util.unscalar(params)
+    template = util.listify(unscalar(template))
+    params = unscalar(params)
     compileds = []
     for name in template:
       compileds.append(self.template(name))
@@ -849,7 +846,7 @@ class Context:
     constructor.  Returns a reference to a new plugin object or other
     object.  On error, a TemplateException is raiased.
     """
-    args = util.unscalar_list(args)
+    args = unscalar_list(args)
     for provider in self.__load_plugins:
       plugin = provider.fetch(name, args, self)
       if plugin:
@@ -863,8 +860,8 @@ class Context:
     An alias may be provided which is used to save the returned filter
     in a local cache.
     """
-    name = util.unscalar(name)
-    args = util.unscalar_list(args or [])
+    name = unscalar(name)
+    args = unscalar_list(args or [])
     filter = None
     if not args and isinstance(name, str):
       filter = self.__filter_cache.get(name)
