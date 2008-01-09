@@ -1,6 +1,7 @@
 from __future__ import with_statement
 
 import cStringIO
+import os
 import re
 import sys
 
@@ -683,6 +684,16 @@ def is_object(x):
   return hasattr(x, "__dict__")
 
 
+def modtime(path):
+  """Returns the modification time of the file at the given path, or None
+  if the time could not be determined for any reason.
+  """
+  try:
+    return os.stat(path).st_mtime
+  except EnvironmentError:
+    return None
+
+
 class InvalidClassIdentifier(Exception):
   pass
 
@@ -741,3 +752,8 @@ class Sequence:
   """
   def as_list(self):
     raise NotImplementedError
+
+
+class Struct:
+  """A do-nothing class that can be used as a bag of attributes."""
+  pass

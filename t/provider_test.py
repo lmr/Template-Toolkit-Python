@@ -14,10 +14,9 @@ Provider.MAX_DIRS = 42
 def delivered(provider, file):
   try:
     provider.fetch(file)
+    return True
   except:
     return False
-  else:
-    return True
 
 
 def declined(provider, file):
@@ -30,10 +29,9 @@ def declined(provider, file):
 def denied(provider, file):
   try:
     provider.fetch(file)
+    return False
   except:
     return True
-  else:
-    return False
 
 
 class DynamicPaths:

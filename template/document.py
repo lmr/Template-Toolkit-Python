@@ -138,7 +138,7 @@ template.parser.Parser object calls this subroutine before
 instantiating an object.  At this stage, the parser has a
 representation of the template as text strings containing Python code.
 We can write that to a file, enclosed in a small wrapper which will
-allow us to susequently require() the file and have Python parse and
+allow us to susequently load the file and have Python parse and
 compile it into a Document.  Thus we have persistence of compiled
 templates.
 
@@ -165,7 +165,7 @@ class Document:
       self.__defblocks[name] = self.__compile(block)
 
     self.__meta = doc.get("METADATA", {}).copy()
-    self.__hot = 0
+    self.__hot = False
 
   def __compile(self, block, debug=False):
     if callable(block):
@@ -202,13 +202,13 @@ class Document:
     if self.__hot and not context.recursion():
       return context.throw(ERROR_FILE, "recursion into '%s'" % self.name)
     context.visit(self, self.__defblocks)
-    self.__hot = 1
+    self.__hot = True
     try:
       return self.__block(context)
     except TemplateException, e:
       raise context.catch(e)
     finally:
-      self.__hot = 0
+      self.__hot = False
       context.leave()
 
   @classmethod

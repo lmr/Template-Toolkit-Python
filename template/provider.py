@@ -1,3 +1,5 @@
+from __future__ import with_statement
+
 import os
 import re
 import sys
@@ -6,7 +8,8 @@ import time
 from template.config import Config
 from template.constants import *
 from template.document import Document
-from template.util import Literal, TemplateException, can, slurp
+from template.util import Literal, Struct, TemplateException, \
+    can, modtime, slurp
 
 
 """
@@ -35,6 +38,9 @@ do so.
 
 This is the "Chain of Responsiblity" pattern.  See 'Design Patterns' for
 further information.
+
+The Provider class can also be subclassed to provide templates from a
+different source; for example, a database.  See SUBCLASSIC, below.
 
 This documentation needs work.
 
@@ -212,6 +218,33 @@ The CACHE_SIZE can be set to 0 to disable caching altogether.
 	'CACHE_SIZE': 0,   # don't cache any compiled templates
     })
 
+As well as caching templates as they are found, the Provider also
+implements negative caching to keep track of templates that are not
+found.  This allows the provider to quickly decline a request for a
+template that it has previously failed to locate, saving the effort of
+going to look for it again.  This is useful when an INCLUDE_PATH
+includes multiple providers, ensuring that the request is passed down
+through the providers as quickly as possible.
+
+* STAT_TTL
+
+This value can be set to control how long the Provider will keep a
+template cached in memory before checking to see if the source
+template has changed.
+
+    provider = template.provider.Provider({
+        'STAT_TTL': 60,  # one minute
+    })
+
+The default value is 1 (second). You'll probably want to set this to a
+higher value if you're running the Template Toolkit inside a
+persistent web server application. For example, set it to 60 and the
+provider will only look for changes to templates once a minute at
+most. However, during development (or any time you're making frequent
+changes to templates) you'll probably want to keep it set to a low
+value so that you don't have to wait for the provider to notice that
+your templates have changed.
+
 * COMPILE_EXT
 
 From version 2 onwards, the Template Toolkit has the ability to
@@ -377,6 +410,33 @@ limits the maximum number of paths that can be added to, or generated
 for the output list.  If this number is exceeded then the method will
 immediately return an error reporting as much.
 
+
+SUBCLASSING
+
+The Provider class can be subclassed to provide templates from a
+different source (e.g. a database).  In most cases you'll just need to
+provide custom implementations of the _template_modified() and
+_template_content() methods.
+
+Caching in memory and on disk will still be applied (if enabled) when
+overriding these methods.
+
+_template_modified(path)
+
+Returns a timestamp of the path passed in by calling stat().  This can
+be overridden, for example, to return a last modified value from a
+database.  The value returned should be a Unix epoch timestamp
+although a sequence number should work as well.
+
+_template_content(path, modtime=None)
+
+This method returns the content of the template for all INCLUDE,
+PROCESS, and INSERT directives.  It returns the content of the
+template located at 'path', or None if no such file exists.
+
+If the optional parameter 'modtime' is present, the modification time
+of the file is stored in its 'modtime' attribute.
+
 """
 
 
@@ -430,6 +490,7 @@ class Provider:
           os.makedirs(path)
 
     self.__lookup = {}
+    self.__notfound = {}  # Tracks templates *not* found.
     self.__slots = 0
     self.__size = size
     self.__include_path = paths
@@ -443,6 +504,7 @@ class Provider:
     self.__parser= params.get("PARSER")
     self.__default = params.get("DEFAULT")
     self.__encoding = params.get("ENCODING")
+    self.__stat_ttl = params.get("STAT_TTL", self.STAT_TTL)
     self.__params = params
     self.__head = None
     self.__tail = None
@@ -508,53 +570,56 @@ class Provider:
       return Data(name.text(), alias, alt="input text", load=0)
     elif not isinstance(name, str):
       return Data(name.read(), alias, alt="input file", load=0)
-    elif os.path.isfile(name):
-      try:
-        text = slurp(name)
-      except IOError, e:
-        if not self.__tolerant:
-          raise Error("%s: %s" % (alias, e))
-      else:
-        return Data(text, alias, when=os.stat(name).st_mtime, path=name)
+
+    if self._template_modified(name):
+      when = Struct()
+      text = self._template_content(name, when)
+      if text is not None:
+        return Data(text, alias, when=when.modtime, path=name)
 
     return None
 
-  def _fetch(self, name):
+  def _fetch(self, name, t_name=None):
     """Fetch a file from cache or disk by specification of an absolute
     or relative filename.
+
+    'name' is the path to search (possibly prefixed by INCLUDE_PATH).
+    't_name' is the template name.
 
     No search of the INCLUDE_PATH is made.  If the file is found and
     loaded, it is compiled and cached.
     """
-    compiled = self._compiled_filename(name)
-    if self.__size is not None and not self.__size:
-      if (compiled
-          and os.path.isfile(compiled)
-          and not self._modified(name, os.stat(compiled).st_mtime)):
-        data = self.__load_compiled(compiled)
-      else:
-        data = self._load(name)
-        data = self._compile(data, compiled)
-        data = data and data.data
-    else:
-      slot = self.__lookup.get(name)
-      if slot:
-        # cached entry exists, so refresh slot and extract data
-        data = self._refresh(slot)
-        data = slot.data
-      else:
-        # nothing in cache so try to load, compile, and cache
-        if (compiled
-            and os.path.isfile(compiled)
-            and os.stat(name).st_mtime <= os.stat(compiled).st_mtime):
-          data = self.__load_compiled(compiled)
-          self.store(name, data)
-        else:
-          data = self._load(name)
-          data = self._compile(data, compiled)
-          data = data and self._store(name, data)
+    # First see if the named template is in the memory cache.
+    slot = self.__lookup.get(name)
+    if slot:
+      # Test is cache is fresh, and reload/compile if not.
+      self._refresh(slot)
+      return slot.data
 
-    return data
+    now = time.time()
+    last_stat_time = self.__notfound.get(name)
+    if last_stat_time:
+      expires_in = last_stat_time + self.__stat_ttl - now
+      if expires_in > 0:
+        return None
+      else:
+        del self.__notfound[name]
+
+    # Is there an up-to-date compiled version on disk?
+    if self._compiled_is_current(name):
+      compiled_template = self._load_compiled(self._compiled_filename(name))
+      if compiled_template:
+        return self.store(name, compiled_template)
+
+    # Now fetch template from source, compile, and cache.
+    tmpl = self._load(name, t_name)
+    if tmpl:
+      tmpl = self._compile(tmpl, self._compiled_filename(name))
+      return self.store(name, tmpl.data)
+
+    # Template could not be found.  Add to the negative/notfound cache.
+    self.__notfound[name] = now
+    return None
 
   def _compile(self, data, compfile=None):
     """Private method called to parse the template text and compile it
@@ -581,7 +646,7 @@ class Provider:
       self.__parser = Config.parser(self.__params)
 
     # discard the template text - we don't need it any more
-    del data.text
+    # del data.text
 
     parsedoc = self.__parser.parse(text, data)
     parsedoc["METADATA"].setdefault("name", data.name)
@@ -616,6 +681,46 @@ class Provider:
     else:
       raise error
 
+  def _compiled_is_current(self, template_name):
+    """Returns True if template_name and its compiled name exists and
+    they have the same mtime.
+    """
+    compiled_name = self._compiled_filename(template_name)
+    if not compiled_name:
+      return False
+
+    compiled_mtime = modtime(compiled_name)
+    if not compiled_mtime:
+      return False
+
+    template_mtime = self._template_modified(template_name)
+    if not template_mtime:
+      return False
+
+    return compiled_mtime == template_mtime
+
+  def _template_modified(self, path):
+    """Returns the last modified time of the given path, or None if the
+    path does not exist.
+
+    Override if templates are not on disk, for example.
+    """
+    return modtime(path) if path else None
+
+  def _template_content(self, path, modtime=None):
+    """Fetches content pointed to by 'path'.
+
+    Stores the modification time of the file in the "modtime" attribute
+    of the 'modtime' argument, if it is present.
+    """
+    if not path:
+      raise Error("No path specified to fetch content from ")
+
+    with open(path) as f:
+      if modtime is not None:
+        modtime.modtime = os.fstat(f.fileno()).st_mtime
+      return f.read()
+
   def _fetch_path(self, name):
     """Fetch a file from cache or disk by specification of an absolute
     cache name (e.g. 'header') or filename relative to one of the
@@ -624,55 +729,28 @@ class Provider:
     If the file isn't already cached and can be found and loaded, it
     is compiled and cached under the full filename.
     """
-    compiled = None
-    caching = self.__size is None or self.__size
-    while True:
-      # the template may have been stored using a non-filename name
-      slot = self.__lookup.get(name)
-      if caching and slot:
-        # cached entry exists, so refresh slot and extract data
-        data = self._refresh(slot)
-        data = slot.data
-        break
-      paths = self.paths()
-      # search the INCLUDE_PATH for the file, in cache or on disk
-      for dir in paths:
-        path = os.path.join(dir, name)
-        slot = self.__lookup.get(path)
-        if caching and slot:
-          # cached entry exists, so refresh slot and extract data
-          data = self._refresh(slot)
-          data = slot.data
-          return data
-        elif os.path.isfile(path):
-          if self.__compile_ext or self.__compile_dir:
-            compiled = self._compiled_filename(path)
-          if (compiled
-              and os.path.isfile(compiled)
-              and os.stat(path).st_mtime <= os.stat(compiled).st_mtime):
-            data = self.__load_compiled(compiled)
-            if data:
-              # store in cache
-              data = self.store(path, data)
-              return data
-          # compiled is set if an attempt to write the compiled
-          # template to disk should be made
-          data = self._load(path, name)
-          data = self._compile(data, compiled)
-          if caching:
-            data = data and self._store(path, data)
-          if not caching:
-            data = data and data.data
-          # all done if error is OK or ERROR
-          return data
+    # The template may have been stored using a non-filename name
+    # so look for the plain name in the cache first.
+    slot = self.__lookup.get(name)
+    if slot:
+      # Cached entry exists, so refresh slot and extract data.
+      self._refresh(slot)
+      return slot.data
 
-      # template not found, so look for a DEFAULT template
-      if self.__default is not None and name != self.__default:
-        name = self.__default
-      else:
-        return None
+    paths = self.paths()
+    # Search the INCLUDE_PATH for the file, in cache or on disk.
+    for dir in paths:
+      path = os.path.join(dir, name)
+      data = self._fetch(path, name)
+      if data:
+        return data
 
-    return data
+    # Not found in INCLUDE_PATH, now try DEFAULT.
+    if self.__default is not None and name != self.__default:
+      return self._fetch_path(self.__default)
+
+    # We could not handle this template name.
+    return None
 
   def _compiled_filename(self, path):
     if not (self.__compile_ext or self.__compile_dir):
@@ -690,7 +768,7 @@ class Provider:
     time of the named template.  When called with a second argument it
     returns true if 'name' has been modified since 'time'.
     """
-    load = os.stat(name).st_mtime
+    load = self._template_modified(name)
     if not load:
       return int(bool(time))
     if time:
@@ -708,18 +786,21 @@ class Provider:
     """
     data = None
     now = time.time()
-    if now - slot.stat > self.STAT_TTL:
-      try:
-        stat = os.stat(slot.name)
-      except OSError:
-        pass
-      else:
-        slot.stat = now
-        if stat.st_mtime != slot.load:
+    expires_in_sec = slot.stat + self.__stat_ttl - now
+    if expires_in_sec <= 0:
+      slot.stat = now
+      template_mtime = self._template_modified(slot.name)
+      if template_mtime is None or template_mtime != slot.load:
+        try:
           data = self._load(slot.name, slot.data.name)
           data = self._compile(data)
+        except:
+          slot.stat = 0
+          raise
+        else:
           slot.data = data.data
           slot.load = data.time
+
     if self.__head is not slot:
       # remove existing slot from usage chain...
       if slot.prev:
@@ -740,7 +821,7 @@ class Provider:
 
     return data
 
-  def __load_compiled(self, path):
+  def _load_compiled(self, path):
     try:
       return Document.evaluate_file(path)
     except TemplateException, e:
@@ -754,9 +835,17 @@ class Provider:
     of the list and reused for the new data item.  If the cache is
     under the size limit, or if no size limit is defined, then the
     item is added to the head of the list.
+
+    Returns compiled template.
     """
-    load = self._modified(name)
+    # Return if memory cache disabled.
+    if self.__size is not None and not self.__size:
+      return data.data
+
+    # Extract the compiled template from the data object.
     data = data.data
+    # Check the modification time -- extra stat here.
+    load = self._modified(name)
     if self.__size is not None and self.__slots >= self.__size:
       # cache has reached size limit, so reuse oldest entry
       # remove entry from tail or list
@@ -828,7 +917,10 @@ class Provider:
       return opaths
 
   def store(self, name, data):
-    """tore a compiled template 'data' in the cache as 'name'."""
+    """Store a compiled template 'data' in the cache as 'name'.
+
+    Returns compiled template.
+    """
     return self._store(name, Data(data=data, load=0))
 
   def load(self, name, prefix=None):
@@ -851,14 +943,14 @@ class Provider:
     else:
       for dir in self.paths():
         path = os.path.join(dir, name)
-        if os.path.isfile(path):
+        if self._template_modified(path):
           break
       else:
         path = None
 
     if path and not error:
       try:
-        data = slurp(path)
+        data = self._template_content(path)
       except IOError, e:
         error = "%s: %s" % (name, e)
 
@@ -906,6 +998,9 @@ class Data:
     self.load = load
     self.data = data
 
+  def __repr__(self):
+    return "Data(text=%r, name=%r, time=%r, path=%r, load=%r, data=%r)" % (
+      self.text, self.name, self.time, self.path, self.load, self.data)
 
 class Slot:
   def __init__(self, name, data, load, stat, prev=None, next=None):

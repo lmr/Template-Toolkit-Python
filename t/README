@@ -153,3 +153,9 @@ Unrecorded tests:
   -- Skipped; not evident that a direct translation would exercise Python's
   -- Unicode capabilities
 ../../Template-Toolkit-2.15/t/view.t
+
+
+New tests:
+
+fileline.t
+  -- Not translated; relies on warn() semantics not present in Python

@@ -10,7 +10,8 @@ class CompileTest(TestCase):
               "INCLUDE_PATH": "test/src",
               "COMPILE_EXT": ".ttc" }
     # Check that compiled template files exist.
-    self.assert_(os.path.exists("test/src/foo.ttc"))
+    compiled = "test/src/foo.ttc"
+    self.assert_(os.path.exists(compiled))
     self.assert_(os.path.exists("test/src/complex.ttc"))
 
     # Ensure template metadata is saved in compiled file.
@@ -20,11 +21,13 @@ class CompileTest(TestCase):
     # We're going to hack on the foo.ttc file to change some key text.
     # This way we can tell that the template was loaded from the compiled
     # version and not the source.
-    fh = open("test/src/foo.ttc", "r+")
+    fh = open(compiled, "r+")
+    stat = os.fstat(fh.fileno())
     foo = fh.read()
     fh.seek(0)
     fh.write(foo.replace("the foo file", "the hacked foo file"))
     fh.close()
+    os.utime(compiled, (stat.st_atime, stat.st_mtime))
 
     self.Expect(DATA, ttcfg)
 
