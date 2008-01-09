@@ -90,6 +90,14 @@ class ProviderTest(TestCase):
     self.assert_(denied(provrel, absfile))
     self.assert_(delivered(provrel, relfile))
 
+    # Test if can fetch from a file handle.
+    ttfile = Template()
+    path = os.path.join(os.path.abspath(dir), "baz")
+    file = open(path)
+    outstr = ttfile.process(file, { "a": "filetest" })
+    file.close()
+    self.assertEquals("This is the baz file, a: filetest\n", outstr)
+
     #------------------------------------------------------------------------
     # now we'll fold those providers up into some Template objects that
     # we can pass to text_expect() to do some template driven testing
