@@ -403,13 +403,60 @@ output:
 
     my%20file.html
 
-Note that URI escaping isn't always enough when generating hyperlinks
-in an HTML document.  The & character, for example, is valid in a URI
-and will not be escaped by the URI filter.  In this case you should
-also filter the text through the 'html' filter.
+The uri filter correctly encodes all reserved characters, including &,
+@, /, ;, :, =, +, ? and $.  This filter is typically used to encode
+parameters in a URL that could otherwise be interpreted as part of the
+URL.  Here's an example:
 
-    <a href="[% filename | uri | html %]">click here</a>
+    [% path  = 'http://tt2.org/example'
+       back  = '/other?foo=bar&baz=bam'
+       title = 'Earth: "Mostly Harmless"'
+    %]
+    <a href="[% path %]?back=[% back | uri %]&title=[% title | uri %]">
 
+The output generated is rather long so we'll show it split across two
+lines:
+
+    <a href="http://tt2.org/example?back=%2Fother%3Ffoo%3Dbar%26
+    baz%3Dbam&title=Earth%3A%20%22Mostly%20Harmless%22">
+
+Without the uri filter the output would look like this (also split
+across two lines).
+
+    <a href="http://tt2.org/example?back=/other?foo=bar
+    &baz=bam&title=Earth: "Mostly Harmless"">
+
+In this rather contrived example we've manage to generate both a
+broken URL (the repeated ? is not allowed) and a broken HTML element
+(the href attribute is terminated by the first '"' after 'Earth: '
+leaving 'Mostly Harmless"' dangling on the end of the tag in
+precisely the way that harmless things shouldn't dangle). So don't do
+that. Always use the uri filter to encode your URL parameters.
+
+However, you should NOT use the uri filter to encode an entire URL.
+
+   <a href="[% page_url | uri %]">   # WRONG!
+
+This will incorrectly encode any reserved characters like ":" and "/"
+and that's almost certainly not what you want in this case.  Instead
+you should use the "url" (note spelling) filter for this purpose.
+
+   <a href="[% page_url | url %]">   # CORRECT
+
+Please note that this behaviour was changed in version 2.16 of the
+Template Toolkit.  Prior to that, the uri filter did not encode the
+reserved characters, making it technically incorrect according to the
+RFC 2396 specification.  So we fixed it in 2.16 and provided the url
+filter to implement the old behaviour of not encoding reserved
+characters.
+
+url
+
+The url filter is a less aggressive version of the uri filter.  It
+encodes any characters outside of the permitted URI character set (as
+defined by RFC 2396) into "%nn" hex escapes.  However, unlike the uri
+filter, the url filter does NOT encode the reserved characters &,
+@, /, ;, :, =, +, ? and $.
 
 indent(pad)
 
@@ -715,11 +762,22 @@ def html_line_break(text):
   return re.sub(r"(\r?\n)", r"<br />\1", str(text))
 
 
-URI_REGEX = re.compile(r"[^;\/?:@&=+\$,A-Za-z0-9\-_.!~*'()]")
+def _escape(match):
+  return "%%%02X" % ord(match.group())
+
+
+URI_REGEX = re.compile(r"[^-A-Za-z0-9_.!~*'()]")
 
 @register("uri")
 def uri_filter(text):
-  return URI_REGEX.sub(lambda match: "%%%02X" % ord(match.group()), str(text))
+  return URI_REGEX.sub(_escape, str(text))
+
+
+URL_REGEX = re.compile(r"[^-;\/?:@&=+\$,A-Za-z0-9_.!~*'()]")
+
+@register("url")
+def url_filter(text):
+  return URL_REGEX.sub(_escape, str(text))
 
 
 @register("upper")
@@ -880,6 +938,8 @@ def redirect_filter_factory(context, file, options=None):
   outpath = context.config().get("OUTPUT_PATH")
   if not outpath:
     raise TemplateException("redirect", "OUTPUT_PATH is not set")
+  if re.search(r"(?:^|/)\.\./", file, re.MULTILINE):
+    context.throw("redirect", "relative filenames are not supported: %s" % file)
   if not isinstance(options, dict):
     options = { "binmode": options }
   def redirect_filter(text=""):

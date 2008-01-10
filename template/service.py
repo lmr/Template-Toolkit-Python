@@ -488,6 +488,9 @@ class Service:
     arguments.  A 'default' handler may also be provided.  The handler
     value represents the name of a template which should be processed.
     """
+    if not isinstance(exception, TemplateException):
+      return None
+
     # A 'stop' exception is thrown by [% STOP %] - we return the output
     # buffer stored in the exception object.
     if exception.type() == "stop":

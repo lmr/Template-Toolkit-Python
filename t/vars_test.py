@@ -73,7 +73,8 @@ class VarsTest(TestCase):
       "yankee": yankee,
       "_private": 123,
       "_hidden": 456,
-      "expose": expose }
+      "expose": expose,
+      "add": lambda x, y: x + y }
 
 def yesterday():
   return "All my troubles seemed so far away..."
@@ -916,6 +917,36 @@ e: 3
 [% "x" _ "y" == "xy"      # should be ("x"_"y")=="xy", not "x"_("y"=="xy") %]
 -- expect --
 1
+
+-- test --
+[% add(3, 5) %]
+-- expect --
+8
+
+-- test --
+[% add(3 + 4, 5 + 7) %]
+-- expect --
+19
+
+-- test --
+[% a = 10;
+   b = 20;
+   c = 30;
+   add(add(a,b+1),c*3);
+%]
+-- expect --
+121
+
+-- test --
+[% a = 10;
+   b = 20;
+   c = 30;
+   d = 5;
+   e = 7;
+   add(a+5, b < 10 ? c : d + e*5);
+-%]
+-- expect --
+55
 """
 
 main()
