@@ -185,7 +185,7 @@ users to add custom vmethods.  For example:
 
 As opposed to the slightly more obscure:
 
-  $Template::Stash::SCALAR_OP{double} = sub { shift * 2 };
+  $Template::Stash::SCALAR_OP->{double} = sub { shift * 2 };
 
 
 
