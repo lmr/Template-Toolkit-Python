@@ -2,12 +2,14 @@
 #  Simple "Hello world!" program.
 #
 
-import template
-from template import util
+from template import Template
+from template.util import TemplateException
 
 TEMPLATE_TEXT = "Hello [% thing %]!"
 
-t = template.Template()
-if not t.process(util.Reference(TEMPLATE_TEXT), {"thing": "world"}):
-    print "ERROR: %s" % (t.error(),)
-    
+t = Template()
+
+try:
+    print t.processString(TEMPLATE_TEXT, { "thing": "world" })
+except TemplateException, e:
+    print "ERROR: %s" % e
