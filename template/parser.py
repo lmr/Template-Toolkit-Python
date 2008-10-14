@@ -675,7 +675,10 @@ class Parser:
     previous behaviour with regard to TAG_STYLE, START_TAG, END_TAG,
     etc.
     """
-    style = self.style[-1] if self.style else DEFAULT_STYLE
+    if self.style:
+      style = self.style[-1]
+    else:
+      style = DEFAULT_STYLE
     style = style.copy()
     tagstyle = config.get("TAG_STYLE")
     if tagstyle:
@@ -836,7 +839,10 @@ class Parser:
 
   def _identifier(self, token):
     """Tokenizes an identifier."""
-    uctoken = token.upper() if self.anycase else token
+    if self.anycase:
+      uctoken = token.upper()
+    else:
+      uctoken = token
     toktype = self.lextable.get(uctoken)
     if toktype is not None:
       return toktype, uctoken

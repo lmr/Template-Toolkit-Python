@@ -714,7 +714,10 @@ class Provider:
 
     Override if templates are not on disk, for example.
     """
-    return modtime(path) if path else None
+    if path:
+      return modtime(path)
+    else:
+      return None
 
   def _template_content(self, path, modtime=None):
     """Fetches content pointed to by 'path'.
@@ -723,12 +726,17 @@ class Provider:
     of the 'modtime' argument, if it is present.
     """
     if not path:
-      raise Error("No path specified to fetch content from ")
+      raise Error("No path specified to fetch content from")
 
-    with open(path) as f:
+    f = None
+    try:
+      f = open(path)
       if modtime is not None:
         modtime.modtime = os.fstat(f.fileno()).st_mtime
       return f.read()
+    finally:
+      if f:
+        f.close()
 
   def _fetch_path(self, name):
     """Fetch a file from cache or disk by specification of an absolute

@@ -213,9 +213,10 @@ class Document:
     context.visit(self, self.__defblocks)
     self.__hot = True
     try:
-      return self.__block(context)
-    except TemplateException, e:
-      raise context.catch(e)
+      try:
+        return self.__block(context)
+      except TemplateException, e:
+        raise context.catch(e)
     finally:
       self.__hot = False
       context.leave()
@@ -255,11 +256,16 @@ class Document:
       raise Error("invalid null filename")
     tmpfh, tmppath = tempfile.mkstemp(dir=os.path.dirname(path))
     try:
-      with os.fdopen(tmpfh, "w") as tmpfile:
+      tmpfile = None
+      try:
+        tmpfile = os.fdopen(tmpfh, "w")
         write_python_doc(tmpfile,
                          content.get("METADATA"),
                          content.get("DEFBLOCKS", {}),
                          content["BLOCK"])
+      finally:
+        if tmpfile:
+          tmpfile.close()
     except:
       os.remove(tmppath)
       raise

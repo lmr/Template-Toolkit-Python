@@ -743,7 +743,6 @@ class Error(Exception):
 
 register = util.registrar(Filters.FILTERS)
 
-
 @register("html")
 def html_filter(text):
   return str(text) \
@@ -962,7 +961,11 @@ def redirect_filter_factory(context, file, options=None):
         if e.errno != errno.EEXIST:
           raise
       outpath += "/" + str(file)
-      fh = open(outpath, "wb" if options.get("binmode") else "w")
+      if options.get("binmode"):
+        mode = "wb"
+      else:
+        mode = "w"
+      fh = open(outpath, mode)
       fh.write(text)
       fh.close()
     except Exception, e:

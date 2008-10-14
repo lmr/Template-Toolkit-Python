@@ -676,8 +676,13 @@ def split_arguments(args):
 
 def slurp(path):
   """Returns the contents of the file at the given path."""
-  with open(path) as f:
+  f = None
+  try:
+    f = open(path)
     return f.read()
+  finally:
+    if f:
+      f.close()
 
 
 def is_object(x):

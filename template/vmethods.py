@@ -80,7 +80,10 @@ def scalar_match(scalar, search=None, matchall=False):
       matches = [item for group in matches for item in group]  # flatten
   else:
     match = re.search(search, str(scalar))
-    matches = match.groups() or [1] if match else ""
+    if match:
+      matches = match.groups() or [1]
+    else:
+      matches = ""
   return matches
 
 

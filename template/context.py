@@ -664,7 +664,10 @@ class Context:
     """Insert the contents of a file without parsing."""
     # TODO: Clean this up; unify the way "files" is passed to this routine.
     files = unscalar(files)
-    files = unscalar_list(files) if is_seq(files) else [unscalar(files)]
+    if is_seq(files):
+      files = unscalar_list(files)
+    else:
+      files = [unscalar(files)]
     prefix = providers = text = None
     output = cStringIO.StringIO()
 
