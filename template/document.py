@@ -7,8 +7,6 @@
 #  the terms under which this file may be distributed.
 #
 
-from __future__ import with_statement
-
 import cStringIO
 import os
 import re
