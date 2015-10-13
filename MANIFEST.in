@@ -1,0 +1,7 @@
+include README.python
+include LICENSE
+include setup.py
+recursive-include template *.py
+recursive-include examples *.py
+prune images
+prune t
