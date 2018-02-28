@@ -103,4 +103,5 @@ This is the footer
 
 """
 
-main()
+if __name__ == '__main__':
+    main()

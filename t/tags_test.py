@@ -187,4 +187,5 @@ a is [* a *]
 a is 10
 """
 
-main()
+if __name__ == '__main__':
+    main()

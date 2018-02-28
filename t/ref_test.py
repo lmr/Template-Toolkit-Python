@@ -71,4 +71,5 @@ f(11): nsub [11]
 
 """
 
-main()
+if __name__ == '__main__':
+    main()

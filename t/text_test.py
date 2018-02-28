@@ -149,4 +149,5 @@ foo[str]/bar [str]/foo[Stringy]
 
 """
 
-main()
+if __name__ == '__main__':
+    main()

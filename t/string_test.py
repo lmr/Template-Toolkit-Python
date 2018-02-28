@@ -385,4 +385,5 @@ d: FOO wiz waz woz
 
 """
 
-main()
+if __name__ == '__main__':
+    main()

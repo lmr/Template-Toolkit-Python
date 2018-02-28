@@ -98,4 +98,5 @@ class ConfigTest(TestCase):
         # (later)
 
 
-main()
+if __name__ == '__main__':
+    main()

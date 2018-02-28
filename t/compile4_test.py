@@ -54,4 +54,5 @@ The word is 'wibble'
 This is the blam file
 """
 
-main()
+if __name__ == '__main__':
+    main()

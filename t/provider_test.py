@@ -298,4 +298,5 @@ bar: This is two/bar
 file error - INCLUDE_PATH exceeds 42 directories
 """
 
-main()
+if __name__ == '__main__':
+    main()

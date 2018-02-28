@@ -48,4 +48,5 @@ This is the baz file, a:
 
 """
 
-main()
+if __name__ == '__main__':
+    main()

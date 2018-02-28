@@ -164,4 +164,5 @@ romeo, sierra, foxtrot
 romeo
 """
 
-main()
+if __name__ == '__main__':
+    main()

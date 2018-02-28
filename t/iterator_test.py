@@ -111,4 +111,5 @@ bar<-[baz]->qux
 baz<-[qux]
 """
 
-main()
+if __name__ == '__main__':
+    main()

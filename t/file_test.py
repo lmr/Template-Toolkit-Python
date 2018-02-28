@@ -153,4 +153,5 @@ Drat, there was a File error.
 
 """
 
-main()
+if __name__ == '__main__':
+    main()

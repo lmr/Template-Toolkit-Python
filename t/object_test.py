@@ -220,4 +220,5 @@ foo stringified 'Test String' bar
 .
 """
 
-main()
+if __name__ == '__main__':
+    main()

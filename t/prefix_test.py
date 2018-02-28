@@ -44,4 +44,5 @@ This is the foo file, a is [% a -%]
 
 """
 
-main()
+if __name__ == '__main__':
+    main()

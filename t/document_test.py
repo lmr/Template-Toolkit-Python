@@ -119,4 +119,5 @@ one, three
 two, three
 """
 
-main()
+if __name__ == '__main__':
+    main()

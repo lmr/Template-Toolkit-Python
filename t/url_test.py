@@ -125,4 +125,5 @@ there?age=42&amp;name=frank
 /product?action=edit&style=compact
 """
 
-main()
+if __name__ == '__main__':
+    main()

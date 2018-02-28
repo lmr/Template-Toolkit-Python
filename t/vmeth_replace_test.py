@@ -182,4 +182,5 @@ f!! ba!r! f!!ba!r!
 
 """
 
-main()
+if __name__ == '__main__':
+    main()

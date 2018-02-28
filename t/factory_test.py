@@ -32,4 +32,5 @@ Place to purchase drinks
 3.14
 """
 
-main()
+if __name__ == '__main__':
+    main()

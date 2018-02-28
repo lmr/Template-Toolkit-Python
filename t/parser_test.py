@@ -209,4 +209,5 @@ alist: ??
 [% foo.bar.baz %]
 """
 
-main()
+if __name__ == '__main__':
+    main()

@@ -55,4 +55,5 @@ class OutputTest(TestCase):
         self.assertEqual("set binmode\n", intercept.message)
 
 
-main()
+if __name__ == '__main__':
+    main()

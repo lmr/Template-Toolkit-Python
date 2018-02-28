@@ -69,4 +69,5 @@ end of block one
 this is block two, b is brazen
 """
 
-main()
+if __name__ == '__main__':
+    main()

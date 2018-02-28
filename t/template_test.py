@@ -19,4 +19,5 @@ class TemplateTest(TestCase):
             self.assertEqual("this_file_does_not_exist: not found", e.info())
 
 
-main()
+if __name__ == '__main__':
+    main()

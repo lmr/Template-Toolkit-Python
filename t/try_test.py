@@ -628,4 +628,5 @@ error: file error - no_such_file: not found
 
 """
 
-main()
+if __name__ == '__main__':
+    main()

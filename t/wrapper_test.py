@@ -175,4 +175,5 @@ outer [bar]: The title is foo
 
 """
 
-main()
+if __name__ == '__main__':
+    main()

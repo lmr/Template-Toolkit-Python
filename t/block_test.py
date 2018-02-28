@@ -105,4 +105,5 @@ This is an anonymous block
 
 """
 
-main()
+if __name__ == '__main__':
+    main()

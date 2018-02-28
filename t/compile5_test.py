@@ -71,4 +71,5 @@ This is the footer, author: billg, version: 6.66
 This is the wam-bam file
 """
 
-main()
+if __name__ == '__main__':
+    main()

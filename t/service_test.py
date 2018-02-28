@@ -206,4 +206,5 @@ end process
 This comes after
 """
 
-main()
+if __name__ == '__main__':
+    main()

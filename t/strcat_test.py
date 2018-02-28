@@ -18,4 +18,5 @@ baz: the foo string and the bar string
 
 """
 
-main()
+if __name__ == '__main__':
+    main()

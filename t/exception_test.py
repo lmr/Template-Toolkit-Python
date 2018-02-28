@@ -25,4 +25,5 @@ class ExceptionTest(TestCase):
         self.assertEqual("e3.type error - e3.info", str(e3))
 
 
-main()
+if __name__ == '__main__':
+    main()

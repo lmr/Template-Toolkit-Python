@@ -147,4 +147,5 @@ class ContextTest(TestCase):
         self.assertEqual('charlie', stash.get('a').value())
 
 
-main()
+if __name__ == '__main__':
+    main()

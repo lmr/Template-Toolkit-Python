@@ -960,4 +960,5 @@ e: 3
 55
 """
 
-main()
+if __name__ == '__main__':
+    main()

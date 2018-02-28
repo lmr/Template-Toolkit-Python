@@ -81,4 +81,5 @@ tag: <img src="[% file.logo %]" width="110" height="60" alt="image" class="myima
 <img src="other.jpg" width="110" height="60" alt="myfile" />
 """
 
-main()
+if __name__ == '__main__':
+    main()

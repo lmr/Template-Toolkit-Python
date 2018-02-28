@@ -61,4 +61,5 @@ this is foo, bar = baz
 1 1
 """
 
-main()
+if __name__ == '__main__':
+    main()

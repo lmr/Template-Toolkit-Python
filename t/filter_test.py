@@ -826,6 +826,6 @@ fOOBAR
 
 """
 
-main()
-
-sys.stderr = old_stderr
+if __name__ == '__main__':
+    main()
+    sys.stderr = old_stderr

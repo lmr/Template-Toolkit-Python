@@ -58,4 +58,5 @@ This is the footer, author: billg, version: 6.66
 
 """
 
-main()
+if __name__ == '__main__':
+    main()

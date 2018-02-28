@@ -79,4 +79,5 @@ foo: pi=3.14  e=2.718
 
 """
 
-main()
+if __name__ == '__main__':
+    main()
