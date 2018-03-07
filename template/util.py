@@ -7,7 +7,11 @@
 #  the terms under which this file may be distributed.
 #
 
-import cStringIO
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
+
 import os
 import re
 import sys
@@ -91,7 +95,7 @@ class StringBuffer:
     """Initializes the object.  If the contents argument is not None, it
     is immediately passed to the write method.
     """
-    self.buffer = cStringIO.StringIO()
+    self.buffer = StringIO()
     if contents is not None:
       self.write(contents)
 

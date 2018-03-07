@@ -16,8 +16,7 @@ import sys
 from template import util
 from template.constants import *
 from template.plugin.filter import Filter
-from template.util import Literal, EvaluateCode, TemplateException, \
-     dynamic_filter, numify, registrar, unpack
+from template.util import TemplateException, dynamic_filter, numify
 
 """
 template.filters - Post-processing filters for template blocks
@@ -846,7 +845,11 @@ ENTITY_REGEX = re.compile(r"[^\n\r\t !#$%'-;=?-~]")
 @register("html_entity")
 @dynamic_filter
 def html_entity_filter_factory(context):
-  from htmlentitydefs import codepoint2name
+  try:
+    from htmlentitydefs import codepoint2name
+  except ImportError:
+    from html.entities import codepoint2name
+
   def encode(char):
     char = ord(char)
     name = codepoint2name.get(char)

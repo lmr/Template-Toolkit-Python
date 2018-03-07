@@ -6,8 +6,11 @@
 #  The file "LICENSE" at the top level of this source distribution describes
 #  the terms under which this file may be distributed.
 #
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
 
-import cStringIO
 import operator
 import os
 import re
@@ -669,7 +672,7 @@ class Context:
     else:
       files = [unscalar(files)]
     prefix = providers = text = None
-    output = cStringIO.StringIO()
+    output = StringIO()
 
     for file in files:
       prefix, name = split_prefix(file)
@@ -772,7 +775,7 @@ class Context:
     else:
       self.__stash.update(params)
 
-    output = cStringIO.StringIO()
+    output = StringIO()
 
     try:
       # save current component

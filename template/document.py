@@ -7,7 +7,6 @@
 #  the terms under which this file may be distributed.
 #
 
-import cStringIO
 import os
 import re
 import tempfile

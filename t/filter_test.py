@@ -1,4 +1,8 @@
-import cStringIO
+try:
+    from cStringIO import StringIO
+except ImportError:
+    from io import StringIO
+
 import os
 import re
 import sys
@@ -8,7 +12,7 @@ from template.test import TestCase, main
 from template.util import dynamic_filter
 
 old_stderr = sys.stderr
-sys.stderr = cStringIO.StringIO()
+sys.stderr = StringIO()
 
 
 class FilterTest(TestCase):
