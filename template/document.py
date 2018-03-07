@@ -242,7 +242,7 @@ class Document:
     file.  The default name is 'document'.
     """
     namespace = PYEVAL_NAMESPACE.copy()
-    execfile(path, namespace)
+    exec(compile(open(path).read(), path, 'exec'), namespace)
     return namespace.get(name)
 
   @classmethod
