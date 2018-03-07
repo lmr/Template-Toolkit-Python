@@ -10,6 +10,6 @@ TEMPLATE_TEXT = "Hello [% thing %]!"
 t = Template()
 
 try:
-    print t.processString(TEMPLATE_TEXT, { "thing": "world" })
+    print(t.processString(TEMPLATE_TEXT, { "thing": "world" }))
 except TemplateException, e:
-    print "ERROR: %s" % e
+    print("ERROR: %s" % e)

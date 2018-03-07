@@ -178,7 +178,7 @@ class Document:
     if callable(block):
       return block
     if debug:
-      print block
+      print(block)
     return self.evaluate(block)
 
   def __getattr__(self, name):

@@ -6,7 +6,7 @@ from template.test import TestCase, main
 try:
     import PIL
 except ImportError:
-    print >>sys.stderr, "Failed to import PIL module; skipping test"
+    print("Failed to import PIL module; skipping test")
     sys.exit(0)
 
 
