@@ -35,7 +35,7 @@ class ContextTest(TestCase):
         error = None
         try:
             tmpl = ctx.template('no_such_template')
-        except Exception, e:
+        except Exception as e:
             error = e
         self.failUnless(error)
         self.assertEquals('file error - no_such_template: not found', str(error))
@@ -102,7 +102,7 @@ class ContextTest(TestCase):
         try:
             plugin = ctx.plugin('no_such_plugin')
             self.fail('Exception not raised')
-        except Exception, e:
+        except Exception as e:
             self.assertEquals('plugin error - no_such_plugin: plugin not found',
                               str(e))
 

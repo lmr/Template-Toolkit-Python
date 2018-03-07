@@ -89,7 +89,7 @@ class Datafile(Plugin, Sequence):
 
     try:
       f = open(filename)
-    except IOError, e:
+    except IOError as e:
       return self.fail("%s: %s" % (filename, e))
 
     for line in f:

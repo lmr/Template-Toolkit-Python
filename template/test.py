@@ -71,7 +71,7 @@ class TestCase(unittest.TestCase):
 
       try:
         out = tproc.processString(input, vars)
-      except Exception, e:
+      except Exception as e:
         self.fail("Test #%d: %s process FAILED: %s\n%s" % (
           count + 1, name, subtext(input), e))
 
@@ -80,7 +80,7 @@ class TestCase(unittest.TestCase):
         expect = expect[match.end():]
         try:
           expect = tproc.processString(expect, vars)
-        except TemplateException, e:
+        except TemplateException as e:
           self.fail("Test #%d: Template process failed (expect): %s" % (
             count + 1, e))
       out = out.rstrip("\n")

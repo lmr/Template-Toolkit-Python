@@ -718,7 +718,7 @@ class Filters:
         filter = factory
       if not callable(filter):
         raise Error("invalid FILTER for '%s' (not callable)" % (name,))
-    except Exception, e:
+    except Exception as e:
       if self.__tolerant:
         return None
       if not isinstance(e, TemplateException):
@@ -957,7 +957,7 @@ def redirect_filter_factory(context, file, options=None):
     try:
       try:
         os.makedirs(outpath)
-      except OSError, e:
+      except OSError as e:
         if e.errno != errno.EEXIST:
           raise
       outpath += "/" + str(file)
@@ -968,7 +968,7 @@ def redirect_filter_factory(context, file, options=None):
       fh = open(outpath, mode)
       fh.write(text)
       fh.close()
-    except Exception, e:
+    except Exception as e:
       raise TemplateException("redirect", e)
     return ""
   return redirect_filter

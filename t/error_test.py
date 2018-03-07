@@ -8,7 +8,7 @@ class ErrorTest(TestCase):
         try:
             tmpl.process("badinc")
             self.fail("Failed to raise exception")
-        except TemplateException, e:
+        except TemplateException as e:
             self.assertEquals('file', e.type())
             self.assertEquals('nosuchfile: not found', e.info())
 

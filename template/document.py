@@ -213,7 +213,7 @@ class Document:
     try:
       try:
         return self.__block(context)
-      except TemplateException, e:
+      except TemplateException as e:
         raise context.catch(e)
     finally:
       self.__hot = False

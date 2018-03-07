@@ -14,7 +14,7 @@ class TemplateTest(TestCase):
         try:
             tt.process("this_file_does_not_exist")
             self.fail("exception not raised")
-        except TemplateException, e:
+        except TemplateException as e:
             self.assertEquals("file", e.type())
             self.assertEquals("this_file_does_not_exist: not found", e.info())
 

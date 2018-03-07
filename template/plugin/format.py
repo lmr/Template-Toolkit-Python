@@ -54,7 +54,7 @@ def make_formatter(format="%s"):
     while True:
       try:
         return format % args
-      except TypeError, e:
+      except TypeError as e:
         if e.args[0].startswith("not enough arguments"):
           args += ("",)
         elif e.args[0].startswith("not all arguments converted"):

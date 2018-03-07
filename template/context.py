@@ -683,7 +683,7 @@ class Context:
       for provider in providers:
         try:
           text = provider.load(name, prefix)
-        except Exception, e:
+        except Exception as e:
           self.throw(ERROR_FILE, str(e))
         if text is not None:
           output.write(text)
@@ -945,7 +945,7 @@ class Context:
       for provider in providers:
         try:
           template = provider.fetch(shortname, prefix)
-        except Exception, e:
+        except Exception as e:
           if isinstance(e, TemplateException) and e.type() == ERROR_FILE:
             self.throw(e)
           else:
@@ -1026,7 +1026,7 @@ class Context:
       try:
         provider.store(name, filter)
         return 1
-      except Exception, e:
+      except Exception as e:
         self.throw(ERROR_FILTER, e)
     self.throw(ERROR_FILTER,
                "FILTER providers declined to store filter %s" % name)

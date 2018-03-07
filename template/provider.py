@@ -664,13 +664,13 @@ class Provider:
       if not os.path.isdir(basedir):
         try:
           os.makedirs(basedir)
-        except IOError, e:
+        except IOError as e:
           error = Error("failed to create compiled templates "
                         "directory: %s (%s)" % (basedir, e))
       if not error:
         try:
           self.__document.write_python_file(compfile, parsedoc)
-        except Exception, e:
+        except Exception as e:
           error = Error("cache failed to write %s: %s" % (
             os.path.basename(compfile), e))
       if error is None and data.time is not None:
@@ -839,7 +839,7 @@ class Provider:
   def _load_compiled(self, path):
     try:
       return Document.evaluate_file(path)
-    except TemplateException, e:
+    except TemplateException as e:
       raise Error("compiled template %s: %s" % (path, e))
 
   def _store(self, name, data, compfile=None):
@@ -966,7 +966,7 @@ class Provider:
     if path and not error:
       try:
         data = self._template_content(path)
-      except IOError, e:
+      except IOError as e:
         error = "%s: %s" % (name, e)
 
     if error:

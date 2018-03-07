@@ -11,5 +11,5 @@ t = Template()
 
 try:
     print(t.processString(TEMPLATE_TEXT, { "thing": "world" }))
-except TemplateException, e:
+except TemplateException as e:
     print("ERROR: %s" % e)

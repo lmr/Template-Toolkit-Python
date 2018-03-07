@@ -309,7 +309,7 @@ class File(Plugin):
     if self.stat:
       try:
         stat = os.stat(abspath)
-      except OSError, e:
+      except OSError as e:
         self.throw("%s: %s" % (abspath, e))
       for key in STAT_KEYS:
         setattr(self, key, getattr(stat, "st_%s" % key, None))

@@ -473,7 +473,7 @@ class Service:
       try:
         for name in proc:
           procout.write(context.process(name))
-      except TemplateException, e:
+      except TemplateException as e:
         procout.reset(self.__recover(e))
 
       procout = procout.get()

@@ -509,7 +509,7 @@ class Plugins:
         return factory(*args)
       else:
         raise Error("%s plugin is not callable" % (name,))
-    except Exception, e:
+    except Exception as e:
       if self.__tolerant:
         return None
       else:

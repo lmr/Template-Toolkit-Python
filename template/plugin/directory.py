@@ -206,7 +206,7 @@ class Directory(File):
       config["noscan"] = True
     try:
       files = os.listdir(self.abs)
-    except OSError, e:
+    except OSError as e:
       self.throw("%s: %s" % (self.abs, e))
     self.files = []
     self.dirs  = []

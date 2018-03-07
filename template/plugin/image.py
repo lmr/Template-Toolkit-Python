@@ -175,7 +175,7 @@ class Image(Plugin):
     if self.__size is None:
       try:
         self.__size = PIL.Image.open(self.__file).size
-      except Exception, e:
+      except Exception as e:
         self.throw(e)
       self.__width, self.__height = self.__size
       self.__modtime = os.stat(self.__file).st_mtime

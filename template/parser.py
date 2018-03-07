@@ -969,7 +969,7 @@ class Parser:
           codevars = []
         try:
           coderet = code(self, *codevars)
-        except TemplateException, e:
+        except TemplateException as e:
           self._parse_error(str(e), info.name)
         # reduce stack by len_
         if len_ > 0:
