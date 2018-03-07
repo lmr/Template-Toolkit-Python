@@ -458,7 +458,7 @@ def _to_long(x):
     if match:
       return long(match.group(0))
     else:
-      return 0L
+      return 0
 
 
 def _by_value(func):
