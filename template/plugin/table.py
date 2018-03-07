@@ -233,7 +233,7 @@ class Table(Plugin):
 
         # ensure keys are folded to upper case
         params.update(dict((str(key).upper(), value)
-                           for key, value in params.iteritems()))
+                           for key, value in params.items()))
 
         size = len(data)
         overlap = params.get("OVERLAP", 0)

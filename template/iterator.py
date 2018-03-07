@@ -333,7 +333,7 @@ def normalize_data(data):
     """
     data = data or []
     if isinstance(data, dict):
-        data = [{"key": key, "value": value} for key, value in data.iteritems()]
+        data = [{"key": key, "value": value} for key, value in data.items()]
         data.sort(key=operator.itemgetter("key"))
     elif isinstance(data, str):
         data = [data]

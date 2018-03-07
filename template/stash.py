@@ -698,7 +698,7 @@ def hash_size(hash):
 
 @hash_op("each", "items")
 def hash_each(hash):
-    return [item for pair in hash.iteritems() for item in pair]
+    return [item for pair in hash.items() for item in pair]
 
 
 @hash_op("keys")

@@ -170,7 +170,7 @@ class Document:
 
         # same for any additional BLOCK definitions
         self.__defblocks = {}
-        for name, block in doc.get("DEFBLOCKS", {}).iteritems():
+        for name, block in doc.get("DEFBLOCKS", {}).items():
             self.__defblocks[name] = self.__compile(block)
 
         self.__meta = doc.get("METADATA", {}).copy()
