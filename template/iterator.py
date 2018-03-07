@@ -225,6 +225,9 @@ class Iterator:
     def next(self):
         return self._impl.next_
 
+    def __next__(self):
+        return self.next()
+
     def get_first(self):
         if self._impl.start():
             return self._impl.dataset[0]
@@ -316,6 +319,9 @@ class Iterator:
             # points to the first object, and not to advance to the second:
             self.ready = False
             return self
+
+        def __next__(self):
+            return self.next()
 
         def next(self):
             if not self.ready:

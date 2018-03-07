@@ -629,7 +629,7 @@ def unpack(seq, n):
     ...and not suffer an error if there are fewer than three elements
     in the tuple returned by func.
     """
-    return chop(seq, n).next()
+    return next(chop(seq, n))
 
 
 def listify(arg):

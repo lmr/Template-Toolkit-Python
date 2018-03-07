@@ -5360,7 +5360,7 @@ def rule(*args):
 @define(40, "atomdir", 1)
 def rule(*args):
     if args[0].infor:
-        return factory.next()
+        return next(factory)
     elif args[0].inwhile:
         return "raise Continue"
     else:

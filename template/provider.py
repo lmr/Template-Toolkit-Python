@@ -819,12 +819,17 @@ class Provider:
 
         if self.__head is not slot:
             # remove existing slot from usage chain...
+            if hasattr(slot, '__next__'):
+                slot_next = getattr(slot, '__next__')
+            elif hasattr(slot, 'next'):
+                slot_next = getattr(slot, 'next')
+
             if slot.prev:
-                slot.prev.next = slot.next
+                slot.prev.next = slot_next
             else:
-                self.__head = slot.next
-            if slot.next:
-                slot.next.prev = slot.prev
+                self.__head = slot_next
+            if slot_next:
+                slot_next.prev = slot.prev
             else:
                 self.__tail = slot.prev
             # ...and add to start of list
@@ -832,7 +837,7 @@ class Provider:
             if head:
                 head.prev = slot
             slot.prev = None
-            slot.next = head
+            slot_next = head
             self.__head = slot
 
         return data
