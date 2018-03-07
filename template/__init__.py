@@ -100,7 +100,7 @@ template variables.
         print tt.processString(text)
         # file object
         print tt.process(os.fdopen(5))
-    except template.TemplateException, e:
+    except template.TemplateException as e:
         print 'Got exception:', e
 
 
@@ -127,7 +127,7 @@ a string of the form '%s - %s' % (type, info).
 
     try:
         tt.process('somefile')
-    except template.TemplateException, e:
+    except template.TemplateException as e:
         print 'error type:', e.type()
         print 'error info:', e.info()
         print e

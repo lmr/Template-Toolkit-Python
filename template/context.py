@@ -443,7 +443,7 @@ raised.
 
     try:
         tt = context.template('header')
-    except TemplateException, e:
+    except TemplateException as e:
         print 'Failed to fetch template:', e
 
 

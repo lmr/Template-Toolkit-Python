@@ -31,7 +31,7 @@ SYNOPSIS
 
     try:
       filter = filters.fetch(name, args, context)
-    except TemplateException, e:
+    except TemplateException as e:
       # Handle error.
     if filter is None:
       # Request was declined.

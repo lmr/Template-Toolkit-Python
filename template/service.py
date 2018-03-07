@@ -37,7 +37,7 @@ SYNOPSIS
 
     try:
         output = service.process(template_name, replace)
-    except TemplateException, e:
+    except TemplateException as e:
         ...
 
 
