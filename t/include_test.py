@@ -5,34 +5,34 @@ from template.test import TestCase, main
 
 
 class IncludeTest(TestCase):
-  def testInclude(self):
-    callsign = self._callsign()
-    replace = { "a": callsign["a"],
-                "b": callsign["b"],
-                "c": { "d": callsign["d"],
-                       "e": callsign["e"],
-                       "f": { "g": callsign["g"],
-                              "h": callsign["h"] } },
-                "r": callsign["r"],
-                "s": callsign["s"],
-                "t": callsign["t"] }
-    tproc = Template({ "INTERPOLATE": True,
-                       "INCLUDE_PATH": "test/src:test/lib",
-                       "TRIM": True,
-                       "AUTO_RESET": False,
-                       "DEFAULT": "default" })
-    incpath = [ "test/src", "/nowhere" ]
-    tt_reset = Template({ "INTERPOLATE": True,
-                          "INCLUDE_PATH": incpath,
+    def testInclude(self):
+        callsign = self._callsign()
+        replace = {"a": callsign["a"],
+                   "b": callsign["b"],
+                   "c": {"d": callsign["d"],
+                         "e": callsign["e"],
+                         "f": {"g": callsign["g"],
+                               "h": callsign["h"]}},
+                   "r": callsign["r"],
+                   "s": callsign["s"],
+                   "t": callsign["t"]}
+        tproc = Template({"INTERPOLATE": True,
+                          "INCLUDE_PATH": "test/src:test/lib",
                           "TRIM": True,
-                          "RECURSION": True,
-                          "DEFAULT": "bad_default" })
-    incpath[1] = "test/lib"
+                          "AUTO_RESET": False,
+                          "DEFAULT": "default"})
+        incpath = ["test/src", "/nowhere"]
+        tt_reset = Template({"INTERPOLATE": True,
+                             "INCLUDE_PATH": incpath,
+                             "TRIM": True,
+                             "RECURSION": True,
+                             "DEFAULT": "bad_default"})
+        incpath[1] = "test/lib"
 
-    replace["metaout"] = tproc.process("metadata", replace)
-    replace["metamod"] = os.stat("test/src/metadata").st_mtime
+        replace["metaout"] = tproc.process("metadata", replace)
+        replace["metamod"] = os.stat("test/src/metadata").st_mtime
 
-    self.Expect(DATA, (('default', tproc), ('reset', tt_reset)), replace)
+        self.Expect(DATA, (('default', tproc), ('reset', tt_reset)), replace)
 
 
 DATA = r"""
@@ -256,4 +256,3 @@ import()
 """
 
 main()
-

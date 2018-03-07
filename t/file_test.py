@@ -5,12 +5,12 @@ from template.plugin import file as file_plugin
 
 
 class FileTest(TestCase):
-  def testFile(self):
-    vars = { 'dir': 'test', 'file': 'test/src/foo' }
-    stat = os.stat(vars['file'])
-    for key in file_plugin.STAT_KEYS:
-      vars[key] = getattr(stat, "st_" + key)
-    self.Expect(DATA, None, vars)
+    def testFile(self):
+        vars = {'dir': 'test', 'file': 'test/src/foo'}
+        stat = os.stat(vars['file'])
+        for key in file_plugin.STAT_KEYS:
+            vars[key] = getattr(stat, "st_" + key)
+        self.Expect(DATA, None, vars)
 
 
 DATA = r"""
@@ -154,4 +154,3 @@ Drat, there was a File error.
 """
 
 main()
-

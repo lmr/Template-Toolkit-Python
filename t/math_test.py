@@ -2,8 +2,8 @@ from template.test import TestCase, main
 
 
 class MathTest(TestCase):
-  def testMath(self):
-    self.Expect(DATA)
+    def testMath(self):
+        self.Expect(DATA)
 
 
 DATA = r"""

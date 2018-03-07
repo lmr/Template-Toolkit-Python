@@ -5,35 +5,37 @@ from template.test import TestCase, main
 
 #  Define a dummy object for runtime processing
 class DummyContext:
-  def visit(self, *args):
-    pass
-  def leave(self, *args):
-    pass
+    def visit(self, *args):
+        pass
+
+    def leave(self, *args):
+        pass
 
 
 class DocumentTest(TestCase):
-  def testDocument(self):
-    # Create a document and check accessor methods for blocks and metadata
-    doc = Document(
-      { 'BLOCK': lambda *_: 'some output',
-        'DEFBLOCKS': { 'foo': lambda *_: 'the foo block',
-                       'bar': lambda *_: 'the bar block' },
-        'METADATA': { 'author': 'Andy Wardley',
-                      'version': 3.14 }})
-    c = DummyContext()
-    self.failUnless(doc)
-    self.assertEquals('Andy Wardley', doc.author)
-    self.assertEquals(3.14, doc.version)
-    self.assertEquals('some output', doc.process(c))
-    self.failUnless(callable(doc.block()))
-    self.failUnless(callable(doc.blocks()['foo']))
-    self.failUnless(callable(doc.blocks()['bar']))
-    self.assertEquals('some output', doc.block()())
-    self.assertEquals('the foo block', doc.blocks()['foo']())
-    self.assertEquals('the bar block', doc.blocks()['bar']())
+    def testDocument(self):
+        # Create a document and check accessor methods for blocks and metadata
+        doc = Document(
+            {'BLOCK': lambda *_: 'some output',
+             'DEFBLOCKS': {'foo': lambda *_: 'the foo block',
+                           'bar': lambda *_: 'the bar block'},
+             'METADATA': {'author': 'Andy Wardley',
+                          'version': 3.14}})
+        c = DummyContext()
+        self.failUnless(doc)
+        self.assertEquals('Andy Wardley', doc.author)
+        self.assertEquals(3.14, doc.version)
+        self.assertEquals('some output', doc.process(c))
+        self.failUnless(callable(doc.block()))
+        self.failUnless(callable(doc.blocks()['foo']))
+        self.failUnless(callable(doc.blocks()['bar']))
+        self.assertEquals('some output', doc.block()())
+        self.assertEquals('the foo block', doc.blocks()['foo']())
+        self.assertEquals('the bar block', doc.blocks()['bar']())
 
-    tproc = Template({ 'INCLUDE_PATH': 'test/src' })
-    self.Expect(DATA, tproc, { 'mydoc': doc })
+        tproc = Template({'INCLUDE_PATH': 'test/src'})
+        self.Expect(DATA, tproc, {'mydoc': doc})
+
 
 DATA = r"""
 -- test --

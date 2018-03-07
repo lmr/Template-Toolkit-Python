@@ -2,8 +2,8 @@ from template.test import TestCase, main
 
 
 class TestStrcat(TestCase):
-  def testStrcat(self):
-    self.Expect(DATA)
+    def testStrcat(self):
+        self.Expect(DATA)
 
 
 DATA = r"""

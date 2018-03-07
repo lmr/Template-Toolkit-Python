@@ -1,18 +1,20 @@
 from template.test import TestCase, main
 
+
 class BlockTest(TestCase):
-  def testBlock(self):
-    ttcfg = {
-      'INCLUDE_PATH': [ 'test/lib' ],
-      'POST_CHOMP': 1,
-      'BLOCKS': {
-        'header': '<html><head><title>[% title %]</title></head><body>',
-        'footer': '</body></html>',
-        'block_a': lambda *_: 'this is block a',
-        'block_b': lambda *_: 'this is block b',
+    def testBlock(self):
+        ttcfg = {
+            'INCLUDE_PATH': ['test/lib'],
+            'POST_CHOMP': 1,
+            'BLOCKS': {
+                'header': '<html><head><title>[% title %]</title></head><body>',
+                'footer': '</body></html>',
+                'block_a': lambda *_: 'this is block a',
+                'block_b': lambda *_: 'this is block b',
+            }
         }
-      }
-    self.Expect(DATA, ttcfg, self._callsign())
+        self.Expect(DATA, ttcfg, self._callsign())
+
 
 DATA = r"""[% BLOCK block1 %]
 This is the original block1
@@ -104,4 +106,3 @@ This is an anonymous block
 """
 
 main()
-

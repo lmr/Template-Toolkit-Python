@@ -4,19 +4,20 @@ import sys
 from template.test import TestCase, main
 
 try:
-  import PIL
+    import PIL
 except ImportError:
-  print >>sys.stderr, "Failed to import PIL module; skipping test"
-  sys.exit(0)
+    print >>sys.stderr, "Failed to import PIL module; skipping test"
+    sys.exit(0)
+
 
 class ImageTest(TestCase):
-  def testImage(self):
-    dir = os.path.join(os.pardir, "images")
-    vars = { "dir": dir,
-             "file": { "logo": os.path.join(dir, "ttdotorg.gif"),
-                       "power": os.path.join(dir, "tt2power.gif"),
-                       "lname": "ttdotorg.gif" } }
-    self.Expect(DATA, None, vars)
+    def testImage(self):
+        dir = os.path.join(os.pardir, "images")
+        vars = {"dir": dir,
+                "file": {"logo": os.path.join(dir, "ttdotorg.gif"),
+                         "power": os.path.join(dir, "tt2power.gif"),
+                         "lname": "ttdotorg.gif"}}
+        self.Expect(DATA, None, vars)
 
 
 DATA = r"""

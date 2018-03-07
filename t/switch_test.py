@@ -2,9 +2,9 @@ from template.test import TestCase, main
 
 
 class SwitchTest(TestCase):
-  def testSwitch(self):
-    ttcfg = { 'POST_CHOMP': 1 }
-    self.Expect(DATA, ttcfg, self._callsign())
+    def testSwitch(self):
+        ttcfg = {'POST_CHOMP': 1}
+        self.Expect(DATA, ttcfg, self._callsign())
 
 
 DATA = r"""

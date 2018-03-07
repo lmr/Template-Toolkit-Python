@@ -4,29 +4,29 @@ from template.test import TestCase, main
 
 
 class IteratorTest(TestCase):
-  def testIterator(self):
-    data = ("foo", "bar", "baz", "qux", "wiz", "woz", "waz")
-    vars = { "data": data }
-    i1 = Iterator(data)
-    self.assertEquals("foo", i1.get_first())
-    self.assertEquals("bar", i1.get_next())
-    self.assertEquals("baz", i1.get_next())
-    rest = i1.get_all()
-    self.assertEquals(4, len(rest))
-    self.assertEquals("qux", rest[0])
-    self.assertEquals("waz", rest[3])
-    val, err = i1.get_next()
-    self.assert_(not val)
-    self.assertEquals(constants.STATUS_DONE, err)
-    val, err = i1.get_all()
-    self.assert_(not val)
-    self.assertEquals(constants.STATUS_DONE, err)
-    i1.get_first()
-    self.assertEquals("foo", i1.get_first())
-    self.assertEquals("bar", i1.get_next())
-    rest = i1.get_all()
-    self.assertEquals(5, len(rest))
-    self.Expect(DATA, { "POST_CHOMP": 1 }, vars)
+    def testIterator(self):
+        data = ("foo", "bar", "baz", "qux", "wiz", "woz", "waz")
+        vars = {"data": data}
+        i1 = Iterator(data)
+        self.assertEquals("foo", i1.get_first())
+        self.assertEquals("bar", i1.get_next())
+        self.assertEquals("baz", i1.get_next())
+        rest = i1.get_all()
+        self.assertEquals(4, len(rest))
+        self.assertEquals("qux", rest[0])
+        self.assertEquals("waz", rest[3])
+        val, err = i1.get_next()
+        self.assert_(not val)
+        self.assertEquals(constants.STATUS_DONE, err)
+        val, err = i1.get_all()
+        self.assert_(not val)
+        self.assertEquals(constants.STATUS_DONE, err)
+        i1.get_first()
+        self.assertEquals("foo", i1.get_first())
+        self.assertEquals("bar", i1.get_next())
+        rest = i1.get_all()
+        self.assertEquals(5, len(rest))
+        self.Expect(DATA, {"POST_CHOMP": 1}, vars)
 
 
 DATA = r"""

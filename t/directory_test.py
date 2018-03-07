@@ -4,13 +4,14 @@ from template.test import TestCase, main
 
 
 class DirectoryTest(TestCase):
-  def testDirectory(self):
-    vars = { 'cwd': os.getcwd(),
-             'dir': 'test/dir',
-             'dot': '../..' }
-    self.Expect(DATA, None, vars)
+    def testDirectory(self):
+        vars = {'cwd': os.getcwd(),
+                'dir': 'test/dir',
+                'dot': '../..'}
+        self.Expect(DATA, None, vars)
 
 # The final test is commented out, due to lack of VIEW support.
+
 
 DATA = r"""
 -- test --

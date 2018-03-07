@@ -3,12 +3,12 @@ from template.test import TestCase, main
 
 
 class PrefixTest(TestCase):
-  def testPrefix(self):
-    src_prov = Config.provider({ "INCLUDE_PATH": "test/src" })
-    lib_prov = Config.provider({ "INCLUDE_PATH": "test/lib" })
-    config = { "LOAD_TEMPLATES": [ src_prov, lib_prov ],
-               "PREFIX_MAP": { "src": "0", "lib": "1", "all": "0, 1" } }
-    self.Expect(DATA, config)
+    def testPrefix(self):
+        src_prov = Config.provider({"INCLUDE_PATH": "test/src"})
+        lib_prov = Config.provider({"INCLUDE_PATH": "test/lib"})
+        config = {"LOAD_TEMPLATES": [src_prov, lib_prov],
+                  "PREFIX_MAP": {"src": "0", "lib": "1", "all": "0, 1"}}
+        self.Expect(DATA, config)
 
 
 DATA = r"""

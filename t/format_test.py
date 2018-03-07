@@ -2,12 +2,12 @@ from template.test import TestCase, main
 
 
 class FormatTest(TestCase):
-  def testFormat(self):
-    params = { 'a': 'alpha',
-               'b': 'bravo',
-               'c': 'charlie',
-               'd': 'delta' }
-    self.Expect(DATA, { 'INTERPOLATE': True, 'POST_CHOMP': 1 }, params)
+    def testFormat(self):
+        params = {'a': 'alpha',
+                  'b': 'bravo',
+                  'c': 'charlie',
+                  'd': 'delta'}
+        self.Expect(DATA, {'INTERPOLATE': True, 'POST_CHOMP': 1}, params)
 
 
 DATA = r"""[% USE format %]

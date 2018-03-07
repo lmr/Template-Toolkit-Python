@@ -2,26 +2,27 @@ from template.test import TestCase, main
 
 
 class MyObj:
-  def foo(self, *arg):
-    return "object:\n" + self.args(*arg)
-  def args(self, *arg):
-    if arg and isinstance(arg[-1], dict):
-      arg = list(arg)
-      named = arg.pop()
-    else:
-      named = { }
-    return "  ARGS: [ %s ]\n NAMED: { %s }\n" % (
-      ", ".join(str(x) for x in arg),
-      ", ".join("%s => %s" % (key, named[key]) for key in sorted(named.keys())))
+    def foo(self, *arg):
+        return "object:\n" + self.args(*arg)
+
+    def args(self, *arg):
+        if arg and isinstance(arg[-1], dict):
+            arg = list(arg)
+            named = arg.pop()
+        else:
+            named = {}
+        return "  ARGS: [ %s ]\n NAMED: { %s }\n" % (
+            ", ".join(str(x) for x in arg),
+            ", ".join("%s => %s" % (key, named[key]) for key in sorted(named.keys())))
 
 
 class ArgsTest(TestCase):
-  def testArgs(self):
-    replace = self._callsign()
-    o = MyObj()
-    replace['args'] = o.args
-    replace['obj'] = MyObj()
-    self.Expect(DATA, { 'INTERPOLATE': True }, replace)
+    def testArgs(self):
+        replace = self._callsign()
+        o = MyObj()
+        replace['args'] = o.args
+        replace['obj'] = MyObj()
+        self.Expect(DATA, {'INTERPOLATE': True}, replace)
 
 
 DATA = r"""

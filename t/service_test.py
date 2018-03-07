@@ -3,32 +3,32 @@ from template.test import TestCase, main
 
 
 class ServiceTest(TestCase):
-  def testService(self):
-    config = { "INCLUDE_PATH": "test/src:test/lib",
-               "PRE_PROCESS": ["config", "header"],
-               "POST_PROCESS": "footer",
-               "BLOCKS": {"demo": lambda *_: "This is a demo",
-                          "astext": "Another template block, a is '[% a %]'" },
-               "ERROR": { "barf": "barfed", "default": "error" },
-               }
-    tt1 = Template(config)
-    config["AUTO_RESET"] = 0
-    tt2 = Template(config)
-    config["ERROR"] = "barfed"
-    tt3 = Template(config)
-    config["PRE_PROCESS"] = "before"
-    config["POST_PROCESS"] = "after"
-    config["PROCESS"] = "process"
-    config["WRAPPER"] = "outer"
-    tt4 = Template(config)
-    config["WRAPPER"] = ["outer", "inner"]
-    tt5 = Template(config)
-    replace = { "title": "Joe Random Title" }
-    self.Expect(DATA, (("tt1", tt1),
-                       ("tt2", tt2),
-                       ("tt3", tt3),
-                       ("wrapper", tt4),
-                       ("nested", tt5)), replace)
+    def testService(self):
+        config = {"INCLUDE_PATH": "test/src:test/lib",
+                  "PRE_PROCESS": ["config", "header"],
+                  "POST_PROCESS": "footer",
+                  "BLOCKS": {"demo": lambda *_: "This is a demo",
+                             "astext": "Another template block, a is '[% a %]'"},
+                  "ERROR": {"barf": "barfed", "default": "error"},
+                  }
+        tt1 = Template(config)
+        config["AUTO_RESET"] = 0
+        tt2 = Template(config)
+        config["ERROR"] = "barfed"
+        tt3 = Template(config)
+        config["PRE_PROCESS"] = "before"
+        config["POST_PROCESS"] = "after"
+        config["PROCESS"] = "process"
+        config["WRAPPER"] = "outer"
+        tt4 = Template(config)
+        config["WRAPPER"] = ["outer", "inner"]
+        tt5 = Template(config)
+        replace = {"title": "Joe Random Title"}
+        self.Expect(DATA, (("tt1", tt1),
+                           ("tt2", tt2),
+                           ("tt3", tt3),
+                           ("wrapper", tt4),
+                           ("nested", tt5)), replace)
 
 
 DATA = r"""# test that headers and footers get added

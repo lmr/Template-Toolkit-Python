@@ -5,36 +5,36 @@ from template.test import TestCase, main
 
 
 class ParserTest(TestCase):
-  def testParser(self):
-    p2 = Parser({"START_TAG": r"\[\*",
-                 "END_TAG": r"\*\]",
-                 "ANYCASE": 1,
-                 "PRE_CHOMP": 1,
-                 "V1DOLLAR": 1})
-    # Test new/old styles.
-    s1 = p2.new_style({"TAG_STYLE": "metatext",
-                       "PRE_CHOMP": 0,
-                       "POST_CHOMP": 1})
-    self.assert_(s1)
-    self.assertEquals(r"%%", s1["START_TAG"])
-    self.assertEquals(0, s1["PRE_CHOMP"])
-    self.assertEquals(1, s1["POST_CHOMP"])
-    s2 = p2.old_style()
-    self.assert_(s2)
-    self.assertEquals(r"\[\*", s2["START_TAG"])
-    self.assertEquals(1, s2["PRE_CHOMP"])
-    self.assertEquals(0, s2["POST_CHOMP"])
-    p3 = Config.parser(
-      {"TAG_STYLE": "html", "POST_CHOMP": 1, "ANYCASE": 1, "INTERPOLATE": 1})
-    p4 = Config.parser({"ANYCASE": 0})
-    tt = (("tt1", Template({"ANYCASE": 1})),
-          ("tt2", Template({"PARSER": p2})),
-          ("tt3", Template({"PARSER": p3})),
-          ("tt4", Template({"PARSER": p4})))
-    replace = self._callsign()
-    replace["alist"] = ["foo", 0, "bar", 0]
-    replace["wintxt"] = "foo\r\n\r\nbar\r\n\r\nbaz"
-    self.Expect(DATA, tt, replace)
+    def testParser(self):
+        p2 = Parser({"START_TAG": r"\[\*",
+                     "END_TAG": r"\*\]",
+                     "ANYCASE": 1,
+                     "PRE_CHOMP": 1,
+                     "V1DOLLAR": 1})
+        # Test new/old styles.
+        s1 = p2.new_style({"TAG_STYLE": "metatext",
+                           "PRE_CHOMP": 0,
+                           "POST_CHOMP": 1})
+        self.assert_(s1)
+        self.assertEquals(r"%%", s1["START_TAG"])
+        self.assertEquals(0, s1["PRE_CHOMP"])
+        self.assertEquals(1, s1["POST_CHOMP"])
+        s2 = p2.old_style()
+        self.assert_(s2)
+        self.assertEquals(r"\[\*", s2["START_TAG"])
+        self.assertEquals(1, s2["PRE_CHOMP"])
+        self.assertEquals(0, s2["POST_CHOMP"])
+        p3 = Config.parser(
+            {"TAG_STYLE": "html", "POST_CHOMP": 1, "ANYCASE": 1, "INTERPOLATE": 1})
+        p4 = Config.parser({"ANYCASE": 0})
+        tt = (("tt1", Template({"ANYCASE": 1})),
+              ("tt2", Template({"PARSER": p2})),
+              ("tt3", Template({"PARSER": p3})),
+              ("tt4", Template({"PARSER": p4})))
+        replace = self._callsign()
+        replace["alist"] = ["foo", 0, "bar", 0]
+        replace["wintxt"] = "foo\r\n\r\nbar\r\n\r\nbaz"
+        self.Expect(DATA, tt, replace)
 
 
 DATA = r"""

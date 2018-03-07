@@ -2,8 +2,8 @@ from template.test import TestCase, main
 
 
 class StringTest(TestCase):
-  def testString(self):
-    self.Expect(DATA)
+    def testString(self):
+        self.Expect(DATA)
 
 
 DATA = r"""

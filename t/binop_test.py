@@ -1,29 +1,38 @@
 from template import Template
 from template.test import TestCase, main
 
+
 class BinopTest(TestCase):
-  def testBinop(self):
-    counter = [0]
-    def alpha(): counter[0] += 1; return counter[0]
-    def omega(): counter[0] += 10; return 0
-    def count(): return counter[0]
-    def reset(): counter[0] = 0; return counter[0]
-    params = {
-      'yes': 1,
-      'no': 0,
-      'true': 'this is true',
-      'false': '0',
-      'happy': 'yes',
-      'sad': '',
-      'ten': 10,
-      'twenty': 20,
-      'alpha': alpha,
-      'omega': omega,
-      'count': count,
-      'reset': reset,
-      }
-    tmpl = Template({ 'INTERPOLATE': 1, 'POST_CHOMP': 1 })
-    self.Expect(DATA, tmpl, params)
+    def testBinop(self):
+        counter = [0]
+
+        def alpha(): counter[0] += 1
+        return counter[0]
+
+        def omega(): counter[0] += 10
+        return 0
+
+        def count(): return counter[0]
+
+        def reset(): counter[0] = 0
+        return counter[0]
+        params = {
+            'yes': 1,
+            'no': 0,
+            'true': 'this is true',
+            'false': '0',
+            'happy': 'yes',
+            'sad': '',
+            'ten': 10,
+            'twenty': 20,
+            'alpha': alpha,
+            'omega': omega,
+            'count': count,
+            'reset': reset,
+        }
+        tmpl = Template({'INTERPOLATE': 1, 'POST_CHOMP': 1})
+        self.Expect(DATA, tmpl, params)
+
 
 DATA = r"""maybe
 [% IF yes %]

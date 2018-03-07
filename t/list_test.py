@@ -2,23 +2,23 @@ from template.test import TestCase, main
 
 
 class ListTest(TestCase):
-  def testList(self):
-    callsign = self._callsign()
-    vars = {
-      "data": [callsign[char] for char in "rjstyefz"],
-      "days": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
-      "wxyz": [{"id": callsign["z"], "name": "Zebedee", "rank": "aa"},
-               {"id": callsign["y"], "name": "Yinyang", "rank": "ba"},
-               {"id": callsign["x"], "name": "Xeexeez", "rank": "ab"},
-               {"id": callsign["w"], "name": "Warlock", "rank": "bb"}],
-      "inst": [{"name": "piano", "url": "/roses.html"},
-               {"name": "flute", "url": "/blow.html"},
-               {"name": "organ", "url": "/tulips.html"}],
-      "nest": [[3, 1, 4], [2, [7, 1, 8]]]
-    }
-    for char in "abcde":
-      vars[char] = callsign[char]
-    self.Expect(DATA, {}, vars)
+    def testList(self):
+        callsign = self._callsign()
+        vars = {
+            "data": [callsign[char] for char in "rjstyefz"],
+            "days": ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"],
+            "wxyz": [{"id": callsign["z"], "name": "Zebedee", "rank": "aa"},
+                     {"id": callsign["y"], "name": "Yinyang", "rank": "ba"},
+                     {"id": callsign["x"], "name": "Xeexeez", "rank": "ab"},
+                     {"id": callsign["w"], "name": "Warlock", "rank": "bb"}],
+            "inst": [{"name": "piano", "url": "/roses.html"},
+                     {"name": "flute", "url": "/blow.html"},
+                     {"name": "organ", "url": "/tulips.html"}],
+            "nest": [[3, 1, 4], [2, [7, 1, 8]]]
+        }
+        for char in "abcde":
+            vars[char] = callsign[char]
+        self.Expect(DATA, {}, vars)
 
 
 DATA = r"""

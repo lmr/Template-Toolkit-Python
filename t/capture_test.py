@@ -1,10 +1,11 @@
 from template.test import TestCase, main
 
+
 class CaptureTest(TestCase):
-  def testCapture(self):
-    config = { 'POST_CHOMP': 1 }
-    replace = { 'a': 'alpha', 'b': 'bravo' }
-    self.Expect(DATA, config, replace)
+    def testCapture(self):
+        config = {'POST_CHOMP': 1}
+        replace = {'a': 'alpha', 'b': 'bravo'}
+        self.Expect(DATA, config, replace)
 
 
 DATA = r"""

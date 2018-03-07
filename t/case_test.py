@@ -3,11 +3,11 @@ from template.test import TestCase, main
 
 
 class CaseTest(TestCase):
-  def testCase(self):
-    ttdef = Template({ 'POST_CHOMP': 1 })
-    ttanycase = Template({ 'ANYCASE': 1, 'POST_CHOMP': 1 })
-    tts = (('default', ttdef), ('anycase', ttanycase))
-    self.Expect(DATA, tts, self._callsign())
+    def testCase(self):
+        ttdef = Template({'POST_CHOMP': 1})
+        ttanycase = Template({'ANYCASE': 1, 'POST_CHOMP': 1})
+        tts = (('default', ttdef), ('anycase', ttanycase))
+        self.Expect(DATA, tts, self._callsign())
 
 
 DATA = r"""

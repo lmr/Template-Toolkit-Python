@@ -2,21 +2,21 @@ from template.test import TestCase, main
 
 
 def comma_list(format):
-  def func(*args):
-    return format % ", ".join(str(x) for x in args)
-  return func
+    def func(*args):
+        return format % ", ".join(str(x) for x in args)
+    return func
 
 
 class RefTest(TestCase):
-  def testRef(self):
-    replace = {
-      "a": comma_list("a sub [%s]"),
-      "j": { "k": 3,
-             "l": 5,
-             "m": { "n": comma_list("nsub [%s]") } },
-      "z": lambda sub: "z called %s" % sub(10, 20, 30)
-      }
-    self.Expect(DATA, None, replace)
+    def testRef(self):
+        replace = {
+            "a": comma_list("a sub [%s]"),
+            "j": {"k": 3,
+                  "l": 5,
+                  "m": {"n": comma_list("nsub [%s]")}},
+            "z": lambda sub: "z called %s" % sub(10, 20, 30)
+        }
+        self.Expect(DATA, None, replace)
 
 
 DATA = r"""
@@ -72,4 +72,3 @@ f(11): nsub [11]
 """
 
 main()
-

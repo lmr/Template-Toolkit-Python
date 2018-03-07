@@ -4,39 +4,41 @@ from template.test import TestCase, main
 
 
 class MyObject:
-  def __init__(self, name):
-    self.__name = name
-  def name(self):
-    return self.__name
+    def __init__(self, name):
+        self.__name = name
+
+    def name(self):
+        return self.__name
+
 
 def jumble(seq, chop=1):
-  if len(seq) > 3:
-    for i in range(chop):
-      seq.append(seq.pop(0))
-  return seq
+    if len(seq) > 3:
+        for i in range(chop):
+            seq.append(seq.pop(0))
+    return seq
 
 
 class ListVmethodsTest(TestCase):
-  def testListVmethods(self):
-    odd = lambda seq: [x for x in seq if x % 2 != 0]
-    Stash.LIST_OPS["sum"] = lambda seq: sum(seq, 0)
-    Stash.LIST_OPS["odd"] = odd
-    Stash.LIST_OPS["jumble"] = jumble
-    params = { "metavars": ("foo", "bar", "baz", "qux", "wiz", "waz", "woz"),
-               "people": [ { "id": "tom", "name": "Tom" },
-                           { "id": "dick", "name": "Richard" },
-                           { "id": "larry", "name": "Larry" } ],
-               "primes": (13, 11, 17, 19, 2, 3, 5, 7),
-               "phones": { "3141": "Leon", "5131": "Andy", "4131": "Simon" },
-               "groceries": { "Flour": 3, "Milk": 1, "Peanut Butter": 21 },
-               "names": [MyObject(x) for x in ("Tom", "Dick", "Larry")],
-               "numbers": [MyObject(x) for x in ("1", "02", "10", "12","021")],
-               "duplicates": (1, 1, 2, 2, 3, 3, 4, 4, 5, 5) }
-    context = Template().context()
-    context.define_vmethod("list", "oddnos", odd)
-    context.define_vmethod("array", "jumblate", jumble)
+    def testListVmethods(self):
+        def odd(seq): return [x for x in seq if x % 2 != 0]
+        Stash.LIST_OPS["sum"] = lambda seq: sum(seq, 0)
+        Stash.LIST_OPS["odd"] = odd
+        Stash.LIST_OPS["jumble"] = jumble
+        params = {"metavars": ("foo", "bar", "baz", "qux", "wiz", "waz", "woz"),
+                  "people": [{"id": "tom", "name": "Tom"},
+                             {"id": "dick", "name": "Richard"},
+                             {"id": "larry", "name": "Larry"}],
+                  "primes": (13, 11, 17, 19, 2, 3, 5, 7),
+                  "phones": {"3141": "Leon", "5131": "Andy", "4131": "Simon"},
+                  "groceries": {"Flour": 3, "Milk": 1, "Peanut Butter": 21},
+                  "names": [MyObject(x) for x in ("Tom", "Dick", "Larry")],
+                  "numbers": [MyObject(x) for x in ("1", "02", "10", "12", "021")],
+                  "duplicates": (1, 1, 2, 2, 3, 3, 4, 4, 5, 5)}
+        context = Template().context()
+        context.define_vmethod("list", "oddnos", odd)
+        context.define_vmethod("array", "jumblate", jumble)
 
-    self.Expect(DATA, None, params)
+        self.Expect(DATA, None, params)
 
 
 DATA = r"""

@@ -2,8 +2,8 @@ from template.test import TestCase, main
 
 
 class PlusfileTest(TestCase):
-  def testPlusfile(self):
-    self.Expect(DATA, { "INCLUDE_PATH": "test/src" })
+    def testPlusfile(self):
+        self.Expect(DATA, {"INCLUDE_PATH": "test/src"})
 
 
 DATA = r"""

@@ -2,8 +2,8 @@ from template.test import TestCase, main
 
 
 class ReplaceTest(TestCase):
-  def testReplace(self):
-    self.Expect(DATA)
+    def testReplace(self):
+        self.Expect(DATA)
 
 
 DATA = r"""

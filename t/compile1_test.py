@@ -4,17 +4,17 @@ from template.test import TestCase, main
 
 
 class CompileTest(TestCase):
-  def testCompile(self):
-    ttcfg = { "POST_CHOMP": 1,
-              "INCLUDE_PATH": "test/src",
-              "COMPILE_EXT": ".ttc",
-              "EVAL_PYTHON": 1 }
-    for f in "test/src/foo.ttc", "test/src/complex.ttc":
-      if os.path.exists(f):
-        os.remove(f)
-    self.Expect(DATA, ttcfg)
-    self.assert_(os.path.exists("test/src/foo.ttc"))
-    self.assert_(os.path.exists("test/src/complex.ttc"))
+    def testCompile(self):
+        ttcfg = {"POST_CHOMP": 1,
+                 "INCLUDE_PATH": "test/src",
+                 "COMPILE_EXT": ".ttc",
+                 "EVAL_PYTHON": 1}
+        for f in "test/src/foo.ttc", "test/src/complex.ttc":
+            if os.path.exists(f):
+                os.remove(f)
+        self.Expect(DATA, ttcfg)
+        self.assert_(os.path.exists("test/src/foo.ttc"))
+        self.assert_(os.path.exists("test/src/complex.ttc"))
 
 
 DATA = r"""

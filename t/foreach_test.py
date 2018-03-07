@@ -3,69 +3,70 @@ from template.test import TestCase, main
 
 
 def format(fmt="%s"):
-  return lambda x: fmt % x
+    return lambda x: fmt % x
 
 
 class ForeachTest(TestCase):
-  def testForeach(self):
-    a = 'alpha'
-    b = 'bravo'
-    c = 'charlie'
-    d = 'delta'
-    l = 'lima'
-    o = 'oscar'
-    r = 'romeo'
-    u = 'uncle'
-    w = 'whisky'
-    day = -1
-    days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday',
-            'Saturday', 'Sunday']
-    months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun',
-              'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
-    people = ({'id': 'abw', 'name': 'Andy Wardley'},
-              {'id': 'sam', 'name': 'Simon Matthews'})
-    seta = (a, b, w)
-    setb = (c, l, o, u, d)
-    params = {
-      'a': a,
-      'b': b,
-      'c': c,
-      'C': c.upper(),
-      'd': d,
-      'l': l,
-      'o': o,
-      'r': r,
-      'u': u,
-      'w': w,
-      'seta': seta,
-      'setb': setb,
-      'users': people,
-      'item': 'foo',
-      'items': ['foo', 'bar'],
-      'days': days,
-      'months': lambda *_: months,
-      'format': format,
-      'people': [ { 'id': 'abw', 'code': 'abw',
-                    'name': 'Andy Wardley' },
-                  { 'id': 'aaz', 'code': 'zaz',
-                    'name': 'Azbaz Azbaz Zazbazzer' },
-                  { 'id': 'bcd', 'code': 'dec',
-                    'name': 'Binary Coded Decimal' },
-                  { 'id': 'efg', 'code': 'zzz',
-                    'name': 'Extra Fine Grass' } ],
-      'sections': {
-        'one': 'Section One',
-        'two': 'Section Two',
-        'three': 'Section Three',
-        'four': 'Section Four' },
-      'nested': [ [ 'a', 'b', 'c' ], [ 'x', 'y', 'z' ] ]
-      }
-    tmpl = Template({ 'INTERPOLATE': True,
-                      'POST_CHOMP': 1,
-                      'ANYCASE': False })
-    ttdebug = Template({ 'DEBUG': True,
-                         'DEBUG_FORMAT': '' })
-    self.Expect(DATA, (('default', tmpl), ('debug', ttdebug)), params)
+    def testForeach(self):
+        a = 'alpha'
+        b = 'bravo'
+        c = 'charlie'
+        d = 'delta'
+        l = 'lima'
+        o = 'oscar'
+        r = 'romeo'
+        u = 'uncle'
+        w = 'whisky'
+        day = -1
+        days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday',
+                'Saturday', 'Sunday']
+        months = ['jan', 'feb', 'mar', 'apr', 'may', 'jun',
+                  'jul', 'aug', 'sep', 'oct', 'nov', 'dec']
+        people = ({'id': 'abw', 'name': 'Andy Wardley'},
+                  {'id': 'sam', 'name': 'Simon Matthews'})
+        seta = (a, b, w)
+        setb = (c, l, o, u, d)
+        params = {
+            'a': a,
+            'b': b,
+            'c': c,
+            'C': c.upper(),
+            'd': d,
+            'l': l,
+            'o': o,
+            'r': r,
+            'u': u,
+            'w': w,
+            'seta': seta,
+            'setb': setb,
+            'users': people,
+            'item': 'foo',
+            'items': ['foo', 'bar'],
+            'days': days,
+            'months': lambda *_: months,
+            'format': format,
+            'people': [{'id': 'abw', 'code': 'abw',
+                        'name': 'Andy Wardley'},
+                       {'id': 'aaz', 'code': 'zaz',
+                        'name': 'Azbaz Azbaz Zazbazzer'},
+                       {'id': 'bcd', 'code': 'dec',
+                        'name': 'Binary Coded Decimal'},
+                       {'id': 'efg', 'code': 'zzz',
+                        'name': 'Extra Fine Grass'}],
+            'sections': {
+                'one': 'Section One',
+                'two': 'Section Two',
+                'three': 'Section Three',
+                'four': 'Section Four'},
+            'nested': [['a', 'b', 'c'], ['x', 'y', 'z']]
+        }
+        tmpl = Template({'INTERPOLATE': True,
+                         'POST_CHOMP': 1,
+                         'ANYCASE': False})
+        ttdebug = Template({'DEBUG': True,
+                            'DEBUG_FORMAT': ''})
+        self.Expect(DATA, (('default', tmpl), ('debug', ttdebug)), params)
+
 
 DATA = r"""
 -- test --
@@ -598,4 +599,3 @@ last outer
 """
 
 main()
-

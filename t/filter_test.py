@@ -12,85 +12,85 @@ sys.stderr = cStringIO.StringIO()
 
 
 class FilterTest(TestCase):
-  def testFilter(self):
-    dir = 'test/tmp'
-    file = 'xyz'
-    a, b, c, d = 'alpha', 'bravo', 'charlie', 'delta'
-    params = { 'a': a,
-               'b': b,
-               'c': c,
-               'd': d,
-               'list': [ a, b, c, d ],
-               'text': 'The cat sat on the mat',
-               'outfile': file,
-               'stderr': lambda *_: sys.stderr.getvalue(),
-               }
-    filters = { 'nonfilt': 'nonsense',
-                'microjive': microjive,
-                'microsloth': microsloth,
-                'censor': censor_factory,
-                'badfact': dynamic_filter(lambda *_: 'nonsense'),
-                'badfilt': 'rubbish',
-                'barfilt': barf_up }
-    config1 = { 'INTERPOLATE': 1,
-                'POST_CHOMP': 1,
-                'FILTERS': filters }
-    config2 = { 'EVAL_PYTHON': 1,
-                'FILTERS': filters,
-                'OUTPUT_PATH': dir,
-                'BARVAL': 'some random value' }
-    path = os.path.join(dir, file)
-    if os.path.exists(path):
-      os.remove(path)
-    tt1 = Template(config1)
-    tt2 = Template(config2)
-    tt2.context().define_filter('another', another, True)
-    self.Expect(DATA, (('default', tt1), ('evalpython', tt2)), params)
-    self.failUnless(os.path.exists(path))
-    os.remove(path)
+    def testFilter(self):
+        dir = 'test/tmp'
+        file = 'xyz'
+        a, b, c, d = 'alpha', 'bravo', 'charlie', 'delta'
+        params = {'a': a,
+                  'b': b,
+                  'c': c,
+                  'd': d,
+                  'list': [a, b, c, d],
+                  'text': 'The cat sat on the mat',
+                  'outfile': file,
+                  'stderr': lambda *_: sys.stderr.getvalue(),
+                  }
+        filters = {'nonfilt': 'nonsense',
+                   'microjive': microjive,
+                   'microsloth': microsloth,
+                   'censor': censor_factory,
+                   'badfact': dynamic_filter(lambda *_: 'nonsense'),
+                   'badfilt': 'rubbish',
+                   'barfilt': barf_up}
+        config1 = {'INTERPOLATE': 1,
+                   'POST_CHOMP': 1,
+                   'FILTERS': filters}
+        config2 = {'EVAL_PYTHON': 1,
+                   'FILTERS': filters,
+                   'OUTPUT_PATH': dir,
+                   'BARVAL': 'some random value'}
+        path = os.path.join(dir, file)
+        if os.path.exists(path):
+            os.remove(path)
+        tt1 = Template(config1)
+        tt2 = Template(config2)
+        tt2.context().define_filter('another', another, True)
+        self.Expect(DATA, (('default', tt1), ('evalpython', tt2)), params)
+        self.failUnless(os.path.exists(path))
+        os.remove(path)
 
 #
 #  Custom filter subs.
 #
 
+
 class Error(Exception):
-  pass
+    pass
 
 
 def microjive(text):
-  return re.sub(r'(?i)microsoft', "The 'Soft", text)
+    return re.sub(r'(?i)microsoft', "The 'Soft", text)
 
 
 def microsloth(text):
-  return re.sub(r'(?i)microsoft', 'Microsloth', text)
+    return re.sub(r'(?i)microsoft', 'Microsloth', text)
 
 
 @dynamic_filter
 def censor_factory(context, *forbidden):
-  def censor(text):
-    for word in forbidden:
-      text = re.sub('(?is)' + word, '[** CENSORED **]', text)
-    return text
-  return censor
+    def censor(text):
+        for word in forbidden:
+            text = re.sub('(?is)' + word, '[** CENSORED **]', text)
+        return text
+    return censor
 
 
 @dynamic_filter
 def barf_up(context, foad=0):
-  if foad == 0:
-    raise Error("barfed")
-  elif foad == 1:
-    raise TemplateException("dead", "deceased")
-  elif foad == 2:
-    raise Error("keeled over")
-  else:
-    raise TemplateException('unwell', 'sick as a parrot')
-
+    if foad == 0:
+        raise Error("barfed")
+    elif foad == 1:
+        raise TemplateException("dead", "deceased")
+    elif foad == 2:
+        raise Error("keeled over")
+    else:
+        raise TemplateException('unwell', 'sick as a parrot')
 
 
 def another(context, n):
-  def sub(text):
-    return text * n
-  return sub
+    def sub(text):
+        return text * n
+    return sub
 
 
 DATA = r"""

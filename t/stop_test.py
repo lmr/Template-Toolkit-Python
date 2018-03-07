@@ -3,20 +3,20 @@ from template.test import TestCase, main
 
 
 def halt(*args):
-  raise TemplateException("stop", "big error")
+    raise TemplateException("stop", "big error")
 
 
 class StopTest(TestCase):
-  def testStop(self):
-    ttblocks = { "header": lambda *_: "This is the header\n",
-                 "footer": lambda *_: "This is the footer\n",
-                 "halt1": halt }
-    ttvars = { "halt": halt }
-    ttbare = Template({ "BLOCKS": ttblocks })
-    ttwrap = Template({"PRE_PROCESS": "header",
-                       "POST_PROCESS": "footer",
-                       "BLOCKS": ttblocks })
-    self.Expect(DATA, (("bare", ttbare), ("wrapped", ttwrap)), ttvars)
+    def testStop(self):
+        ttblocks = {"header": lambda *_: "This is the header\n",
+                    "footer": lambda *_: "This is the footer\n",
+                    "halt1": halt}
+        ttvars = {"halt": halt}
+        ttbare = Template({"BLOCKS": ttblocks})
+        ttwrap = Template({"PRE_PROCESS": "header",
+                           "POST_PROCESS": "footer",
+                           "BLOCKS": ttblocks})
+        self.Expect(DATA, (("bare", ttbare), ("wrapped", ttwrap)), ttvars)
 
 
 DATA = r"""

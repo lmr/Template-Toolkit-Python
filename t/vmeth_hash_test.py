@@ -3,14 +3,15 @@ from template.test import TestCase, main
 
 
 class HashVmethodsTest(TestCase):
-  def testHashVmethods(self):
-    params = { "hash": { "a": "b", "c": "d" },
-               "uhash": { "tobe": "2b", "nottobe": None } }
-    def dump(dict):
-      return "{ %s }" % (
-        ", ".join(["%s => '%s'" % pair for pair in sorted(dict.items())]))
-    Template().context().define_vmethod("hash", "dump", dump)
-    self.Expect(DATA, None, params)
+    def testHashVmethods(self):
+        params = {"hash": {"a": "b", "c": "d"},
+                  "uhash": {"tobe": "2b", "nottobe": None}}
+
+        def dump(dict):
+            return "{ %s }" % (
+                ", ".join(["%s => '%s'" % pair for pair in sorted(dict.items())]))
+        Template().context().define_vmethod("hash", "dump", dump)
+        self.Expect(DATA, None, params)
 
 
 DATA = r"""
@@ -118,4 +119,3 @@ good
 """
 
 main()
-

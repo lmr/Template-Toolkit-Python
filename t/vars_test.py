@@ -4,100 +4,111 @@ from template.test import TestCase, main
 
 
 class VarsTest(TestCase):
-  def testVarsV1(self):
-    params = self.make_params()
-    tt = (("default", Template({ "INTERPOLATE": 1,
-                                 "ANYCASE": 1,
-                                 "V1DOLLAR": 1 })),
-          ("notcase", Template({ "INTERPOLATE": 1,
-                                 "V1DOLLAR": 0 })))
-    self.Expect(DATA_V1, tt, params)
+    def testVarsV1(self):
+        params = self.make_params()
+        tt = (("default", Template({"INTERPOLATE": 1,
+                                    "ANYCASE": 1,
+                                    "V1DOLLAR": 1})),
+              ("notcase", Template({"INTERPOLATE": 1,
+                                    "V1DOLLAR": 0})))
+        self.Expect(DATA_V1, tt, params)
 
-  def testVarsV2(self):
-    params = self.make_params()
-    tt = (("default", Template({ "INTERPOLATE": 1, "ANYCASE": 1 })),
-          ("notcase", Template({ "INTERPOLATE": 1, "ANYCASE": 0 })))
-    self.Expect(DATA_V2, tt, params)
+    def testVarsV2(self):
+        params = self.make_params()
+        tt = (("default", Template({"INTERPOLATE": 1, "ANYCASE": 1})),
+              ("notcase", Template({"INTERPOLATE": 1, "ANYCASE": 0})))
+        self.Expect(DATA_V2, tt, params)
 
-  def make_params(self):
-    c = self._callsign()
-    count = [0]
-    def up():
-      count[0] += 1
-      return count[0]
-    def down():
-      count[0] -= 1
-      return count[0]
-    def reset(arg=None):
-      count[0] = arg or 0
-      return count[0]
-    def halt():
-      raise TemplateException("stop", "stopped")
-    def expose():
-      Stash.PRIVATE = None
-    return {
-      "a": c["a"],
-      "b": c["b"],
-      "c": c["c"],
-      "d": c["d"],
-      "e": c["e"],
-      "f": { "g": c["g"],
-             "h": c["h"],
-             "i": { "j": c["j"],
-                    "k": c["k"] } },
-      "g": "solo %s" % c["g"],
-      "l": c["l"],
-      "r": c["r"],
-      "s": c["s"],
-      "t": c["t"],
-      "w": c["w"],
-      "n": lambda *_: count[0],
-      "up": up,
-      "down": down,
-      "reset": reset,
-      "undef": lambda *_: None,
-      "zero": lambda *_: 0,
-      "one": lambda *_: "one",
-      "halt": halt,
-      "join": lambda join="", *args: join.join(args),
-      "split": lambda s="", arg="": arg.split(s),
-      "magic": { "chant": "Hocus Pocus",
-                 "spell": lambda *args: " and a bit of ".join(args) },
-      "day": { "prev": yesterday,
-               "this": today,
-               "next": tomorrow },
-      "belief": belief,
-      "people": lambda *_: ("Tom", "Dick", "Harry"),
-      "gee": "g",
-      "letter%s" % c["a"]: "'%s'" % c["a"],
-      "yankee": yankee,
-      "_private": 123,
-      "_hidden": 456,
-      "expose": expose,
-      "add": lambda x, y: x + y }
+    def make_params(self):
+        c = self._callsign()
+        count = [0]
+
+        def up():
+            count[0] += 1
+            return count[0]
+
+        def down():
+            count[0] -= 1
+            return count[0]
+
+        def reset(arg=None):
+            count[0] = arg or 0
+            return count[0]
+
+        def halt():
+            raise TemplateException("stop", "stopped")
+
+        def expose():
+            Stash.PRIVATE = None
+        return {
+            "a": c["a"],
+            "b": c["b"],
+            "c": c["c"],
+            "d": c["d"],
+            "e": c["e"],
+            "f": {"g": c["g"],
+                  "h": c["h"],
+                  "i": {"j": c["j"],
+                        "k": c["k"]}},
+            "g": "solo %s" % c["g"],
+            "l": c["l"],
+            "r": c["r"],
+            "s": c["s"],
+            "t": c["t"],
+            "w": c["w"],
+            "n": lambda *_: count[0],
+            "up": up,
+            "down": down,
+            "reset": reset,
+            "undef": lambda *_: None,
+            "zero": lambda *_: 0,
+            "one": lambda *_: "one",
+            "halt": halt,
+            "join": lambda join="", *args: join.join(args),
+            "split": lambda s="", arg="": arg.split(s),
+            "magic": {"chant": "Hocus Pocus",
+                      "spell": lambda *args: " and a bit of ".join(args)},
+            "day": {"prev": yesterday,
+                    "this": today,
+                    "next": tomorrow},
+            "belief": belief,
+            "people": lambda *_: ("Tom", "Dick", "Harry"),
+            "gee": "g",
+            "letter%s" % c["a"]: "'%s'" % c["a"],
+            "yankee": yankee,
+            "_private": 123,
+            "_hidden": 456,
+            "expose": expose,
+            "add": lambda x, y: x + y}
+
 
 def yesterday():
-  return "All my troubles seemed so far away..."
+    return "All my troubles seemed so far away..."
+
 
 def today(when="Now"):
-  return "%s it looks as though they're here to stay." % when
+    return "%s it looks as though they're here to stay." % when
+
 
 days = ["Monday", "Tuesday", "Wednesday", "Thursday",
         "Friday", "Saturday", "Sunday"]
 day = -1
 
+
 def tomorrow(dayno=None):
-  global day
-  if dayno is None:
-    day = (day + 1) % 7
-    dayno = day
-  return days[dayno]
+    global day
+    if dayno is None:
+        day = (day + 1) % 7
+        dayno = day
+    return days[dayno]
+
 
 def belief(*beliefs):
-  return "Oh I believe in %s." % (" and ".join(beliefs) or "<nothing>")
+    return "Oh I believe in %s." % (" and ".join(beliefs) or "<nothing>")
+
 
 def yankee():
-  return [ None, { "a": 1 }, None, { "a": 2 } ]
+    return [None, {"a": 1}, None, {"a": 2}]
 
 
 DATA_V1 = r"""
@@ -950,4 +961,3 @@ e: 3
 """
 
 main()
-

@@ -3,10 +3,10 @@ from template.test import TestCase, main
 
 
 class WrapperTest(TestCase):
-  def testWrapper(self):
-    tproc = Template({ "INCLUDE_PATH": "test/src:test/lib",
-                       "TRIM": 1 })
-    self.Expect(DATA, tproc, self._callsign())
+    def testWrapper(self):
+        tproc = Template({"INCLUDE_PATH": "test/src:test/lib",
+                          "TRIM": 1})
+        self.Expect(DATA, tproc, self._callsign())
 
 
 DATA = r"""

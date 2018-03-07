@@ -3,13 +3,13 @@ from template.test import TestCase, main
 
 
 class TagsTest(TestCase):
-  def testTags(self):
-    params = { "a": "alpha", "b": "bravo", "c": "charlie", "d": "delta",
-               "e": "echo" }
-    tt = (("basic", Template({ "INTERPOLATE": 1 })),
-          ("htags", Template({ "TAG_STYLE": "html" })),
-          ("stags", Template({ "START_TAG": r"\[\*", "END_TAG": r"\*\]" })))
-    self.Expect(DATA, tt, params)
+    def testTags(self):
+        params = {"a": "alpha", "b": "bravo", "c": "charlie", "d": "delta",
+                  "e": "echo"}
+        tt = (("basic", Template({"INTERPOLATE": 1})),
+              ("htags", Template({"TAG_STYLE": "html"})),
+              ("stags", Template({"START_TAG": r"\[\*", "END_TAG": r"\*\]"})))
+        self.Expect(DATA, tt, params)
 
 
 DATA = r"""
@@ -188,4 +188,3 @@ a is 10
 """
 
 main()
-

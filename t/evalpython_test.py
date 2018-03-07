@@ -3,17 +3,17 @@ from template.test import TestCase, main
 
 
 class EvalPythonTest(TestCase):
-  def testEvalPython(self):
-    tt_no_python = Template({ "INTERPOLATE": 1,
-                              "POST_CHOMP": 1,
-                              "EVAL_PYTHON": 0,
-                              "INCLUDE_PATH": "test/lib" })
-    tt_do_python = Template({ "INTERPOLATE": 1,
-                              "POST_CHOMP": 1,
-                              "EVAL_PYTHON": 1,
-                              "INCLUDE_PATH": "test/lib" })
-    ttprocs = (("no_python", tt_no_python), ("do_python", tt_do_python))
-    self.Expect(DATA, ttprocs, self._callsign())
+    def testEvalPython(self):
+        tt_no_python = Template({"INTERPOLATE": 1,
+                                 "POST_CHOMP": 1,
+                                 "EVAL_PYTHON": 0,
+                                 "INCLUDE_PATH": "test/lib"})
+        tt_do_python = Template({"INTERPOLATE": 1,
+                                 "POST_CHOMP": 1,
+                                 "EVAL_PYTHON": 1,
+                                 "INCLUDE_PATH": "test/lib"})
+        ttprocs = (("no_python", tt_no_python), ("do_python", tt_do_python))
+        self.Expect(DATA, ttprocs, self._callsign())
 
 
 DATA = r"""

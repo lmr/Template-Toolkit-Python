@@ -2,9 +2,9 @@ from template.test import TestCase, main
 
 
 class DatafileTest(TestCase):
-  def testDatafile(self):
-    params = { 'datafile': [ 'test/lib/udata1', 'test/lib/udata2' ] }
-    self.Expect(DATA, { 'INTERPOLATE': True, 'POST_CHOMP': 1 }, params)
+    def testDatafile(self):
+        params = {'datafile': ['test/lib/udata1', 'test/lib/udata2']}
+        self.Expect(DATA, {'INTERPOLATE': True, 'POST_CHOMP': 1}, params)
 
 
 DATA = r"""[% USE userlist = datafile(datafile.0) %]

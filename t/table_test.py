@@ -4,9 +4,9 @@ from template.test import TestCase, main
 
 
 class TableTest(TestCase):
-  def testTable(self):
-    params = { "alphabet": [ c for c in string.lowercase ], "empty": [ ] }
-    self.Expect(DATA, { 'POST_CHOMP': 1 }, params)
+    def testTable(self):
+        params = {"alphabet": [c for c in string.lowercase], "empty": []}
+        self.Expect(DATA, {'POST_CHOMP': 1}, params)
 
 
 DATA = r"""
@@ -131,4 +131,3 @@ item: [% item -%]
 """
 
 main()
-

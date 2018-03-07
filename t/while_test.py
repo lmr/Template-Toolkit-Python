@@ -3,33 +3,37 @@ from template.test import TestCase, main
 
 
 class WhileTest(TestCase):
-  def testWhile(self):
-    config = { "INTERPOLATE": 1, "POST_CHOMP": 1 }
-    list = ("x-ray", "yankee", "zulu")
-    pending = []
-    def dec(x):
-      x[0] -= 1
-    def inc(x):
-      x[0] += 1
-    def reset():
-      pending[:] = list
-      return "Reset list\n"
-    def next():
-      if pending:
-        return pending.pop(0)
-      else:
-        return None
-    replace = { "a": "alpha",
-                "b": "bravo",
-                "c": "charlie",
-                "d": "delta",
-                "dec": lambda x: x - 1, #dec,
-                "inc": inc,
-                "reset": reset,
-                "next": next,
-                "true": 1 }
-    Directive.WHILE_MAX = 100
-    self.Expect(DATA, config, replace)
+    def testWhile(self):
+        config = {"INTERPOLATE": 1, "POST_CHOMP": 1}
+        list = ("x-ray", "yankee", "zulu")
+        pending = []
+
+        def dec(x):
+            x[0] -= 1
+
+        def inc(x):
+            x[0] += 1
+
+        def reset():
+            pending[:] = list
+            return "Reset list\n"
+
+        def next():
+            if pending:
+                return pending.pop(0)
+            else:
+                return None
+        replace = {"a": "alpha",
+                   "b": "bravo",
+                   "c": "charlie",
+                   "d": "delta",
+                   "dec": lambda x: x - 1,  # dec,
+                   "inc": inc,
+                   "reset": reset,
+                   "next": next,
+                   "true": 1}
+        Directive.WHILE_MAX = 100
+        self.Expect(DATA, config, replace)
 
 
 DATA = r"""
@@ -193,4 +197,3 @@ Reset list
 """
 
 main()
-

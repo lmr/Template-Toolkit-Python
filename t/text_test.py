@@ -3,25 +3,25 @@ from template.test import TestCase, main
 
 
 class Stringy:
-  def __init__(self, text):
-    self.text = text
+    def __init__(self, text):
+        self.text = text
 
-  def asString(self):
-    return self.text
+    def asString(self):
+        return self.text
 
-  __str__ = asString
+    __str__ = asString
 
 
 class TextTest(TestCase):
-  def testText(self):
-    tt = (("basic", Template()),
-          ("interp", Template({ "INTERPOLATE": 1 })))
-    vars = self._callsign()
-    v2 = { "ref": lambda obj: "%s[%s]" % (obj, obj.__class__.__name__),
-           "sfoo": Stringy("foo"),
-           "sbar": Stringy("bar") }
-    vars.update(v2)
-    self.Expect(DATA, tt, vars)
+    def testText(self):
+        tt = (("basic", Template()),
+              ("interp", Template({"INTERPOLATE": 1})))
+        vars = self._callsign()
+        v2 = {"ref": lambda obj: "%s[%s]" % (obj, obj.__class__.__name__),
+              "sfoo": Stringy("foo"),
+              "sbar": Stringy("bar")}
+        vars.update(v2)
+        self.Expect(DATA, tt, vars)
 
 
 DATA = r"""
@@ -150,4 +150,3 @@ foo[str]/bar [str]/foo[Stringy]
 """
 
 main()
-

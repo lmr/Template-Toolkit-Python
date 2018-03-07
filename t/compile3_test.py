@@ -7,49 +7,49 @@ from template.test import TestCase, main
 
 
 def append_file(path, text):
-  time.sleep(2)  # Ensure file time stamps are different.
-  fh = open(path, "a")
-  fh.write(text)
-  fh.close()
+    time.sleep(2)  # Ensure file time stamps are different.
+    fh = open(path, "a")
+    fh.write(text)
+    fh.close()
 
 
 class CompileTest(TestCase):
-  def testCompile(self):
-    ttcfg = { "POST_CHOMP": 1,
-              "INCLUDE_PATH": "test/src",
-              "COMPILE_EXT": ".ttc" }
+    def testCompile(self):
+        ttcfg = {"POST_CHOMP": 1,
+                 "INCLUDE_PATH": "test/src",
+                 "COMPILE_EXT": ".ttc"}
 
-    # Test process fails when EVAL_PYTHON not set.
-    try:
-      Template(ttcfg).process("evalpython", {})
-      self.fail("did not raise exception")
-    except TemplateException, e:
-      self.assertEquals("python", e.type())
-      self.assertEquals("EVAL_PYTHON not set", e.info())
+        # Test process fails when EVAL_PYTHON not set.
+        try:
+            Template(ttcfg).process("evalpython", {})
+            self.fail("did not raise exception")
+        except TemplateException, e:
+            self.assertEquals("python", e.type())
+            self.assertEquals("EVAL_PYTHON not set", e.info())
 
-    # Ensure we can run compiled templates without loading parser.
-    ttcfg["EVAL_PYTHON"] = 1
-    Template(ttcfg).process("evalpython", {})
+        # Ensure we can run compiled templates without loading parser.
+        ttcfg["EVAL_PYTHON"] = 1
+        Template(ttcfg).process("evalpython", {})
 
-    # Check that compiled template file exists and grab modification time.
-    path = "test/src/complex"
-    self.assert_(os.path.exists(path + ".ttc"))
-    mod = os.stat(path + ".ttc")[9]
-    # Save copy of the source file because we're going to try to break it.
-    shutil.copy(path, path + ".org")
-    # Sleep for a couple of seconds to ensure clock has ticked.
-    time.sleep(2)
-    # Append a harmless newline to the end of the source file to change
-    # its modification time.
-    append_file(path, "\n")
-    # Define "bust_it" to append a lone "[% TRY %]" onto the end of the
-    # source file to cause re-compilation to fail.
-    replace = { "bust_it": lambda: append_file(path, "[% TRY %]") }
+        # Check that compiled template file exists and grab modification time.
+        path = "test/src/complex"
+        self.assert_(os.path.exists(path + ".ttc"))
+        mod = os.stat(path + ".ttc")[9]
+        # Save copy of the source file because we're going to try to break it.
+        shutil.copy(path, path + ".org")
+        # Sleep for a couple of seconds to ensure clock has ticked.
+        time.sleep(2)
+        # Append a harmless newline to the end of the source file to change
+        # its modification time.
+        append_file(path, "\n")
+        # Define "bust_it" to append a lone "[% TRY %]" onto the end of the
+        # source file to cause re-compilation to fail.
+        replace = {"bust_it": lambda: append_file(path, "[% TRY %]")}
 
-    self.Expect(DATA, ttcfg, replace)
-    self.assert_(os.stat(path)[9] > mod)
-    # Restore original source file.
-    shutil.copy(path + ".org", path)
+        self.Expect(DATA, ttcfg, replace)
+        self.assert_(os.stat(path)[9] > mod)
+        # Restore original source file.
+        shutil.copy(path + ".org", path)
 
 
 DATA = r"""
@@ -72,4 +72,3 @@ file error - parse error - complex line 18: unexpected end of input
 """
 
 main()
-

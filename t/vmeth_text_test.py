@@ -6,28 +6,28 @@ from template.test import TestCase, main
 
 
 def commify(text, c=",", n=3):
-  if n >= 1:
-    regex = re.compile(r"[-+]?\d+(\d{%d})" % n)
-    while True:
-      match = regex.match(text)
-      if match:
-        text = "%s%s%s" % (text[:match.start(1)], c, text[match.start(1):])
-      else:
-        break
-  return text
+    if n >= 1:
+        regex = re.compile(r"[-+]?\d+(\d{%d})" % n)
+        while True:
+            match = regex.match(text)
+            if match:
+                text = "%s%s%s" % (text[:match.start(1)], c, text[match.start(1):])
+            else:
+                break
+    return text
 
 
 class TextVmethodsTest(TestCase):
-  def testTextVmethods(self):
-    Stash.SCALAR_OPS["commify"] = commify
-    Template().context().define_vmethod("item", "commas", commify)
-    params = { "undef": None,
-               "zero": 0,
-               "one": 1,
-               "animal": "cat",
-               "string": "The cat sat on the mat",
-               "spaced": "  The dog sat on the log" }
-    self.Expect(DATA, None, params)
+    def testTextVmethods(self):
+        Stash.SCALAR_OPS["commify"] = commify
+        Template().context().define_vmethod("item", "commas", commify)
+        params = {"undef": None,
+                  "zero": 0,
+                  "one": 1,
+                  "animal": "cat",
+                  "string": "The cat sat on the mat",
+                  "spaced": "  The dog sat on the log"}
+        self.Expect(DATA, None, params)
 
 
 DATA = r"""

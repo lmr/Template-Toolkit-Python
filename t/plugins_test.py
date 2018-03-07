@@ -7,24 +7,24 @@ from template.test import TestCase, main
 
 
 class PluginsTest(TestCase):
-  def testPlugins(self):
-    sys.path.insert(0, os.path.abspath("test/plugin"))
-    tt1 = Template({ "PLUGIN_BASE": "MyPlugs" })
-    tt2 = Template({ "PLUGINS": { "bar": "MyPlugs.Bar",
-                                  "baz": ("MyPlugs.Foo", "Foo"),
-                                  "cgi": ("MyPlugs.Bar", "Bar") } })
-    tt3 = Template({ "LOAD_PYTHON": 1 })
-    del Plugins.STD_PLUGINS["date"]
-    Plugins.PLUGIN_BASE = ""
-    tt4 = Template({ "PLUGIN_BASE": "MyPlugs" })
-    tt5 = Template()
-    tt = (("def", Template()),
-          ("tt1", tt1),
-          ("tt2", tt2),
-          ("tt3", tt3),
-          ("tt4", tt4),
-          ("tt5", tt5))
-    self.Expect(DATA, tt, self._callsign())
+    def testPlugins(self):
+        sys.path.insert(0, os.path.abspath("test/plugin"))
+        tt1 = Template({"PLUGIN_BASE": "MyPlugs"})
+        tt2 = Template({"PLUGINS": {"bar": "MyPlugs.Bar",
+                                    "baz": ("MyPlugs.Foo", "Foo"),
+                                    "cgi": ("MyPlugs.Bar", "Bar")}})
+        tt3 = Template({"LOAD_PYTHON": 1})
+        del Plugins.STD_PLUGINS["date"]
+        Plugins.PLUGIN_BASE = ""
+        tt4 = Template({"PLUGIN_BASE": "MyPlugs"})
+        tt5 = Template()
+        tt = (("def", Template()),
+              ("tt1", tt1),
+              ("tt2", tt2),
+              ("tt3", tt3),
+              ("tt4", tt4),
+              ("tt5", tt5))
+        self.Expect(DATA, tt, self._callsign())
 
 
 DATA = r"""
@@ -195,4 +195,3 @@ ERROR: Date: plugin not found
 """
 
 main()
-

@@ -4,52 +4,54 @@ from template.test import TestCase, main
 
 
 class AnObject:
-  def __init__(self, **kwargs):
-    for name, value in kwargs.items():
-      setattr(self, name, value)
+    def __init__(self, **kwargs):
+        for name, value in kwargs.items():
+            setattr(self, name, value)
 
 
 class HashObject(AnObject):
-  def __init__(self, **kwargs):
-    AnObject.__init__(self, **kwargs)
+    def __init__(self, **kwargs):
+        AnObject.__init__(self, **kwargs)
 
-  def hello(self):
-    return "Hello %s" % getattr(self, "planet", "")
+    def hello(self):
+        return "Hello %s" % getattr(self, "planet", "")
 
-  def goodbye(self):
-    return self.no_such_method()
+    def goodbye(self):
+        return self.no_such_method()
 
 
 class StashTest(TestCase):
-  def testStash(self):
-    count = [20]
-    def boz():
-      count[0] += 10
-      return count[0]
-    def biz(*args):
-      return args and args[0] or "<undef>"
-    data = { "foo": 10,
-             "bar": { "baz": 20 },
-             "baz": lambda: { "boz": boz, "biz": biz },
-             "obj": AnObject(name="an object"),
-             "hashobj": HashObject(planet="World") }
-    stash = Stash(data)
-    self.assertEquals(10, stash.get("foo").value())
-    self.assertEquals(20, stash.get(["bar", 0, "baz", 0]).value())
-    self.assertEquals(20, stash.get("bar.baz").value())
-    self.assertEquals(20, stash.get("bar(10).baz").value())
-    self.assertEquals(30, stash.get("baz.boz").value())
-    self.assertEquals(40, stash.get("baz.boz").value())
-    self.assertEquals("<undef>", stash.get("baz.biz").value())
-    self.assertEquals("<undef>", stash.get("baz(50).biz").value())  # args are ignored
+    def testStash(self):
+        count = [20]
 
-    stash.set("bar.buz", 100)
-    self.assertEquals(100, stash.get("bar.buz").value())
+        def boz():
+            count[0] += 10
+            return count[0]
 
-    ttlist = (("default", Template()),
-              ("warn", Template({"DEBUG": constants.DEBUG_UNDEF,
-                                 "DEBUG_FORMAT": ""})))
-    self.Expect(DATA, ttlist, data)
+        def biz(*args):
+            return args and args[0] or "<undef>"
+        data = {"foo": 10,
+                "bar": {"baz": 20},
+                "baz": lambda: {"boz": boz, "biz": biz},
+                "obj": AnObject(name="an object"),
+                "hashobj": HashObject(planet="World")}
+        stash = Stash(data)
+        self.assertEquals(10, stash.get("foo").value())
+        self.assertEquals(20, stash.get(["bar", 0, "baz", 0]).value())
+        self.assertEquals(20, stash.get("bar.baz").value())
+        self.assertEquals(20, stash.get("bar(10).baz").value())
+        self.assertEquals(30, stash.get("baz.boz").value())
+        self.assertEquals(40, stash.get("baz.boz").value())
+        self.assertEquals("<undef>", stash.get("baz.biz").value())
+        self.assertEquals("<undef>", stash.get("baz(50).biz").value())  # args are ignored
+
+        stash.set("bar.buz", 100)
+        self.assertEquals(100, stash.get("bar.buz").value())
+
+        ttlist = (("default", Template()),
+                  ("warn", Template({"DEBUG": constants.DEBUG_UNDEF,
+                                     "DEBUG_FORMAT": ""})))
+        self.Expect(DATA, ttlist, data)
 
 
 DATA = r"""

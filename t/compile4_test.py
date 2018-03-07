@@ -5,18 +5,18 @@ from template.test import TestCase, main
 
 
 class CompileTest(TestCase):
-  def testCompile(self):
-    dir = os.path.abspath("test")
-    cdir = os.path.join(dir, "tmp", "cache")
-    ttcfg = { "POST_CHOMP": 1,
-              "INCLUDE_PATH": os.path.join(dir, "src"),
-              "COMPILE_DIR": cdir,
-              "COMPILE_EXT": ".ttc",
-              "ABSOLUTE": 1 }
-    if os.path.exists(cdir):
-      shutil.rmtree(cdir)
-    os.makedirs(cdir)
-    self.Expect(DATA, ttcfg, { "root": dir })
+    def testCompile(self):
+        dir = os.path.abspath("test")
+        cdir = os.path.join(dir, "tmp", "cache")
+        ttcfg = {"POST_CHOMP": 1,
+                 "INCLUDE_PATH": os.path.join(dir, "src"),
+                 "COMPILE_DIR": cdir,
+                 "COMPILE_EXT": ".ttc",
+                 "ABSOLUTE": 1}
+        if os.path.exists(cdir):
+            shutil.rmtree(cdir)
+        os.makedirs(cdir)
+        self.Expect(DATA, ttcfg, {"root": dir})
 
 
 DATA = r"""
@@ -55,4 +55,3 @@ This is the blam file
 """
 
 main()
-

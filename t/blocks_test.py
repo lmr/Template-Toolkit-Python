@@ -5,15 +5,15 @@ from template.test import TestCase, main
 
 
 class BlocksTest(TestCase):
-  def testBlocks(self):
-    dir = os.getcwd() + "/test/lib"
-    tt1 = Template({ 'INCLUDE_PATH': ['test/lib'],
-                     'ABSOLUTE': True })
-    tt2 = Template({ 'INCLUDE_PATH': ['test/lib'],
-                     'EXPOSE_BLOCKS': True,
-                     'ABSOLUTE': True })
-    vars = { 'a': 'alpha', 'b': 'bravo', 'dir': dir }
-    self.Expect(DATA, (('off', tt1), ('on', tt2)), vars)
+    def testBlocks(self):
+        dir = os.getcwd() + "/test/lib"
+        tt1 = Template({'INCLUDE_PATH': ['test/lib'],
+                        'ABSOLUTE': True})
+        tt2 = Template({'INCLUDE_PATH': ['test/lib'],
+                        'EXPOSE_BLOCKS': True,
+                        'ABSOLUTE': True})
+        vars = {'a': 'alpha', 'b': 'bravo', 'dir': dir}
+        self.Expect(DATA, (('off', tt1), ('on', tt2)), vars)
 
 
 DATA = r"""
@@ -70,4 +70,3 @@ this is block two, b is brazen
 """
 
 main()
-

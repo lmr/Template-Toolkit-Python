@@ -8,56 +8,57 @@ from template.util import TemplateException
 
 
 def time_locale(time, format, locale):
-  old_locale = Locale.setlocale(Locale.LC_ALL)
-  try:
-    # Some systems expect locales to have a particular suffix.
-    for suffix in ("",) + date_plugin.LOCALE_SUFFIX:
-      try_locale = "%s%s" % (locale, suffix)
-      try:
-        setlocale = Locale.setlocale(Locale.LC_ALL, try_locale)
-      except Locale.Error:
-        continue
-      else:
-        if try_locale == setlocale:
-          locale = try_locale
-          break
-    datestr = Time.strftime(format, Time.localtime(time))
-  finally:
-    Locale.setlocale(Locale.LC_ALL, old_locale)
-  return datestr
+    old_locale = Locale.setlocale(Locale.LC_ALL)
+    try:
+        # Some systems expect locales to have a particular suffix.
+        for suffix in ("",) + date_plugin.LOCALE_SUFFIX:
+            try_locale = "%s%s" % (locale, suffix)
+            try:
+                setlocale = Locale.setlocale(Locale.LC_ALL, try_locale)
+            except Locale.Error:
+                continue
+            else:
+                if try_locale == setlocale:
+                    locale = try_locale
+                    break
+        datestr = Time.strftime(format, Time.localtime(time))
+    finally:
+        Locale.setlocale(Locale.LC_ALL, old_locale)
+    return datestr
+
 
 def date_locale(time, format, locale):
-  date = re.split(r"[-/ :]", time)
-  if len(date) < 6:
-    return None, TemplateException(
-      "date", "bad time/date string:  expects 'h:m:s d:m:y'  got: '%s'"
-      % time)
-  date = [str(int(x)) for x in date[:6]]
-  date = Time.mktime(Time.strptime(" ".join(date), "%H %M %S %d %m %Y"))
-  return time_locale(date, format, locale)
+    date = re.split(r"[-/ :]", time)
+    if len(date) < 6:
+        return None, TemplateException(
+            "date", "bad time/date string:  expects 'h:m:s d:m:y'  got: '%s'"
+            % time)
+    date = [str(int(x)) for x in date[:6]]
+    date = Time.mktime(Time.strptime(" ".join(date), "%H %M %S %d %m %Y"))
+    return time_locale(date, format, locale)
 
 
 class DateTest(TestCase):
-  def testDate(self):
-    format = { "default": date_plugin.FORMAT,
-               "time": "%H:%M:%S",
-               "date": "%d-%b-%Y",
-               "timeday": "the time is %H:%M:%S on %A" }
-    now = int(Time.time())
-    ltime = Time.localtime(now)
-    params = { "time": now,
-               "format": format,
-               "timestr": Time.strftime(format["time"], ltime),
-               "datestr": Time.strftime(format["date"], ltime),
-               "daystr": Time.strftime(format["timeday"], ltime),
-               "defstr": Time.strftime(format["default"], ltime),
-               "now": lambda arg=None: Time.strftime(arg or format["default"],
-                                                     Time.localtime()),
-               "time_locale": time_locale,
-               "date_locale": date_locale,
-               "date_calc": False }
-    Time.sleep(1)
-    self.Expect(DATA, { "POST_CHOMP": 1 }, params)
+    def testDate(self):
+        format = {"default": date_plugin.FORMAT,
+                  "time": "%H:%M:%S",
+                  "date": "%d-%b-%Y",
+                  "timeday": "the time is %H:%M:%S on %A"}
+        now = int(Time.time())
+        ltime = Time.localtime(now)
+        params = {"time": now,
+                  "format": format,
+                  "timestr": Time.strftime(format["time"], ltime),
+                  "datestr": Time.strftime(format["date"], ltime),
+                  "daystr": Time.strftime(format["timeday"], ltime),
+                  "defstr": Time.strftime(format["default"], ltime),
+                  "now": lambda arg=None: Time.strftime(arg or format["default"],
+                                                        Time.localtime()),
+                  "time_locale": time_locale,
+                  "date_locale": date_locale,
+                  "date_calc": False}
+        Time.sleep(1)
+        self.Expect(DATA, {"POST_CHOMP": 1}, params)
 
 
 DATA = r"""

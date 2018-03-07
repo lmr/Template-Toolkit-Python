@@ -3,20 +3,22 @@ from template.util import TemplateException
 
 
 class Error(Exception):
-  pass
+    pass
 
 
 class TryTest(TestCase):
-  def testTry(self):
-    ttcfg = { "INCLUDE_PATH": "test/lib", "POST_CHOMP": 1 }
-    replace = self._callsign()
-    def throw_egg(*_):
-      raise TemplateException("egg", "scrambled")
-    replace["throw_egg"] = throw_egg
-    def throw_any(*_):
-      raise Error("undefined error\n")
-    replace["throw_any"] = throw_any
-    self.Expect(DATA, ttcfg, replace)
+    def testTry(self):
+        ttcfg = {"INCLUDE_PATH": "test/lib", "POST_CHOMP": 1}
+        replace = self._callsign()
+
+        def throw_egg(*_):
+            raise TemplateException("egg", "scrambled")
+        replace["throw_egg"] = throw_egg
+
+        def throw_any(*_):
+            raise Error("undefined error\n")
+        replace["throw_any"] = throw_any
+        self.Expect(DATA, ttcfg, replace)
 
 
 DATA = r"""

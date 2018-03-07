@@ -2,11 +2,11 @@ from template.test import TestCase, main
 
 
 class MacroTest(TestCase):
-  def testMacro(self):
-    config = { "INCLUDE_PATH": "test/src",
-               "TRIM": 1,
-               "EVAL_PYTHON": True }
-    self.Expect(DATA, config, self._callsign())
+    def testMacro(self):
+        config = {"INCLUDE_PATH": "test/src",
+                  "TRIM": 1,
+                  "EVAL_PYTHON": True}
+        self.Expect(DATA, config, self._callsign())
 
 
 DATA = r"""

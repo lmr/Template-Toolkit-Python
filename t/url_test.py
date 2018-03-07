@@ -3,39 +3,38 @@ from template.test import TestCase, main
 
 
 def no_escape():
-  url.JOINT = "&"
+    url.JOINT = "&"
 
 
 def sort_params(query):
-  base, args = (query.split("?", 2) + [""])[:2]
-  args = args.split("&amp;")
-  keys = [x.split("=")[0] for x in args]
-  argtab = dict(zip(keys, args))
-  keys = sorted(argtab.keys())
-  args = [argtab[x] for x in keys]
-  args = "&amp;".join(args)
-  query = "?".join(base and [base, args] or [args])
-  return query
+    base, args = (query.split("?", 2) + [""])[:2]
+    args = args.split("&amp;")
+    keys = [x.split("=")[0] for x in args]
+    argtab = dict(zip(keys, args))
+    keys = sorted(argtab.keys())
+    args = [argtab[x] for x in keys]
+    args = "&amp;".join(args)
+    query = "?".join(base and [base, args] or [args])
+    return query
 
 
 class UrlTest(TestCase):
-  def testUrl(self):
-    urls = [{ "name": "view",
-              "url": "/product" },
-            { "name": "add",
-              "url": "/product",
-              "args": { "action": "add" } },
-            { "name": "edit",
-              "url": "/product",
-              "args": { "action": "edit", "style": "editor" } } ]
-    urls = dict((x["name"], url.Url.factory(None, x["url"], x.get("args")))
-                for x in urls)
-    urls = { "product": urls }
-    vars = { "url": urls,
-             "sorted": sort_params,
-             "no_escape": no_escape }
-    self.Expect(DATA, { "INTERPOLATE": 1 }, vars)
-
+    def testUrl(self):
+        urls = [{"name": "view",
+                 "url": "/product"},
+                {"name": "add",
+                 "url": "/product",
+                 "args": {"action": "add"}},
+                {"name": "edit",
+                 "url": "/product",
+                 "args": {"action": "edit", "style": "editor"}}]
+        urls = dict((x["name"], url.Url.factory(None, x["url"], x.get("args")))
+                    for x in urls)
+        urls = {"product": urls}
+        vars = {"url": urls,
+                "sorted": sort_params,
+                "no_escape": no_escape}
+        self.Expect(DATA, {"INTERPOLATE": 1}, vars)
 
 
 DATA = r"""
@@ -127,4 +126,3 @@ there?age=42&amp;name=frank
 """
 
 main()
-

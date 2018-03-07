@@ -3,38 +3,38 @@ from template.test import TestCase, main
 
 
 class Foo:
-  def __init__(self, **kwargs):
-    self.__dict = kwargs
+    def __init__(self, **kwargs):
+        self.__dict = kwargs
 
-  def present(self, view):
-    return "{ %s }" % ", ".join(
-      "%s => %s" % item for item in sorted(self.__dict.items()))
+    def present(self, view):
+        return "{ %s }" % ", ".join(
+            "%s => %s" % item for item in sorted(self.__dict.items()))
 
-  def reverse(self, view):
-    return "{ %s }" % ", ".join(
-      "%s => %s" % item for item in sorted(self.__dict.items(), reverse=True))
+    def reverse(self, view):
+        return "{ %s }" % ", ".join(
+            "%s => %s" % item for item in sorted(self.__dict.items(), reverse=True))
 
 
 class MyList:
-  def __init__(self, *args):
-    self.__args = args
+    def __init__(self, *args):
+        self.__args = args
 
-  def as_list(self):
-    return self.__args
+    def as_list(self):
+        return self.__args
 
 
 class ViewTest(TestCase):
-  def testView(self):
-    vars = { "foo": Foo(pi=3.14, e=2.718),
-             "blessed_list": MyList("Hello", "World") }
-    t = Template()
-    context = t.context()
-    view = context.view()
-    self.assert_(view)
-    view = context.view({"prefix": "my"})
-    self.assert_(view)
-    self.assertEquals("my", view.prefix())
-    self.Expect(DATA, None, vars)
+    def testView(self):
+        vars = {"foo": Foo(pi=3.14, e=2.718),
+                "blessed_list": MyList("Hello", "World")}
+        t = Template()
+        context = t.context()
+        view = context.view()
+        self.assert_(view)
+        view = context.view({"prefix": "my"})
+        self.assert_(view)
+        self.assertEquals("my", view.prefix())
+        self.Expect(DATA, None, vars)
 
 
 DATA = r"""
