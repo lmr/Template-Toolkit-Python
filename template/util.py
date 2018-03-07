@@ -499,7 +499,7 @@ def EvaluateCode(code, context, stash):
            "stdout": sys.stdout,
            "output": stringbuf }
   try:
-    exec code in vars
+    exec(code, vars)
   finally:
     sys.stdout = old_stdout
   return stringbuf.get()

@@ -229,7 +229,7 @@ class Document:
     block.  The default name is 'block'.
     """
     namespace = PYEVAL_NAMESPACE.copy()
-    exec block in namespace
+    exec(block, namespace)
     return namespace.get(name)
 
   @classmethod
