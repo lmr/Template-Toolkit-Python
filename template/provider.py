@@ -473,7 +473,7 @@ class Provider:
     DEBUG = False
 
     def __init__(self, params):
-        size = params.get("CACHE_SIZE")
+        size = params.get("CACHE_SIZE", 2)
         paths = params.get("INCLUDE_PATH", ".")
         cdir = params.get("COMPILE_DIR", "")
         dlim = params.get("DELIMITER", os.name == "nt" and r":(?!\/)" or ":")
