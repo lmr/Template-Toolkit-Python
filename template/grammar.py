@@ -5716,7 +5716,14 @@ def rule(*args):
 
 @define(117, "range", 3)
 def rule(*args):
-    return "xrange(int(%s), int(%s) + 1)" % (args[1], args[3])
+    try:
+        xrange
+        func = 'xrange'
+    except NameError:
+        range
+        func = 'range'
+
+    return "%s(int(%s), int(%s) + 1)" % (func, args[1], args[3])
 
 
 @define(119, "hash", 0)

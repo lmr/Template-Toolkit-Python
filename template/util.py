@@ -556,8 +556,15 @@ def ScalarList(*args):
     instead.
     """
     list = []
+    try:
+        xrange
+        func = xrange
+    except NameError:
+        range
+        func = range
+
     for arg in args:
-        if isinstance(arg, xrange):
+        if isinstance(arg, func):
             list.extend(arg)
         else:
             list.append(unscalar(arg))
