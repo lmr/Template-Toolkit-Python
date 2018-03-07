@@ -270,312 +270,312 @@ TODO
 
 
 class View:
-  """A custom view of a template processing context.  Can be used to
-  implement custom "skins".
-  """
+    """A custom view of a template processing context.  Can be used to
+    implement custom "skins".
+    """
 
-  MAP = { "HASH": "hash",
-          "ARRAY": "list",
-          "TEXT": "text",
-          "default": "" }
+    MAP = {"HASH": "hash",
+           "ARRAY": "list",
+           "TEXT": "text",
+           "default": ""}
 
-  CONFIG = dict((item, None) for item in (
-    "data", "default", "map", "blocks", "method", "sealed", "base", "prefix",
-    "suffix", "notfound", "silent", "item", "include_prefix", "include_naked",
-    "view_prefix", "view_naked"))
+    CONFIG = dict((item, None) for item in (
+        "data", "default", "map", "blocks", "method", "sealed", "base", "prefix",
+        "suffix", "notfound", "silent", "item", "include_prefix", "include_naked",
+        "view_prefix", "view_naked"))
 
-  def __init__(self, context, config=None):
-    config = config or {}
-    self._context = context
-    if isinstance(config, View):
-      # Clone an existing View.
-      self._map = config._map
-      self._blocks = config._blocks
-      self._method = config._method
-      self._sealed = config._sealed
-      self._base = config._base
-      self._prefix = config._prefix
-      self._suffix = config._suffix
-      self._notfound = config._notfound
-      self._silent = config._silent
-      self._item = config._item
-      self._include_prefix = config._include_prefix
-      self._include_naked = config._include_naked
-      self._view_prefix = config._view_prefix
-      self._view_naked = config._view_naked
-      self._data = config._data
-      self._sealed = config._sealed
-    else:
-      map = config.get("map") or {}
-      map.setdefault("default", config.get("default"))
-      self._map = self.MAP.copy()
-      self._map.update(map)
-      self._blocks = config.get("blocks") or {}
-      self._method = config.get("method") or "present"
-      self._sealed = bool(config.get("sealed", True))
-      self._base = config.get("base") or ""
-      self._prefix = config.get("prefix") or ""
-      self._suffix = config.get("suffix") or ""
-      self._notfound = config.get("notfound") or ""
-      self._silent = config.get("silent") or ""
-      self._item = config.get("item") or "item"
-      self._include_prefix = config.get("include_prefix") or "include_"
-      self._include_naked = bool(config.get("include_naked", True))
-      self._view_prefix = config.get("view_prefix") or "view_"
-      self._view_naked = config.get("view_naked") or 0
-      for item in self.CONFIG:
-        try:
-          del config[item]
-        except KeyError:
-          pass
-      if self._base:
-        data = self._base._data.copy()
+    def __init__(self, context, config=None):
+        config = config or {}
+        self._context = context
+        if isinstance(config, View):
+            # Clone an existing View.
+            self._map = config._map
+            self._blocks = config._blocks
+            self._method = config._method
+            self._sealed = config._sealed
+            self._base = config._base
+            self._prefix = config._prefix
+            self._suffix = config._suffix
+            self._notfound = config._notfound
+            self._silent = config._silent
+            self._item = config._item
+            self._include_prefix = config._include_prefix
+            self._include_naked = config._include_naked
+            self._view_prefix = config._view_prefix
+            self._view_naked = config._view_naked
+            self._data = config._data
+            self._sealed = config._sealed
+        else:
+            map = config.get("map") or {}
+            map.setdefault("default", config.get("default"))
+            self._map = self.MAP.copy()
+            self._map.update(map)
+            self._blocks = config.get("blocks") or {}
+            self._method = config.get("method") or "present"
+            self._sealed = bool(config.get("sealed", True))
+            self._base = config.get("base") or ""
+            self._prefix = config.get("prefix") or ""
+            self._suffix = config.get("suffix") or ""
+            self._notfound = config.get("notfound") or ""
+            self._silent = config.get("silent") or ""
+            self._item = config.get("item") or "item"
+            self._include_prefix = config.get("include_prefix") or "include_"
+            self._include_naked = bool(config.get("include_naked", True))
+            self._view_prefix = config.get("view_prefix") or "view_"
+            self._view_naked = config.get("view_naked") or 0
+            for item in self.CONFIG:
+                try:
+                    del config[item]
+                except KeyError:
+                    pass
+            if self._base:
+                data = self._base._data.copy()
+                data.update(config)
+                config = data
+            self._data = config
+            self._SEALED = False
+
+    def __getattr__(self, attr):
+        """Returns/updates public internal data items (i.e. not prefixed
+        '_' or '.') or presents a view if the method matches the
+        view_prefix item, e.g. view_foo(...) => view('foo', ...).
+
+        Similarly, the include_prefix is used, if defined, to map
+        include_foo(...) to include('foo', ...).  If that fails then the
+        entire method name will be used as the name of a template to
+        include iff the include_named parameter is set (default: True).
+        Last attempt is to match the entire method name to a view() call,
+        iff view_naked is set.  Otherwise, a 'view' exception is raised
+        reporting the error 'no such view member: <method>'.
+        """
+        if attr == "print":
+            return self.print_
+        if attr.startswith("__") and attr.endswith("__"):
+            raise AttributeError
+        if re.match(r"[._]", attr):
+            self._context.throw(ERROR_VIEW, "attempt to view private member: %s" %
+                                attr)
+        if attr in self.CONFIG:
+            def accessor(*args):
+                if args:
+                    if self._SEALED:
+                        self._context.throw(ERROR_VIEW, ("cannot update config item "
+                                                         "in sealed view: %s" % attr))
+                    setattr(self, "_%s" % attr, args[0])
+                    return args[0]
+                else:
+                    return getattr(self, "_%s" % attr)
+        elif attr in self._data:
+            def accessor(*args):
+                if args and self._SEALED:
+                    if not self._silent:
+                        self._context.throw(ERROR_VIEW, ("cannot update item "
+                                                         "in sealed view: %s" % attr))
+                    args = ()
+                if args:
+                    self._data[attr] = args[0]
+                    return args[0]
+                else:
+                    return self._data.get(attr)
+        else:
+            def accessor(*args):
+                if args and not self._SEALED:
+                    self._data[attr] = args[0]
+                    return args[0]
+                match = re.match(self._view_prefix, attr)
+                if match:
+                    return self.view(attr[match.end():], *args)
+                match = re.match(self._include_prefix, attr)
+                if match:
+                    return self.include(attr[match.end():], *args)
+                if self._include_naked:
+                    return self.include(attr, *args)
+                if self._view_naked:
+                    return self.view(attr, *args)
+                self._context.throw(ERROR_VIEW, "no such view member: %s" % attr)
+        return accessor
+
+    def seal(self):
+        """Seal the view to prevent new data items from being
+        automatically created by the __getattr__ method.
+        """
+        self._SEALED = self._sealed
+
+    def unseal(self):
+        """Unseal the view to allow new data items from being
+        automatically created by the __getattr__ method.
+        """
+        self._SEALED = False
+
+    def clone(self, config):
+        """Cloning method which takes a copy of 'self' and then applies to
+        it any modifications specified in the config dictionary passed as an
+        argument.
+
+        Returns the cloned View object.
+        """
+        clone = View(self._context, self)
+        # Merge maps:
+        clone._map = self._map.copy()
+        clone._map.update(config.get("map", {}))
+        if config.get("default") is not None:
+            clone._map["default"] = config["default"]
+        for arg in ("base", "prefix", "suffix", "notfound", "item", "method",
+                    "include_prefix", "include_naked", "view_prefix",
+                    "view_naked"):
+            if arg in config:
+                value = config[arg]
+                if value is not None:
+                    setattr(clone, "_%s" % arg, value)
+                del config[arg]
+        if "default" in config:
+            del config["default"]
+        if "map" in config:
+            del config["map"]
+        data = clone._data = self._data.copy()
         data.update(config)
-        config = data
-      self._data = config
-      self._SEALED = False
 
-  def __getattr__(self, attr):
-    """Returns/updates public internal data items (i.e. not prefixed
-    '_' or '.') or presents a view if the method matches the
-    view_prefix item, e.g. view_foo(...) => view('foo', ...).
+        return clone
 
-    Similarly, the include_prefix is used, if defined, to map
-    include_foo(...) to include('foo', ...).  If that fails then the
-    entire method name will be used as the name of a template to
-    include iff the include_named parameter is set (default: True).
-    Last attempt is to match the entire method name to a view() call,
-    iff view_naked is set.  Otherwise, a 'view' exception is raised
-    reporting the error 'no such view member: <method>'.
-    """
-    if attr == "print":
-      return self.print_
-    if attr.startswith("__") and attr.endswith("__"):
-      raise AttributeError
-    if re.match(r"[._]", attr):
-      self._context.throw(ERROR_VIEW, "attempt to view private member: %s" %
-                          attr)
-    if attr in self.CONFIG:
-      def accessor(*args):
-        if args:
-          if self._SEALED:
-            self._context.throw(ERROR_VIEW, ("cannot update config item "
-                                             "in sealed view: %s" % attr))
-          setattr(self, "_%s" % attr, args[0])
-          return args[0]
-        else:
-          return getattr(self, "_%s" % attr)
-    elif attr in self._data:
-      def accessor(*args):
-        if args and self._SEALED:
-          if not self._silent:
-            self._context.throw(ERROR_VIEW, ("cannot update item "
-                                             "in sealed view: %s" % attr))
-          args = ()
-        if args:
-          self._data[attr] = args[0]
-          return args[0]
-        else:
-          return self._data.get(attr)
-    else:
-      def accessor(*args):
-        if args and not self._SEALED:
-          self._data[attr] = args[0]
-          return args[0]
-        match = re.match(self._view_prefix, attr)
-        if match:
-          return self.view(attr[match.end():], *args)
-        match = re.match(self._include_prefix, attr)
-        if match:
-          return self.include(attr[match.end():], *args)
-        if self._include_naked:
-          return self.include(attr, *args)
-        if self._view_naked:
-          return self.view(attr, *args)
-        self._context.throw(ERROR_VIEW, "no such view member: %s" % attr)
-    return accessor
+    def print_(self, *args):
+        """Prints @items in turn by mapping each to an approriate template
+        using the internal 'map' dictionary.
 
-  def seal(self):
-    """Seal the view to prevent new data items from being
-    automatically created by the __getattr__ method.
-    """
-    self._SEALED = self._sealed
+        If an entry isn't found and the item is an object that implements
+        the method named in the internal 'method' item, (default:
+        'present'), then the method will be called passing a reference to
+        'self', against which the presenter method may make callbacks
+        (e.g.  to view_item()).  If the presenter method isn't
+        implemented, then the 'default' map entry is consulted and used if
+        defined.  The final argument may be a dictionary providing local
+        overrides to the internal defaults for various items (prefix,
+        suffix, etc).  In the presence of this parameter, a clone of the
+        current object is first made, applying any configuration updates,
+        and control is then delegated to it.
+        """
+        args = list(args)
+        if len(args) > 1 and isinstance(args[-1], dict):
+            cfg = args.pop()
+            clone = self.clone(cfg)
+            return clone.print_(*args)
+        output = StringIO()
+        for item in args:
+            if isinstance(item, (tuple, list)):
+                type = "ARRAY"
+            elif isinstance(item, dict):
+                type = "HASH"
+            elif isinstance(item, (basestring, int, int)):
+                type = "TEXT"
+            else:
+                type = item.__class__.__name__
+            template = self._map.get(type)
+            if template is None:
+                # No specific map entry for object, maybe it implements a
+                # 'present' (or other) method?
+                # Hack: Have to explicitly disallow View objects, since
+                # our promiscuous __getattr__ method will dynamically create
+                # a getter/setter subroutine for most any method name.
+                # Perl's UNIVERSAL::can method ignores AUTOLOAD, but
+                # Python's getattr() does not ignore __getattr__.
+                if not isinstance(item, View) and can(item, self._method):
+                    output.write(str(getattr(item, self._method)(self)))
+                    continue
+                done = False
+                newtype = None
+                if isinstance(item, dict):
+                    newtype = item.get(self._method)
+                    if newtype is not None:
+                        template = self._map.get("%s=>%s" % (self._method, newtype))
+                        done = template is not None
+                if not done and newtype is not None:
+                    template = self._map.get("%s=>*" % (self._method,))
+                    if template is not None:
+                        template = template.replace("*", newtype)
+                        done = True
+                if not done:
+                    template = self._map.get("default") or type
+            if template:
+                output.write(str(self.view(template, item)))
 
-  def unseal(self):
-    """Unseal the view to allow new data items from being
-    automatically created by the __getattr__ method.
-    """
-    self._SEALED = False
+        return output.getvalue()
 
-  def clone(self, config):
-    """Cloning method which takes a copy of 'self' and then applies to
-    it any modifications specified in the config dictionary passed as an
-    argument.
+    def view(self, template, item=None, vars=None):
+        """Wrapper around include() which expects a template name,
+        'template', followed by a data item, 'item', and optionally, a
+        further dictionary of template variables.
 
-    Returns the cloned View object.
-    """
-    clone = View(self._context, self)
-    # Merge maps:
-    clone._map = self._map.copy()
-    clone._map.update(config.get("map", {}))
-    if config.get("default") is not None:
-      clone._map["default"] = config["default"]
-    for arg in ("base", "prefix", "suffix", "notfound", "item", "method",
-                "include_prefix", "include_naked", "view_prefix",
-                "view_naked"):
-      if arg in config:
-        value = config[arg]
-        if value is not None:
-          setattr(clone, "_%s" % arg, value)
-        del config[arg]
-    if "default" in config:
-      del config["default"]
-    if "map" in config:
-      del config["map"]
-    data = clone._data = self._data.copy()
-    data.update(config)
+        The 'item' is added as an entry to the 'vars' dictionary (which is
+        created empty if not passed as an argument) under the name
+        specified by the internal 'item' member, which is appropriately
+        'item' by default.  Thus an external object present() method can
+        callback against this object method, simply passing a data item to
+        be displayed.  The external object doesn't have to know what the
+        view expects the item to be called in the 'vars' dictionary.
+        """
+        vars = vars or {}
+        if item is not None:
+            vars[self._item] = item
+        return self.include(template, vars)
 
-    return clone
+    def include(self, template, vars=None):
+        """INCLUDE a template, 'template', mapped according to the current
+        prefix, suffix, default, etc., where 'vars' is an optional
+        dictionary containing template variable definitions.
 
-  def print_(self, *args):
-    """Prints @items in turn by mapping each to an approriate template
-    using the internal 'map' dictionary.
+        If the template isn't found then the method will default to any
+        'notfound' template, if defined as an internal item.
+        """
+        template = self.template(template)
+        if not isinstance(vars, dict):
+            vars = {}
+        vars.setdefault("view", self)
+        return self._context.include(template, vars)
 
-    If an entry isn't found and the item is an object that implements
-    the method named in the internal 'method' item, (default:
-    'present'), then the method will be called passing a reference to
-    'self', against which the presenter method may make callbacks
-    (e.g.  to view_item()).  If the presenter method isn't
-    implemented, then the 'default' map entry is consulted and used if
-    defined.  The final argument may be a dictionary providing local
-    overrides to the internal defaults for various items (prefix,
-    suffix, etc).  In the presence of this parameter, a clone of the
-    current object is first made, applying any configuration updates,
-    and control is then delegated to it.
-    """
-    args = list(args)
-    if len(args) > 1 and isinstance(args[-1], dict):
-      cfg = args.pop()
-      clone = self.clone(cfg)
-      return clone.print_(*args)
-    output = StringIO()
-    for item in args:
-      if isinstance(item, (tuple, list)):
-        type = "ARRAY"
-      elif isinstance(item, dict):
-        type = "HASH"
-      elif isinstance(item, (basestring, int, int)):
-        type = "TEXT"
-      else:
-        type = item.__class__.__name__
-      template = self._map.get(type)
-      if template is None:
-        # No specific map entry for object, maybe it implements a
-        # 'present' (or other) method?
-        # Hack: Have to explicitly disallow View objects, since
-        # our promiscuous __getattr__ method will dynamically create
-        # a getter/setter subroutine for most any method name.
-        # Perl's UNIVERSAL::can method ignores AUTOLOAD, but
-        # Python's getattr() does not ignore __getattr__.
-        if not isinstance(item, View) and can(item, self._method):
-          output.write(str(getattr(item, self._method)(self)))
-          continue
-        done = False
-        newtype = None
-        if isinstance(item, dict):
-          newtype = item.get(self._method)
-          if newtype is not None:
-            template = self._map.get("%s=>%s" % (self._method, newtype))
-            done = template is not None
-        if not done and newtype is not None:
-          template = self._map.get("%s=>*" % (self._method,))
-          if template is not None:
-            template = template.replace("*", newtype)
-            done = True
-        if not done:
-          template = self._map.get("default") or type
-      if template:
-        output.write(str(self.view(template, item)))
-
-    return output.getvalue()
-
-  def view(self, template, item=None, vars=None):
-    """Wrapper around include() which expects a template name,
-    'template', followed by a data item, 'item', and optionally, a
-    further dictionary of template variables.
-
-    The 'item' is added as an entry to the 'vars' dictionary (which is
-    created empty if not passed as an argument) under the name
-    specified by the internal 'item' member, which is appropriately
-    'item' by default.  Thus an external object present() method can
-    callback against this object method, simply passing a data item to
-    be displayed.  The external object doesn't have to know what the
-    view expects the item to be called in the 'vars' dictionary.
-    """
-    vars = vars or {}
-    if item is not None:
-      vars[self._item] = item
-    return self.include(template, vars)
-
-  def include(self, template, vars=None):
-    """INCLUDE a template, 'template', mapped according to the current
-    prefix, suffix, default, etc., where 'vars' is an optional
-    dictionary containing template variable definitions.
-
-    If the template isn't found then the method will default to any
-    'notfound' template, if defined as an internal item.
-    """
-    template = self.template(template)
-    if not isinstance(vars, dict):
-      vars = {}
-    vars.setdefault("view", self)
-    return self._context.include(template, vars)
-
-  def template(self, name):
-    """Returns a compiled template for the specified template name,
-    according to the current configuration parameters.
-    """
-    if not name:
-      self._context.throw(ERROR_VIEW, "no view template specified")
-    block = self._blocks.get(name)
-    if block:
-      return block
-    template = self.template_name(name)
-    e = None
-    try:
-      template = self._context.template(template)
-    except Exception as e:
-      pass
-    if e and self._base:
-      try:
-        template = self._base.template(name)
+    def template(self, name):
+        """Returns a compiled template for the specified template name,
+        according to the current configuration parameters.
+        """
+        if not name:
+            self._context.throw(ERROR_VIEW, "no view template specified")
+        block = self._blocks.get(name)
+        if block:
+            return block
+        template = self.template_name(name)
         e = None
-      except Exception as e:
-        pass
-    if e and self._notfound:
-      template = self._blocks.get(self._notfound)
-      if not template:
-        notfound = self.template_name(self._notfound)
         try:
-          template = self._context.template(notfound)
+            template = self._context.template(template)
         except Exception as e:
-          self._context.throw(ERROR_VIEW, e)
-    elif e:
-      self._context.throw(ERROR_VIEW, e)
-    return template
+            pass
+        if e and self._base:
+            try:
+                template = self._base.template(name)
+                e = None
+            except Exception as e:
+                pass
+        if e and self._notfound:
+            template = self._blocks.get(self._notfound)
+            if not template:
+                notfound = self.template_name(self._notfound)
+                try:
+                    template = self._context.template(notfound)
+                except Exception as e:
+                    self._context.throw(ERROR_VIEW, e)
+        elif e:
+            self._context.throw(ERROR_VIEW, e)
+        return template
 
-  def template_name(self, template):
-    """Returns the name of the specified template with any appropriate
-    prefix and/or suffix added.
-    """
-    if template:
-      template = "%s%s%s" % (self._prefix, template, self._suffix)
-    return template
+    def template_name(self, template):
+        """Returns the name of the specified template with any appropriate
+        prefix and/or suffix added.
+        """
+        if template:
+            template = "%s%s%s" % (self._prefix, template, self._suffix)
+        return template
 
-  def default(self, *args):
-    """Special case accessor to retrieve/update 'default' as an alias for
-    map['default'].
-    """
-    if args:
-      self._map["default"] = args[0]
-    return self._map["default"]
+    def default(self, *args):
+        """Special case accessor to retrieve/update 'default' as an alias for
+        map['default'].
+        """
+        if args:
+            self._map["default"] = args[0]
+        return self._map["default"]

@@ -164,181 +164,182 @@ the last item.
 
 
 class Iterator:
-  """Class defining an iterator class which is used by the FOREACH
-  directive for iterating through data sets.  This may be sub-classed
-  to define more specific iterator types.
+    """Class defining an iterator class which is used by the FOREACH
+    directive for iterating through data sets.  This may be sub-classed
+    to define more specific iterator types.
 
-  An iterator is an object which provides a consistent way to navigate
-  through data which may have a complex underlying form.  This
-  implementation uses the get_first() and get_next() methods to
-  iterate through a dataset.  The get_first() method is called once to
-  perform any data initialisation and return the first value, then
-  get_next() is called repeatedly to return successive values.  Both
-  these methods return a pair of values which are the data item itself
-  and a status code.  The default implementation handles iteration
-  through a list of elements which is passed to the constructor.  An
-  empty list is used if none is passed.  The module may be sub-classed
-  to provide custom implementations which iterate through any kind of
-  data in any manner as long as it can conforms to the
-  get_first()/get_next() interface.  The object also implements the
-  get_all() method for returning all remaining elements as a list.
-  """
-  def __init__(self, data=None, params=None):
-    self._impl = self._IteratorImpl(normalize_data(data))
+    An iterator is an object which provides a consistent way to navigate
+    through data which may have a complex underlying form.  This
+    implementation uses the get_first() and get_next() methods to
+    iterate through a dataset.  The get_first() method is called once to
+    perform any data initialisation and return the first value, then
+    get_next() is called repeatedly to return successive values.  Both
+    these methods return a pair of values which are the data item itself
+    and a status code.  The default implementation handles iteration
+    through a list of elements which is passed to the constructor.  An
+    empty list is used if none is passed.  The module may be sub-classed
+    to provide custom implementations which iterate through any kind of
+    data in any manner as long as it can conforms to the
+    get_first()/get_next() interface.  The object also implements the
+    get_all() method for returning all remaining elements as a list.
+    """
 
-  @staticmethod
-  def Create(expr):
-    expr = unscalar(expr)
-    if isinstance(expr, Iterator):
-      return expr
-    else:
-      return Config.iterator(expr)
+    def __init__(self, data=None, params=None):
+        self._impl = self._IteratorImpl(normalize_data(data))
 
-  def __iter__(self):
-    return iter(self._impl)
-
-  def size(self):
-    return self._impl.size
-
-  def max(self):
-    return self._impl.max
-
-  def index(self):
-    return self._impl.index
-
-  def count(self):
-    return self._impl.count
-
-  def number(self):
-    return self._impl.count
-
-  def first(self):
-    return self._impl.first
-
-  def last(self):
-    return self._impl.last
-
-  def prev(self):
-    return self._impl.prev
-
-  def next(self):
-    return self._impl.next_
-
-  def get_first(self):
-    if self._impl.start():
-      return self._impl.dataset[0]
-    else:
-      return None, STATUS_DONE
-
-  def get_next(self):
-    if self._impl.advance():
-      return self._impl.data[self._impl.index]
-    else:
-      return None, STATUS_DONE
-
-  def get_all(self):
-    remaining = self._impl.remaining()
-    if remaining:
-      return remaining
-    else:
-      return None, STATUS_DONE
-
-  # This implementation class provides a Pythonic iterator interface that's
-  # useful in generated code.  The containing class provides the "classic"
-  # get_first/get_next interface required by the builtin "loop" variable
-  # and by the iterator plugin.  The two interfaces share the same state,
-  # and so may be freely invoked in an interleaved fashion.
-
-  class _IteratorImpl:
-    def __init__(self, data):
-      self.data = data
-      self.error = ""
-      self.dataset = None
-      self.size = None
-      self.max = None
-      self.index = None
-      self.count = None
-      self.first = False
-      self.last = False
-      self.prev = None
-      self.next_ = None
-
-    def start(self):
-      self.dataset = self.data
-      self.size = len(self.data)
-      if self.size == 0:
-        return False
-      self.max = self.size - 1
-      self.index = 0
-      self.count = 1
-      self.first = True
-      self.last = self.size == 1
-      self.prev = None
-      if len(self.dataset) >= 2:
-        self.next_ = self.dataset[1]
-      else:
-        self.next_ = None
-      return True
-
-    def advance(self):
-      if self.index is None:
-        sys.stderr.write("iterator get_next() called before get_first()")
-        return False
-      elif self.index >= self.max:
-        return False
-      else:
-        self.index += 1
-        self.count = self.index + 1
-        self.first = False
-        self.last = self.index == self.max
-        self.prev = self.data[self.index - 1]
-        if self.index < len(self.data) - 1:
-          self.next_ = self.data[self.index + 1]
+    @staticmethod
+    def Create(expr):
+        expr = unscalar(expr)
+        if isinstance(expr, Iterator):
+            return expr
         else:
-          self.next_ = None
-        return True
-
-    def remaining(self):
-      if self.index >= self.max:
-        return None
-      else:
-        start = self.index + 1
-        self.index = self.max
-        self.count = self.max + 1
-        self.first = False
-        self.last = True
-        return unscalar_list(self.dataset[start:])
+            return Config.iterator(expr)
 
     def __iter__(self):
-      self.start()
-      # Tell the next call to next() that the current state already
-      # points to the first object, and not to advance to the second:
-      self.ready = False
-      return self
+        return iter(self._impl)
+
+    def size(self):
+        return self._impl.size
+
+    def max(self):
+        return self._impl.max
+
+    def index(self):
+        return self._impl.index
+
+    def count(self):
+        return self._impl.count
+
+    def number(self):
+        return self._impl.count
+
+    def first(self):
+        return self._impl.first
+
+    def last(self):
+        return self._impl.last
+
+    def prev(self):
+        return self._impl.prev
 
     def next(self):
-      if not self.ready:
-        self.ready = True
-        if self.data:
-          return unscalar(self.data[0])
-      elif self.advance():
-        return unscalar(self.data[self.index])
-      raise StopIteration
+        return self._impl.next_
+
+    def get_first(self):
+        if self._impl.start():
+            return self._impl.dataset[0]
+        else:
+            return None, STATUS_DONE
+
+    def get_next(self):
+        if self._impl.advance():
+            return self._impl.data[self._impl.index]
+        else:
+            return None, STATUS_DONE
+
+    def get_all(self):
+        remaining = self._impl.remaining()
+        if remaining:
+            return remaining
+        else:
+            return None, STATUS_DONE
+
+    # This implementation class provides a Pythonic iterator interface that's
+    # useful in generated code.  The containing class provides the "classic"
+    # get_first/get_next interface required by the builtin "loop" variable
+    # and by the iterator plugin.  The two interfaces share the same state,
+    # and so may be freely invoked in an interleaved fashion.
+
+    class _IteratorImpl:
+        def __init__(self, data):
+            self.data = data
+            self.error = ""
+            self.dataset = None
+            self.size = None
+            self.max = None
+            self.index = None
+            self.count = None
+            self.first = False
+            self.last = False
+            self.prev = None
+            self.next_ = None
+
+        def start(self):
+            self.dataset = self.data
+            self.size = len(self.data)
+            if self.size == 0:
+                return False
+            self.max = self.size - 1
+            self.index = 0
+            self.count = 1
+            self.first = True
+            self.last = self.size == 1
+            self.prev = None
+            if len(self.dataset) >= 2:
+                self.next_ = self.dataset[1]
+            else:
+                self.next_ = None
+            return True
+
+        def advance(self):
+            if self.index is None:
+                sys.stderr.write("iterator get_next() called before get_first()")
+                return False
+            elif self.index >= self.max:
+                return False
+            else:
+                self.index += 1
+                self.count = self.index + 1
+                self.first = False
+                self.last = self.index == self.max
+                self.prev = self.data[self.index - 1]
+                if self.index < len(self.data) - 1:
+                    self.next_ = self.data[self.index + 1]
+                else:
+                    self.next_ = None
+                return True
+
+        def remaining(self):
+            if self.index >= self.max:
+                return None
+            else:
+                start = self.index + 1
+                self.index = self.max
+                self.count = self.max + 1
+                self.first = False
+                self.last = True
+                return unscalar_list(self.dataset[start:])
+
+        def __iter__(self):
+            self.start()
+            # Tell the next call to next() that the current state already
+            # points to the first object, and not to advance to the second:
+            self.ready = False
+            return self
+
+        def next(self):
+            if not self.ready:
+                self.ready = True
+                if self.data:
+                    return unscalar(self.data[0])
+            elif self.advance():
+                return unscalar(self.data[self.index])
+            raise StopIteration
 
 
 def normalize_data(data):
-  """Normalizes a sequence of input data according to the heuristic
-  laid out in the module documentation.
-  """
-  data = data or []
-  if isinstance(data, dict):
-    data = [{"key": key, "value": value} for key, value in data.iteritems()]
-    data.sort(key=operator.itemgetter("key"))
-  elif isinstance(data, str):
-    data = [data]
-  elif not isinstance(data, list):
-    try:
-      data = list(data)
-    except TypeError:
-      data = [data]
-  return data
+    """Normalizes a sequence of input data according to the heuristic
+    laid out in the module documentation.
+    """
+    data = data or []
+    if isinstance(data, dict):
+        data = [{"key": key, "value": value} for key, value in data.iteritems()]
+        data.sort(key=operator.itemgetter("key"))
+    elif isinstance(data, str):
+        data = [data]
+    elif not isinstance(data, list):
+        try:
+            data = list(data)
+        except TypeError:
+            data = [data]
+    return data

@@ -682,307 +682,316 @@ generates output to stdout.
 
 
 class Filters:
-  FILTERS = {}  # Built-in filters
+    FILTERS = {}  # Built-in filters
 
-  def __init__(self, params):
-    self.__filters = params.get("FILTERS") or {}
-    self.__tolerant = bool(params.get("TOLERANT"))
-    self.__debug = (params.get("DEBUG") or 0) & DEBUG_FILTERS
+    def __init__(self, params):
+        self.__filters = params.get("FILTERS") or {}
+        self.__tolerant = bool(params.get("TOLERANT"))
+        self.__debug = (params.get("DEBUG") or 0) & DEBUG_FILTERS
 
-  def fetch(self, name, args, context):
-    """Attempts to instantiate or return a filter function named by
-    the first parameter, name, with additional constructor arguments
-    passed as the second parameter, args.  A reference to the calling
-    template.context.Context object is passed as the third paramter.
+    def fetch(self, name, args, context):
+        """Attempts to instantiate or return a filter function named by
+        the first parameter, name, with additional constructor arguments
+        passed as the second parameter, args.  A reference to the calling
+        template.context.Context object is passed as the third paramter.
 
-    Returns a filter function on success or None if the request was
-    declined.  Raises a TemplateException on error.
-    """
-    if not isinstance(name, str):
-      if not isinstance(name, Filter):
-        return name
-      factory = name.factory()
-    else:
-      factory = self.__filters.get(name) or self.FILTERS.get(name)
-      if not factory:
-        return None
+        Returns a filter function on success or None if the request was
+        declined.  Raises a TemplateException on error.
+        """
+        if not isinstance(name, str):
+            if not isinstance(name, Filter):
+                return name
+            factory = name.factory()
+        else:
+            factory = self.__filters.get(name) or self.FILTERS.get(name)
+            if not factory:
+                return None
 
-    try:
-      if not callable(factory):
-        raise Error("invalid FILTER entry for '%s' (not callable)" % (name,))
-      elif getattr(factory, "dynamic_filter", False):
-        args = args or ()
-        filter = factory(context, *args)
-      else:
-        filter = factory
-      if not callable(filter):
-        raise Error("invalid FILTER for '%s' (not callable)" % (name,))
-    except Exception as e:
-      if self.__tolerant:
-        return None
-      if not isinstance(e, TemplateException):
-        e = TemplateException(ERROR_FILTER, e)
-      raise e
+        try:
+            if not callable(factory):
+                raise Error("invalid FILTER entry for '%s' (not callable)" % (name,))
+            elif getattr(factory, "dynamic_filter", False):
+                args = args or ()
+                filter = factory(context, *args)
+            else:
+                filter = factory
+            if not callable(filter):
+                raise Error("invalid FILTER for '%s' (not callable)" % (name,))
+        except Exception as e:
+            if self.__tolerant:
+                return None
+            if not isinstance(e, TemplateException):
+                e = TemplateException(ERROR_FILTER, e)
+            raise e
 
-    return filter
+        return filter
 
-  def store(self, name, filter):
-    """Stores a new filter in the internal __filters dictionary."""
-    self.__filters[name] = filter
+    def store(self, name, filter):
+        """Stores a new filter in the internal __filters dictionary."""
+        self.__filters[name] = filter
 
-  def tolerant(self):
-    """Simple accessor for the tolerant flag."""
-    return self.__tolerant
+    def tolerant(self):
+        """Simple accessor for the tolerant flag."""
+        return self.__tolerant
 
 
 class Error(Exception):
-  """A trivial local exception class."""
-  pass
+    """A trivial local exception class."""
+    pass
 
 
 register = util.registrar(Filters.FILTERS)
 
+
 @register("html")
 def html_filter(text):
-  return str(text) \
-         .replace("&", "&amp;") \
-         .replace("<", "&lt;") \
-         .replace(">", "&gt;") \
-         .replace('"', "&quot;")
+    return str(text) \
+        .replace("&", "&amp;") \
+        .replace("<", "&lt;") \
+        .replace(">", "&gt;") \
+        .replace('"', "&quot;")
 
 
 @register("html_para")
 def html_paragraph(text):
-  return ("<p>\n"
-          + "\n</p>\n\n<p>\n".join(re.split(r"(?:\r?\n){2,}", str(text)))
-          + "</p>\n")
-
+    return ("<p>\n"
+            + "\n</p>\n\n<p>\n".join(re.split(r"(?:\r?\n){2,}", str(text)))
+            + "</p>\n")
 
 
 @register("html_break", "html_para_break")
 def html_para_break(text):
-  return re.sub(r"(\r?\n){2,}", r"\1<br />\1<br />\1", str(text))
+    return re.sub(r"(\r?\n){2,}", r"\1<br />\1<br />\1", str(text))
 
 
 @register("html_line_break")
 def html_line_break(text):
-  return re.sub(r"(\r?\n)", r"<br />\1", str(text))
+    return re.sub(r"(\r?\n)", r"<br />\1", str(text))
 
 
 def _escape(match):
-  return "%%%02X" % ord(match.group())
+    return "%%%02X" % ord(match.group())
 
 
 URI_REGEX = re.compile(r"[^-A-Za-z0-9_.!~*'()]")
 
+
 @register("uri")
 def uri_filter(text):
-  return URI_REGEX.sub(_escape, str(text))
+    return URI_REGEX.sub(_escape, str(text))
 
 
 URL_REGEX = re.compile(r"[^-;\/?:@&=+\$,A-Za-z0-9_.!~*'()]")
 
+
 @register("url")
 def url_filter(text):
-  return URL_REGEX.sub(_escape, str(text))
+    return URL_REGEX.sub(_escape, str(text))
 
 
 @register("upper")
 def upper(text):
-  return str(text).upper()
+    return str(text).upper()
 
 
 @register("lower")
 def lower(text):
-  return str(text).lower()
+    return str(text).lower()
 
 
 @register("ucfirst")
 def ucfirst(text):
-  text = str(text)
-  if text:
-    text = text[0].upper() + text[1:]
-  return text
+    text = str(text)
+    if text:
+        text = text[0].upper() + text[1:]
+    return text
 
 
 @register("lcfirst")
 def lcfirst(text):
-  text = str(text)
-  if text:
-    text = text[0].lower() + text[1:]
-  return text
+    text = str(text)
+    if text:
+        text = text[0].lower() + text[1:]
+    return text
 
 
 @register("stderr")
 def stderr(*args):
-  for arg in args:
-    sys.stderr.write(str(arg))
-  return ""
+    for arg in args:
+        sys.stderr.write(str(arg))
+    return ""
 
 
 @register("trim")
 def trim(text):
-  return str(text).strip()
+    return str(text).strip()
 
 
 @register("null")
 def null(text):
-  return ""
+    return ""
 
 
 @register("collapse")
 def collapse(text):
-  return re.sub(r"\s+", " ", str(text).strip())
+    return re.sub(r"\s+", " ", str(text).strip())
 
 
 @register("repr")
 def repr_(text):
-  return repr(str(text))
+    return repr(str(text))
 
 
 ENTITY_REGEX = re.compile(r"[^\n\r\t !#$%'-;=?-~]")
 
+
 @register("html_entity")
 @dynamic_filter
 def html_entity_filter_factory(context):
-  try:
-    from htmlentitydefs import codepoint2name
-  except ImportError:
-    from html.entities import codepoint2name
+    try:
+        from htmlentitydefs import codepoint2name
+    except ImportError:
+        from html.entities import codepoint2name
 
-  def encode(char):
-    char = ord(char)
-    name = codepoint2name.get(char)
-    if name is not None:
-      return "&%s;" % name
-    else:
-      return "%%%02X" % char
-  def html_entity_filter(text=""):
-    return ENTITY_REGEX.sub(lambda match: encode(match.group()), str(text))
-  return html_entity_filter
+    def encode(char):
+        char = ord(char)
+        name = codepoint2name.get(char)
+        if name is not None:
+            return "&%s;" % name
+        else:
+            return "%%%02X" % char
+
+    def html_entity_filter(text=""):
+        return ENTITY_REGEX.sub(lambda match: encode(match.group()), str(text))
+    return html_entity_filter
 
 
 @register("indent")
 @dynamic_filter
 def indent_filter_factory(context, pad=4):
-  try:
-    count = int(pad)
-  except (ValueError, TypeError):
-    pass
-  else:
-    if count >= 0:
-      pad = " " * count
-  def indent_filter(text=""):
-    return re.sub(r"(?m)^(?=(?s).)", lambda _: str(pad), str(text))
-  return indent_filter
+    try:
+        count = int(pad)
+    except (ValueError, TypeError):
+        pass
+    else:
+        if count >= 0:
+            pad = " " * count
+
+    def indent_filter(text=""):
+        return re.sub(r"(?m)^(?=(?s).)", lambda _: str(pad), str(text))
+    return indent_filter
 
 
 @register("format")
 @dynamic_filter
 def format_filter_factory(context, formatstr="%s"):
-  def format_filter(text=""):
-    # The "rstrip" is to emulate Perl's strip, which elides trailing nulls.
-    return "\n".join(str(formatstr) % string
-                     for string in str(text).rstrip("\n").split("\n"))
-  return format_filter
+    def format_filter(text=""):
+        # The "rstrip" is to emulate Perl's strip, which elides trailing nulls.
+        return "\n".join(str(formatstr) % string
+                         for string in str(text).rstrip("\n").split("\n"))
+    return format_filter
 
 
 @register("truncate")
 @dynamic_filter
 def truncate_filter_factory(context, length=32, char="..."):
-  length = numify(length)
-  char = str(char)
-  def truncate_filter(text=""):
-    text = str(text)
-    if len(text) <= length:
-      return text
-    else:
-      return text[:length - len(char)] + char
-  return truncate_filter
+    length = numify(length)
+    char = str(char)
+
+    def truncate_filter(text=""):
+        text = str(text)
+        if len(text) <= length:
+            return text
+        else:
+            return text[:length - len(char)] + char
+    return truncate_filter
 
 
 @register("repeat")
 @dynamic_filter
 def repeat_filter_factory(context, count=1):
-  def repeat_filter(text=""):
-    return str(text) * numify(count)
-  return repeat_filter
+    def repeat_filter(text=""):
+        return str(text) * numify(count)
+    return repeat_filter
 
 
 @register("replace")
 @dynamic_filter
 def replace_filter_factory(context, search="", replace=""):
-  def replace_filter(text=""):
-    return re.sub(str(search), lambda _: str(replace), str(text))
-  return replace_filter
+    def replace_filter(text=""):
+        return re.sub(str(search), lambda _: str(replace), str(text))
+    return replace_filter
 
 
 @register("remove")
 @dynamic_filter
 def remove_filter_factory(context, search="", *args):
-  def remove_filter(text=""):
-    return re.sub(str(search), "", str(text))
-  return remove_filter
+    def remove_filter(text=""):
+        return re.sub(str(search), "", str(text))
+    return remove_filter
 
 
 @register("eval", "evaltt")
 @dynamic_filter
 def eval_filter_factory(context):
-  def eval_filter(text=""):
-    return context.process(util.Literal(str(text)))
-  return eval_filter
+    def eval_filter(text=""):
+        return context.process(util.Literal(str(text)))
+    return eval_filter
 
 
 @register("python")
 @dynamic_filter
 def python_filter_factory(context):
-  if not context.eval_python():
-    raise TemplateException("python", "EVAL_PYTHON is not set")
-  def python_filter(text):
-    return util.EvaluateCode(str(text), context, context.stash())
-  return python_filter
+    if not context.eval_python():
+        raise TemplateException("python", "EVAL_PYTHON is not set")
+
+    def python_filter(text):
+        return util.EvaluateCode(str(text), context, context.stash())
+    return python_filter
 
 
 @register("redirect", "file")
 @dynamic_filter
 def redirect_filter_factory(context, file, options=None):
-  outpath = context.config().get("OUTPUT_PATH")
-  if not outpath:
-    raise TemplateException("redirect", "OUTPUT_PATH is not set")
-  if re.search(r"(?:^|/)\.\./", file, re.MULTILINE):
-    context.throw("redirect", "relative filenames are not supported: %s" % file)
-  if not isinstance(options, dict):
-    options = { "binmode": options }
-  def redirect_filter(text=""):
     outpath = context.config().get("OUTPUT_PATH")
     if not outpath:
-      return ""
-    try:
-      try:
-        os.makedirs(outpath)
-      except OSError as e:
-        if e.errno != errno.EEXIST:
-          raise
-      outpath += "/" + str(file)
-      if options.get("binmode"):
-        mode = "wb"
-      else:
-        mode = "w"
-      fh = open(outpath, mode)
-      fh.write(text)
-      fh.close()
-    except Exception as e:
-      raise TemplateException("redirect", e)
-    return ""
-  return redirect_filter
+        raise TemplateException("redirect", "OUTPUT_PATH is not set")
+    if re.search(r"(?:^|/)\.\./", file, re.MULTILINE):
+        context.throw("redirect", "relative filenames are not supported: %s" % file)
+    if not isinstance(options, dict):
+        options = {"binmode": options}
+
+    def redirect_filter(text=""):
+        outpath = context.config().get("OUTPUT_PATH")
+        if not outpath:
+            return ""
+        try:
+            try:
+                os.makedirs(outpath)
+            except OSError as e:
+                if e.errno != errno.EEXIST:
+                    raise
+            outpath += "/" + str(file)
+            if options.get("binmode"):
+                mode = "wb"
+            else:
+                mode = "w"
+            fh = open(outpath, mode)
+            fh.write(text)
+            fh.close()
+        except Exception as e:
+            raise TemplateException("redirect", e)
+        return ""
+    return redirect_filter
 
 
 @register("stdout")
 @dynamic_filter
 def stdout_filter_factory(context, options=None):
-  if not isinstance(options, dict):
-    options = {"binmode": options}
-  def stdout_filter(text):
-    sys.stdout.write(str(text))
-    return ""
-  return stdout_filter
+    if not isinstance(options, dict):
+        options = {"binmode": options}
+
+    def stdout_filter(text):
+        sys.stdout.write(str(text))
+        return ""
+    return stdout_filter

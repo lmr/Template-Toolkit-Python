@@ -77,35 +77,35 @@ variable definitions.
 
 
 def _loader(field):
-  def load(cls, params):
-    return get_class(getattr(cls, field))(params)
-  return classmethod(load)
+    def load(cls, params):
+        return get_class(getattr(cls, field))(params)
+    return classmethod(load)
 
 
 class Config:
-  CONSTANTS = ("template.namespace.constants", "Constants")
-  constants = _loader("CONSTANTS")
+    CONSTANTS = ("template.namespace.constants", "Constants")
+    constants = _loader("CONSTANTS")
 
-  CONTEXT = ("template.context", "Context")
-  context = _loader("CONTEXT")
+    CONTEXT = ("template.context", "Context")
+    context = _loader("CONTEXT")
 
-  FILTERS = ("template.filters", "Filters")
-  filters = _loader("FILTERS")
+    FILTERS = ("template.filters", "Filters")
+    filters = _loader("FILTERS")
 
-  ITERATOR = ("template.iterator", "Iterator")
-  iterator = _loader("ITERATOR")
+    ITERATOR = ("template.iterator", "Iterator")
+    iterator = _loader("ITERATOR")
 
-  PARSER = ("template.parser", "Parser")
-  parser = _loader("PARSER")
+    PARSER = ("template.parser", "Parser")
+    parser = _loader("PARSER")
 
-  PLUGINS = ("template.plugins", "Plugins")
-  plugins = _loader("PLUGINS")
+    PLUGINS = ("template.plugins", "Plugins")
+    plugins = _loader("PLUGINS")
 
-  PROVIDER = ("template.provider", "Provider")
-  provider = _loader("PROVIDER")
+    PROVIDER = ("template.provider", "Provider")
+    provider = _loader("PROVIDER")
 
-  SERVICE = ("template.service", "Service")
-  service = _loader("SERVICE")
+    SERVICE = ("template.service", "Service")
+    service = _loader("SERVICE")
 
-  STASH = ("template.stash", "Stash")
-  stash = _loader("STASH")
+    STASH = ("template.stash", "Stash")
+    stash = _loader("STASH")

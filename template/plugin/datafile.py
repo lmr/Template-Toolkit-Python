@@ -75,39 +75,40 @@ Doesn't permit use of ':' in a field.  Some escaping mechanism is required.
 
 
 class Datafile(Plugin, Sequence):
-  """Template Toolkit Plugin which reads a datafile and constructs a
-  list object containing hashes representing records in the file.
-  """
-  def __init__(self, context, filename, params=None):
-    Plugin.__init__(self)
-    params = params or {}
-    delim = params.get("delim") or ":"
-    items = []
-    line = None
-    names = None
-    splitter = re.compile(r'\s*%s\s*' % re.escape(delim))
+    """Template Toolkit Plugin which reads a datafile and constructs a
+    list object containing hashes representing records in the file.
+    """
 
-    try:
-      f = open(filename)
-    except IOError as e:
-      return self.fail("%s: %s" % (filename, e))
+    def __init__(self, context, filename, params=None):
+        Plugin.__init__(self)
+        params = params or {}
+        delim = params.get("delim") or ":"
+        items = []
+        line = None
+        names = None
+        splitter = re.compile(r'\s*%s\s*' % re.escape(delim))
 
-    for line in f:
-      line = line.rstrip("\n\r")
-      if not line or line.startswith("#") or line.isspace():
-        continue
-      fields = splitter.split(line)
-      if names is None:
-        names = fields
-      else:
-        fields.extend([None] * (len(names) - len(fields)))
-        items.append(dict(zip(names, fields)))
+        try:
+            f = open(filename)
+        except IOError as e:
+            return self.fail("%s: %s" % (filename, e))
 
-    f.close()
-    self.items = items
+        for line in f:
+            line = line.rstrip("\n\r")
+            if not line or line.startswith("#") or line.isspace():
+                continue
+            fields = splitter.split(line)
+            if names is None:
+                names = fields
+            else:
+                fields.extend([None] * (len(names) - len(fields)))
+                items.append(dict(zip(names, fields)))
 
-  def __iter__(self):
-    return iter(self.items)
+        f.close()
+        self.items = items
 
-  def as_list(self):
-    return self.items
+    def __iter__(self):
+        return iter(self.items)
+
+    def as_list(self):
+        return self.items

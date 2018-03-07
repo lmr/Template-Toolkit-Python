@@ -154,10 +154,10 @@ available as the function 'truly_random_number'.
 OCT_REGEX = re.compile(r'^\s*(0[xb]?)?')
 
 OCT_DIGITS = {
-  '0b': (2, re.compile(r'[01]*')),
-  '0': (8, re.compile(r'[0-7]*')),
-  None: (8, re.compile(r'[0-7]*')),
-  '0x': (16, re.compile(r'[0-9A-Fa-f]*')),
+    '0b': (2, re.compile(r'[01]*')),
+    '0': (8, re.compile(r'[0-7]*')),
+    None: (8, re.compile(r'[0-7]*')),
+    '0x': (16, re.compile(r'[0-9A-Fa-f]*')),
 }
 
 # Our global random number object:
@@ -171,179 +171,180 @@ TrulyRandomFunction = None
 
 # A trivial local error class.
 class Error(Exception):
-  pass
+    pass
 
 
 class Math(Plugin):
-  """Plugin implementing numerous mathematical functions."""
-  def __init__(self, context, config=None):
-    Plugin.__init__(self)
-    self.__config = config  # unused
+    """Plugin implementing numerous mathematical functions."""
 
-  def abs(self, x):
-    x = numify(x)
-    # The built-in abs always returns a float, which is here cast back to
-    # the type of the input argument, so that (for example) the absolute
-    # value of an int is returned as an int.
-    return type(x)(abs(x))
+    def __init__(self, context, config=None):
+        Plugin.__init__(self)
+        self.__config = config  # unused
 
-  def atan2(self, x, y):
-    return math.atan2(numify(x), numify(y))
+    def abs(self, x):
+        x = numify(x)
+        # The built-in abs always returns a float, which is here cast back to
+        # the type of the input argument, so that (for example) the absolute
+        # value of an int is returned as an int.
+        return type(x)(abs(x))
 
-  def cos(self, x):
-    return math.cos(numify(x))
+    def atan2(self, x, y):
+        return math.atan2(numify(x), numify(y))
 
-  def exp(self, x):
-    return math.exp(numify(x))
+    def cos(self, x):
+        return math.cos(numify(x))
 
-  def hex(self, x):
-    return int(str(numify(x)), 16)
+    def exp(self, x):
+        return math.exp(numify(x))
 
-  def int(self, x):
-    return int(numify(x))
+    def hex(self, x):
+        return int(str(numify(x)), 16)
 
-  def log(self, x):
-    return math.log(numify(x))
+    def int(self, x):
+        return int(numify(x))
 
-  def oct(self, x):
-    x = str(x)
-    match = OCT_REGEX.match(x)
-    base, regex = OCT_DIGITS[match.group(1)]
-    digits = regex.match(x[len(match.group()):]).group()
-    if len(digits) == 0:
-      return 0
-    else:
-      return int(digits, base)
+    def log(self, x):
+        return math.log(numify(x))
 
-  def rand(self, x):
-    return Random.uniform(0, numify(x))
+    def oct(self, x):
+        x = str(x)
+        match = OCT_REGEX.match(x)
+        base, regex = OCT_DIGITS[match.group(1)]
+        digits = regex.match(x[len(match.group()):]).group()
+        if len(digits) == 0:
+            return 0
+        else:
+            return int(digits, base)
 
-  def sin(self, x):
-    return math.sin(numify(x))
+    def rand(self, x):
+        return Random.uniform(0, numify(x))
 
-  def sqrt(self, x):
-    root = math.sqrt(numify(x))
-    trunc = int(root)
-    # Try to return an integer, if possible:
-    if root == trunc:
-      return trunc
-    else:
-      return root
+    def sin(self, x):
+        return math.sin(numify(x))
 
-  def srand(self, x):
-    return Random.seed(numify(x))
+    def sqrt(self, x):
+        root = math.sqrt(numify(x))
+        trunc = int(root)
+        # Try to return an integer, if possible:
+        if root == trunc:
+            return trunc
+        else:
+            return root
 
-  def truly_random(self, x):
-    if TrulyRandomFunction is None:
-      raise Error("No truly_random dispatch function has been defined")
-    return TrulyRandomFunction(numify(x))
+    def srand(self, x):
+        return Random.seed(numify(x))
 
-  def pi(self):
-    return math.pi
+    def truly_random(self, x):
+        if TrulyRandomFunction is None:
+            raise Error("No truly_random dispatch function has been defined")
+        return TrulyRandomFunction(numify(x))
 
-  def tan(self, x):
-    return math.tan(numify(x))
+    def pi(self):
+        return math.pi
 
-  def csc(self, x):
-    return 1.0 / math.sin(numify(x))
+    def tan(self, x):
+        return math.tan(numify(x))
 
-  cosec = csc
+    def csc(self, x):
+        return 1.0 / math.sin(numify(x))
 
-  def sec(self, x):
-    return 1.0 / math.cos(numify(x))
+    cosec = csc
 
-  def cot(self, x):
-    return 1.0 / math.tan(numify(x))
+    def sec(self, x):
+        return 1.0 / math.cos(numify(x))
 
-  cotan = cot
+    def cot(self, x):
+        return 1.0 / math.tan(numify(x))
 
-  def asin(self, x):
-    return math.asin(numify(x))
+    cotan = cot
 
-  def acos(self, x):
-    return math.acos(numify(x))
+    def asin(self, x):
+        return math.asin(numify(x))
 
-  def atan(self, x):
-    return math.atan(numify(x))
+    def acos(self, x):
+        return math.acos(numify(x))
 
-  def acsc(x):
-    return math.pi / 2.0 - self.asec(x)
+    def atan(self, x):
+        return math.atan(numify(x))
 
-  acosec = acsc
+    def acsc(x):
+        return math.pi / 2.0 - self.asec(x)
 
-  def asec(self, x):
-    return math.acos(1.0 / numify(x))
+    acosec = acsc
 
-  def acot(self, x):
-    return math.pi / 2.0 - math.atan(numify(x))
+    def asec(self, x):
+        return math.acos(1.0 / numify(x))
 
-  acotan = acot
+    def acot(self, x):
+        return math.pi / 2.0 - math.atan(numify(x))
 
-  def sinh(self, x):
-    return math.sinh(numify(x))
+    acotan = acot
 
-  def cosh(self, x):
-    return math.cosh(numify(x))
+    def sinh(self, x):
+        return math.sinh(numify(x))
 
-  def tanh(self, x):
-    return math.tanh(numify(x))
+    def cosh(self, x):
+        return math.cosh(numify(x))
 
-  def csch(self, x):
-    return 1.0 / math.sinh(numify(x))
+    def tanh(self, x):
+        return math.tanh(numify(x))
 
-  cosech = csch
+    def csch(self, x):
+        return 1.0 / math.sinh(numify(x))
 
-  def sech(self, x):
-    return 1.0 / math.cosh(numify(x))
+    cosech = csch
 
-  def coth(self, x):
-    return 1.0 / math.tanh(numify(x))
+    def sech(self, x):
+        return 1.0 / math.cosh(numify(x))
 
-  cotanh = coth
+    def coth(self, x):
+        return 1.0 / math.tanh(numify(x))
 
-  def asinh(self, x):
-    x = numify(x)
-    return math.log(x + math.sqrt(x*x + 1))
+    cotanh = coth
 
-  def acosh(self, x):
-    raise NotImplementedError  # Not sure what to do here...
+    def asinh(self, x):
+        x = numify(x)
+        return math.log(x + math.sqrt(x * x + 1))
 
-  def atanh(self, x):
-    x = numify(x)
-    return math.log((1.0 + x) / (1.0 - x)) / 2.0
+    def acosh(self, x):
+        raise NotImplementedError  # Not sure what to do here...
 
-  def acsch(self, x):
-    x = numify(x)
-    if x < 0:
-      return math.log((1.0 - math.sqrt(1.0 + x * x)) / x)
-    else:
-      return math.log((1.0 + math.sqrt(1.0 + x * x)) / x)
+    def atanh(self, x):
+        x = numify(x)
+        return math.log((1.0 + x) / (1.0 - x)) / 2.0
 
-  acosech = acsch
+    def acsch(self, x):
+        x = numify(x)
+        if x < 0:
+            return math.log((1.0 - math.sqrt(1.0 + x * x)) / x)
+        else:
+            return math.log((1.0 + math.sqrt(1.0 + x * x)) / x)
 
-  def asech(self, x):
-    raise NotImplementedError  # Not sure what to do here either...
+    acosech = acsch
 
-  def acoth(self, x):
-    x = numify(x)
-    return math.log((1.0 + x) / (1.0 - x)) / 2.0
+    def asech(self, x):
+        raise NotImplementedError  # Not sure what to do here either...
 
-  acotanh = acoth
+    def acoth(self, x):
+        x = numify(x)
+        return math.log((1.0 + x) / (1.0 - x)) / 2.0
 
-  def rad2deg(self, x):
-    return math.degrees(numify(x))
+    acotanh = acoth
 
-  def rad2grad(self, x):
-    return math.degrees(numify(x)) * 10.0 / 9.0
+    def rad2deg(self, x):
+        return math.degrees(numify(x))
 
-  def deg2rad(self, x):
-    return math.radians(numify(x))
+    def rad2grad(self, x):
+        return math.degrees(numify(x)) * 10.0 / 9.0
 
-  def deg2grad(self, x):
-    return numify(x) * 10.0 / 9.0
+    def deg2rad(self, x):
+        return math.radians(numify(x))
 
-  def grad2rad(self, x):
-    return math.radians(numify(x) * 0.9)
+    def deg2grad(self, x):
+        return numify(x) * 10.0 / 9.0
 
-  def grad2deg(self, x):
-    return numify(x) * 0.9
+    def grad2rad(self, x):
+        return math.radians(numify(x) * 0.9)
+
+    def grad2deg(self, x):
+        return numify(x) * 0.9

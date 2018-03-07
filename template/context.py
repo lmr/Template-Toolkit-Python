@@ -603,477 +603,479 @@ will be reinstated.
 
 
 class Context:
-  """Class defining a context in which a template document is processed.
-  This is the runtime processing interface through which templates
-  can access the functionality of the Template Toolkit.
-  """
+    """Class defining a context in which a template document is processed.
+    This is the runtime processing interface through which templates
+    can access the functionality of the Template Toolkit.
+    """
 
-  DEBUG = None
+    DEBUG = None
 
-  def __init__(self, config):
-    self.__load_templates = util.listify(
-      config.get("LOAD_TEMPLATES") or Provider(config))
-    self.__load_plugins = util.listify(
-      config.get("LOAD_PLUGINS") or Plugins(config))
-    self.__load_filters = util.listify(
-      config.get("LOAD_FILTERS") or Filters(config))
-    prefix_map = config.get("PREFIX_MAP") or {}
-    self.__filter_cache = {}
-    self.__prefix_map = {}
-    for key, value in prefix_map.items():
-      if isinstance(value, str):
-        self.__prefix_map[key] = util.slice(
-          self.__load_templates, [int(x) for x in re.split(r"\D+", value)])
-      else:
-        self.__prefix_map[key] = value
+    def __init__(self, config):
+        self.__load_templates = util.listify(
+            config.get("LOAD_TEMPLATES") or Provider(config))
+        self.__load_plugins = util.listify(
+            config.get("LOAD_PLUGINS") or Plugins(config))
+        self.__load_filters = util.listify(
+            config.get("LOAD_FILTERS") or Filters(config))
+        prefix_map = config.get("PREFIX_MAP") or {}
+        self.__filter_cache = {}
+        self.__prefix_map = {}
+        for key, value in prefix_map.items():
+            if isinstance(value, str):
+                self.__prefix_map[key] = util.slice(
+                    self.__load_templates, [int(x) for x in re.split(r"\D+", value)])
+            else:
+                self.__prefix_map[key] = value
 
-    if "STASH" in config:
-      self.__stash = config["STASH"]
-    else:
-      predefs = config.get("VARIABLES") or config.get("PRE_DEFINE") or {}
-      predefs.setdefault("_DEBUG",
-                         int(bool(config.get("DEBUG", 0) & DEBUG_UNDEF)))
-      self.__stash = Stash(predefs)
+        if "STASH" in config:
+            self.__stash = config["STASH"]
+        else:
+            predefs = config.get("VARIABLES") or config.get("PRE_DEFINE") or {}
+            predefs.setdefault("_DEBUG",
+                               int(bool(config.get("DEBUG", 0) & DEBUG_UNDEF)))
+            self.__stash = Stash(predefs)
 
-    # compile any template BLOCKS specified as text
-    blocks = config.get("BLOCKS") or {}
-    b = {}
-    for key, block in blocks.items():
-      if isinstance(block, str):
-        block = self.template(util.Literal(block))
-      b[key] = block
-    self.__init_blocks = self.__blocks = b
+        # compile any template BLOCKS specified as text
+        blocks = config.get("BLOCKS") or {}
+        b = {}
+        for key, block in blocks.items():
+            if isinstance(block, str):
+                block = self.template(util.Literal(block))
+            b[key] = block
+        self.__init_blocks = self.__blocks = b
 
-    self.__recursion = config.get("RECURSION", False)
-    self.__eval_python = config.get("EVAL_PYTHON", False)
-    self.__trim = config.get("TRIM", False)
-    self.__blkstack = []
-    self.__config = config
-    if config.get("EXPOSE_BLOCKS") is not None:
-      self.__expose_blocks = config.get("EXPOSE_BLOCKS")
-    else:
-      self.__expose_blocks = False
-    self.__debug_format = config.get("DEBUG_FORMAT")
-    self.__debug_dirs = config.get("DEBUG", 0) & DEBUG_DIRS
-    if config.get("DEBUG") is not None:
-      self.__debug = config["DEBUG"] & (DEBUG_CONTEXT | DEBUG_FLAGS)
-    else:
-      self.__debug = self.DEBUG
+        self.__recursion = config.get("RECURSION", False)
+        self.__eval_python = config.get("EVAL_PYTHON", False)
+        self.__trim = config.get("TRIM", False)
+        self.__blkstack = []
+        self.__config = config
+        if config.get("EXPOSE_BLOCKS") is not None:
+            self.__expose_blocks = config.get("EXPOSE_BLOCKS")
+        else:
+            self.__expose_blocks = False
+        self.__debug_format = config.get("DEBUG_FORMAT")
+        self.__debug_dirs = config.get("DEBUG", 0) & DEBUG_DIRS
+        if config.get("DEBUG") is not None:
+            self.__debug = config["DEBUG"] & (DEBUG_CONTEXT | DEBUG_FLAGS)
+        else:
+            self.__debug = self.DEBUG
 
-  def config(self):
-    return self.__config
+    def config(self):
+        return self.__config
 
-  def insert(self, files):
-    """Insert the contents of a file without parsing."""
-    # TODO: Clean this up; unify the way "files" is passed to this routine.
-    files = unscalar(files)
-    if is_seq(files):
-      files = unscalar_list(files)
-    else:
-      files = [unscalar(files)]
-    prefix = providers = text = None
-    output = StringIO()
+    def insert(self, files):
+        """Insert the contents of a file without parsing."""
+        # TODO: Clean this up; unify the way "files" is passed to this routine.
+        files = unscalar(files)
+        if is_seq(files):
+            files = unscalar_list(files)
+        else:
+            files = [unscalar(files)]
+        prefix = providers = text = None
+        output = StringIO()
 
-    for file in files:
-      prefix, name = split_prefix(file)
-      if prefix:
-        providers = self.__prefix_map.get(prefix)
-        if not providers:
-          self.throw(ERROR_FILE, "no providers for file prefix '%s'" % prefix)
-      else:
-        providers = self.__prefix_map.get("default") or self.__load_templates
+        for file in files:
+            prefix, name = split_prefix(file)
+            if prefix:
+                providers = self.__prefix_map.get(prefix)
+                if not providers:
+                    self.throw(ERROR_FILE, "no providers for file prefix '%s'" % prefix)
+            else:
+                providers = self.__prefix_map.get("default") or self.__load_templates
 
-      for provider in providers:
+            for provider in providers:
+                try:
+                    text = provider.load(name, prefix)
+                except Exception as e:
+                    self.throw(ERROR_FILE, str(e))
+                if text is not None:
+                    output.write(text)
+                    break
+            else:
+                self.throw(ERROR_FILE, "%s: not found" % file)
+
+        return output.getvalue()
+
+    def throw(self, error, info=None, output=None):
+        """Raises a TemplateException.
+
+        This method may be passed an existing TemplateException object; a
+        single value containing an error message which is used to instantiate
+        a TemplateException of type 'None'; or a pair of values representing
+        the exception type and info from which a TemplateException object is
+        instantiated.  e.g.
+
+          context.throw(exception)
+          context.throw("I'm sorry Dave, I can't do that")
+          context.throw('denied', "I'm sorry Dave, I can't do that")
+
+        An optional third parameter can be supplied in the last case which
+        is a reference to the current output buffer containing the results
+        of processing the template up to the point at which the exception
+        was thrown.  The RETURN and STOP directives, for example, use this
+        to propagate output back to the user, but it can safely be ignored
+        in most cases.
+        """
+        error = unscalar(error)
+        info = unscalar(info)
+        if isinstance(error, TemplateException):
+            raise error
+        elif info is not None:
+            raise TemplateException(error, info, output)
+        else:
+            raise TemplateException("None", error or "", output)
+
+    def catch(self, error, output=None):
+        """Called by various directives after catching an exception.
+
+        The first parameter contains the errror which may be a sanitized
+        reference to a TemplateException object (such as that raised by the
+        throw() method above, a plugin object, and so on) or an error message
+        raised from somewhere in user code.  The latter are coerced into
+        'None' TemplateException objects.  Like throw() above, the current
+        output buffer may be passed as an additional parameter.  As exceptions
+        are thrown upwards and outwards from nested blocks, the catch() method
+        reconstructs the correct output buffer from these fragments, storing
+        it in the exception object for passing further onwards and upwards.  #
+
+        Returns a TemplateException object.
+        """
+        if isinstance(error, TemplateException):
+            if output:
+                error.text(output)
+            return error
+        else:
+            return TemplateException("None", error, output)
+
+    def view(self, params=None):
+        """Create a new View object bound to this context."""
+        from template.view import View
+        return View(self, unscalar(params))
+
+    def process(self, template, params=None, localize=False):
+        """Processes the template named or referenced by the first parameter.
+
+        The optional second parameter may reference a dictionary of variable
+        definitions.  These are set before the template is processed by
+        calling update() on the stash.  Note that, unless the third parameter
+        is true, the context is not localised and these, and any other
+        variables set in the template will retain their new values after this
+        method returns.  The third parameter is in place so that this method
+        can handle INCLUDE calls: the stash will be localized.  # Returns the
+        output of processing the template.  Errors are raised as
+        TemplateException objects.
+        """
+        template = util.listify(unscalar(template))
+        params = unscalar(params)
+        compileds = []
+        for name in template:
+            compileds.append(self.template(name))
+        if localize:
+            self.__stash = self.__stash.clone(params)
+        else:
+            self.__stash.update(params)
+
+        output = StringIO()
+
         try:
-          text = provider.load(name, prefix)
-        except Exception as e:
-          self.throw(ERROR_FILE, str(e))
-        if text is not None:
-          output.write(text)
-          break
-      else:
-        self.throw(ERROR_FILE, "%s: not found" % file)
+            # save current component
+            try:
+                component = self.__stash.get("component")
+            except:
+                component = None
+            for name, compiled in zip(template, compileds):
+                if not callable(compiled):
+                    element = compiled
+                else:
+                    element = {"name": isinstance(name, str) and name or "",
+                               "modtime": time.time()}
+                if isinstance(component, Document):
+                    # FIXME: This block is not exercised by any test.
+                    elt = Accessor(element)
+                    elt["caller"] = component.name
+                    elt["callers"] = getattr(component, "callers", [])
+                    elt["callers"].append(component.name)
+                self.__stash.set("component", element)
+                if not localize:
+                    # merge any local blocks defined in the Template::Document
+                    # info our local BLOCKS cache
+                    if isinstance(compiled, Document):
+                        tblocks = compiled.blocks()
+                        if tblocks:
+                            self.__blocks.update(tblocks)
+                if callable(compiled):
+                    tmpout = compiled(self)
+                elif util.can(compiled, "process"):
+                    tmpout = compiled.process(self)
+                else:
+                    self.throw("file", "invalid template reference: %s" % compiled)
+                if self.__trim:
+                    tmpout = tmpout.strip()
+                output.write(tmpout)
+                # pop last item from callers
+                if isinstance(component, Document):
+                    elt["callers"].pop()
+            self.__stash.set("component", component)
+        finally:
+            if localize:
+                # ensure stash is delocalised before dying
+                self.__stash = self.__stash.declone()
 
-    return output.getvalue()
+        return output.getvalue()
 
-  def throw(self, error, info=None, output=None):
-    """Raises a TemplateException.
+    def include(self, template, params=None):
+        """Similar to process() above but processing the template in a local
+        context.
 
-    This method may be passed an existing TemplateException object; a
-    single value containing an error message which is used to instantiate
-    a TemplateException of type 'None'; or a pair of values representing
-    the exception type and info from which a TemplateException object is
-    instantiated.  e.g.
+        Any variables passed by dictionary as the second parameter will be set
+        before the template is processed and then revert to their original
+        values before the method returns.  Similarly, any changes made to
+        non-global variables within the template will persist only until the
+        template is processed.
 
-      context.throw(exception)
-      context.throw("I'm sorry Dave, I can't do that")
-      context.throw('denied', "I'm sorry Dave, I can't do that")
+        Returns the output of processing the template.  Errors are raised as
+        TemplateException objects.
+        """
+        return self.process(template, params, True)
 
-    An optional third parameter can be supplied in the last case which
-    is a reference to the current output buffer containing the results
-    of processing the template up to the point at which the exception
-    was thrown.  The RETURN and STOP directives, for example, use this
-    to propagate output back to the user, but it can safely be ignored
-    in most cases.
-    """
-    error = unscalar(error)
-    info = unscalar(info)
-    if isinstance(error, TemplateException):
-      raise error
-    elif info is not None:
-      raise TemplateException(error, info, output)
-    else:
-      raise TemplateException("None", error or "", output)
+    def localise(self, *args):
+        """The localise() method creates a local copy of the current stash,
+        allowing the existing state of variables to be saved and later
+        restored via delocalise().
 
-  def catch(self, error, output=None):
-    """Called by various directives after catching an exception.
+        A dictionary may be passed containing local variable definitions
+        which should be added to the cloned namespace.  These values
+        persist until delocalisation.
+        """
+        self.__stash = self.__stash.clone(*args)
+        return self.__stash
 
-    The first parameter contains the errror which may be a sanitized
-    reference to a TemplateException object (such as that raised by the
-    throw() method above, a plugin object, and so on) or an error message
-    raised from somewhere in user code.  The latter are coerced into
-    'None' TemplateException objects.  Like throw() above, the current
-    output buffer may be passed as an additional parameter.  As exceptions
-    are thrown upwards and outwards from nested blocks, the catch() method
-    reconstructs the correct output buffer from these fragments, storing
-    it in the exception object for passing further onwards and upwards.  #
-
-    Returns a TemplateException object.
-    """
-    if isinstance(error, TemplateException):
-      if output:
-        error.text(output)
-      return error
-    else:
-      return TemplateException("None", error, output)
-
-  def view(self, params=None):
-    """Create a new View object bound to this context."""
-    from template.view import View
-    return View(self, unscalar(params))
-
-  def process(self, template, params=None, localize=False):
-    """Processes the template named or referenced by the first parameter.
-
-    The optional second parameter may reference a dictionary of variable
-    definitions.  These are set before the template is processed by
-    calling update() on the stash.  Note that, unless the third parameter
-    is true, the context is not localised and these, and any other
-    variables set in the template will retain their new values after this
-    method returns.  The third parameter is in place so that this method
-    can handle INCLUDE calls: the stash will be localized.  # Returns the
-    output of processing the template.  Errors are raised as
-    TemplateException objects.
-    """
-    template = util.listify(unscalar(template))
-    params = unscalar(params)
-    compileds = []
-    for name in template:
-      compileds.append(self.template(name))
-    if localize:
-      self.__stash = self.__stash.clone(params)
-    else:
-      self.__stash.update(params)
-
-    output = StringIO()
-
-    try:
-      # save current component
-      try:
-        component = self.__stash.get("component")
-      except:
-        component = None
-      for name, compiled in zip(template, compileds):
-        if not callable(compiled):
-          element = compiled
-        else:
-          element = { "name": isinstance(name, str) and name or "",
-                      "modtime": time.time() }
-        if isinstance(component, Document):
-          # FIXME: This block is not exercised by any test.
-          elt = Accessor(element)
-          elt["caller"] = component.name
-          elt["callers"] = getattr(component, "callers", [])
-          elt["callers"].append(component.name)
-        self.__stash.set("component", element)
-        if not localize:
-          # merge any local blocks defined in the Template::Document
-          # info our local BLOCKS cache
-          if isinstance(compiled, Document):
-            tblocks = compiled.blocks()
-            if tblocks:
-              self.__blocks.update(tblocks)
-        if callable(compiled):
-          tmpout = compiled(self)
-        elif util.can(compiled, "process"):
-          tmpout = compiled.process(self)
-        else:
-          self.throw("file", "invalid template reference: %s" % compiled)
-        if self.__trim:
-          tmpout = tmpout.strip()
-        output.write(tmpout)
-        # pop last item from callers
-        if isinstance(component, Document):
-          elt["callers"].pop()
-      self.__stash.set("component", component)
-    finally:
-      if localize:
-        # ensure stash is delocalised before dying
+    def delocalise(self):
         self.__stash = self.__stash.declone()
 
-    return output.getvalue()
+    def plugin(self, name, args=None):
+        """Calls on each of the LOAD_PLUGINS providers in turn to fetch()
+        (i.e. load and instantiate) a plugin of the specified name.
 
-  def include(self, template, params=None):
-    """Similar to process() above but processing the template in a local
-    context.
+        Additional parameters passed are propagated to the plugin's
+        constructor.  Returns a reference to a new plugin object or other
+        object.  On error, a TemplateException is raiased.
+        """
+        args = unscalar_list(args)
+        for provider in self.__load_plugins:
+            plugin = provider.fetch(name, args, self)
+            if plugin:
+                return plugin
+        self.throw(ERROR_PLUGIN, "%s: plugin not found" % name)
 
-    Any variables passed by dictionary as the second parameter will be set
-    before the template is processed and then revert to their original
-    values before the method returns.  Similarly, any changes made to
-    non-global variables within the template will persist only until the
-    template is processed.
+    def filter(self, name, args=None, alias=None):
+        """Similar to plugin() above, but querying the LOAD_FILTERS providers
+        to return filter instances.
 
-    Returns the output of processing the template.  Errors are raised as
-    TemplateException objects.
-    """
-    return self.process(template, params, True)
+        An alias may be provided which is used to save the returned filter
+        in a local cache.
+        """
+        name = unscalar(name)
+        args = unscalar_list(args or [])
+        filter = None
+        if not args and isinstance(name, str):
+            filter = self.__filter_cache.get(name)
+            if filter:
+                return filter
+        for provider in self.__load_filters:
+            filter = provider.fetch(name, args, self)
+            if filter:
+                if alias:
+                    self.__filter_cache[alias] = filter
+                return filter
+        self.throw("%s: filter not found" % name)
 
-  def localise(self, *args):
-    """The localise() method creates a local copy of the current stash,
-    allowing the existing state of variables to be saved and later
-    restored via delocalise().
+    def reset(self, blocks=None):
+        """Reset the state of the internal BLOCKS hash to clear any BLOCK
+        definitions imported via the PROCESS directive.  Any original BLOCKS
+        definitions passed to the constructor will be restored.
+        """
+        self.__blkstack = []
+        self.__blocks = self.__init_blocks.copy()
 
-    A dictionary may be passed containing local variable definitions
-    which should be added to the cloned namespace.  These values
-    persist until delocalisation.
-    """
-    self.__stash = self.__stash.clone(*args)
-    return self.__stash
+    def template(self, name):
+        """General purpose method to fetch a template and return it in compiled
+        form.
 
-  def delocalise(self):
-    self.__stash = self.__stash.declone()
+        In the usual case, the name parameter will be a simple string
+        containing the name of a template (e.g. 'header').  It may also be
+        a template.document.Document object (or sub-class) or a callable
+        object.  These are considered to be compiled templates and are
+        returned intact.  Finally, it may be a file-like object with a
+        read() method.
 
-  def plugin(self, name, args=None):
-    """Calls on each of the LOAD_PLUGINS providers in turn to fetch()
-    (i.e. load and instantiate) a plugin of the specified name.
+        Templates may be cached at one of 3 different levels.  The
+        internal BLOCKS member is a local cache which holds references to
+        all template blocks used or imported via PROCESS since the
+        context's reset() method was last called.  This is checked first
+        and if the template is not found, the method then walks down the
+        BLOCKSTACK list.  This contains references to the block definition
+        tables in any enclosing Documents that we're visiting (e.g. we've
+        been called via an INCLUDE and we want to access a BLOCK defined
+        in the template that INCLUDE'd us).  If nothing is defined, then
+        we iterate through the LOAD_TEMPLATES providers list as a 'chain
+        of responsibility' (see Design Patterns) asking each object to
+        fetch() the template if it can.
 
-    Additional parameters passed are propagated to the plugin's
-    constructor.  Returns a reference to a new plugin object or other
-    object.  On error, a TemplateException is raiased.
-    """
-    args = unscalar_list(args)
-    for provider in self.__load_plugins:
-      plugin = provider.fetch(name, args, self)
-      if plugin:
-        return plugin
-    self.throw(ERROR_PLUGIN, "%s: plugin not found" % name)
+        Returns the compiled template, or raises a TemplateException on error.
+        """
+        if isinstance(name, Document) or callable(name):
+            return name
+        shortname = name
+        prefix = providers = None
+        if isinstance(name, str):
+            for block in [self.__blocks] + self.__blkstack:
+                template = block.get(name)
+                if template:
+                    return template
+            prefix, shortname = split_prefix(shortname)
+            if prefix:
+                providers = self.__prefix_map.get(prefix)
+                if not providers:
+                    self.throw(ERROR_FILE, "no providers for template prefix '%s'" %
+                               prefix)
+        providers = (providers
+                     or self.__prefix_map.get("default")
+                     or self.__load_templates)
 
-  def filter(self, name, args=None, alias=None):
-    """Similar to plugin() above, but querying the LOAD_FILTERS providers
-    to return filter instances.
+        blockname = ""
+        while shortname:
+            for provider in providers:
+                try:
+                    template = provider.fetch(shortname, prefix)
+                except Exception as e:
+                    if isinstance(e, TemplateException) and e.type() == ERROR_FILE:
+                        self.throw(e)
+                    else:
+                        self.throw(ERROR_FILE, str(e))
 
-    An alias may be provided which is used to save the returned filter
-    in a local cache.
-    """
-    name = unscalar(name)
-    args = unscalar_list(args or [])
-    filter = None
-    if not args and isinstance(name, str):
-      filter = self.__filter_cache.get(name)
-      if filter:
-        return filter
-    for provider in self.__load_filters:
-      filter = provider.fetch(name, args, self)
-      if filter:
-        if alias:
-          self.__filter_cache[alias] = filter
-        return filter
-    self.throw("%s: filter not found" % name)
+                if template is None:
+                    continue
 
-  def reset(self, blocks=None):
-    """Reset the state of the internal BLOCKS hash to clear any BLOCK
-    definitions imported via the PROCESS directive.  Any original BLOCKS
-    definitions passed to the constructor will be restored.
-    """
-    self.__blkstack = []
-    self.__blocks = self.__init_blocks.copy()
+                if blockname:
+                    template = template.blocks().get(blockname)
+                    if template:
+                        return template
+                else:
+                    return template
+            if not isinstance(shortname, str) or not self.__expose_blocks:
+                break
+            match = re.search(r"/([^/]+)$", shortname)
+            if not match:
+                break
+            shortname = shortname[:match.start()] + shortname[match.end():]
+            if blockname:
+                blockname = "%s/%s" % (match.group(1), blockname)
+            else:
+                blockname = match.group(1)
 
-  def template(self, name):
-    """General purpose method to fetch a template and return it in compiled
-    form.
+        # TODO: This is the error thrown when a template has syntax
+        # errors.  Confusing!  Is this what the Perl version does?
+        self.throw(ERROR_FILE, "%s: not found" % name)
 
-    In the usual case, the name parameter will be a simple string
-    containing the name of a template (e.g. 'header').  It may also be
-    a template.document.Document object (or sub-class) or a callable
-    object.  These are considered to be compiled templates and are
-    returned intact.  Finally, it may be a file-like object with a
-    read() method.
+    def stash(self):
+        """Simple accessor for the local stash object."""
+        return self.__stash
 
-    Templates may be cached at one of 3 different levels.  The
-    internal BLOCKS member is a local cache which holds references to
-    all template blocks used or imported via PROCESS since the
-    context's reset() method was last called.  This is checked first
-    and if the template is not found, the method then walks down the
-    BLOCKSTACK list.  This contains references to the block definition
-    tables in any enclosing Documents that we're visiting (e.g. we've
-    been called via an INCLUDE and we want to access a BLOCK defined
-    in the template that INCLUDE'd us).  If nothing is defined, then
-    we iterate through the LOAD_TEMPLATES providers list as a 'chain
-    of responsibility' (see Design Patterns) asking each object to
-    fetch() the template if it can.
+    def define_vmethod(self, *args):
+        """Passes all args on to stash.define_vmethod."""
+        self.__stash.define_vmethod(*args)
 
-    Returns the compiled template, or raises a TemplateException on error.
-    """
-    if isinstance(name, Document) or callable(name):
-      return name
-    shortname = name
-    prefix = providers = None
-    if isinstance(name, str):
-      for block in [self.__blocks] + self.__blkstack:
-        template = block.get(name)
-        if template:
-          return template
-      prefix, shortname = split_prefix(shortname)
-      if prefix:
-        providers = self.__prefix_map.get(prefix)
-        if not providers:
-          self.throw(ERROR_FILE, "no providers for template prefix '%s'" %
-                     prefix)
-    providers = (providers
-                 or self.__prefix_map.get("default")
-                 or self.__load_templates)
+    def visit(self, document, blocks):
+        """Each template.document.Document calls the visit() method on the
+        context before processing itself.
 
-    blockname = ""
-    while shortname:
-      for provider in providers:
-        try:
-          template = provider.fetch(shortname, prefix)
-        except Exception as e:
-          if isinstance(e, TemplateException) and e.type() == ERROR_FILE:
-            self.throw(e)
-          else:
-            self.throw(ERROR_FILE, str(e))
+        It passes the dictionary of named BLOCKs defined within the document,
+        allowing them to be added to the internal BLKSTACK list which is
+        subsequently used by template() to resolve templates.  from a
+        provider.
+        """
+        self.__blkstack.insert(0, blocks)
 
-        if template is None:
-          continue
+    def leave(self):
+        """The leave() method is called when the document has finished processing
+        itself.
 
-        if blockname:
-          template = template.blocks().get(blockname)
-          if template:
-            return template
-        else:
-          return template
-      if not isinstance(shortname, str) or not self.__expose_blocks:
-        break
-      match = re.search(r"/([^/]+)$", shortname)
-      if not match:
-        break
-      shortname = shortname[:match.start()] + shortname[match.end():]
-      if blockname:
-        blockname = "%s/%s" % (match.group(1), blockname)
-      else:
-        blockname = match.group(1)
+        This removes the entry from the BLKSTACK list that was added visit()
+        above.  For persistence of BLOCK definitions, the process() method
+        (i.e. the PROCESS directive) does some extra magic to copy BLOCKs into
+        a shared hash.
+        """
+        self.__blkstack.pop(0)
 
-    # TODO: This is the error thrown when a template has syntax
-    # errors.  Confusing!  Is this what the Perl version does?
-    self.throw(ERROR_FILE, "%s: not found" % name)
+    def define_block(self, name, block):
+        """Adds a new BLOCK definition to the local BLOCKS cache.
 
-  def stash(self):
-    """Simple accessor for the local stash object."""
-    return self.__stash
+        block may be specified as a callable or template.document.Document
+        object or as text which is compiled into a template.  Returns a true
+        value ('block' or the compiled block reference) if successful, or
+        raises a TemplateException on failure.
+        """
+        # NOTE: This function is entirely untested by the test suite.
+        if isinstance(block, str):
+            block = self.template(util.Literal(block))
+        self.__blocks[name] = block
 
-  def define_vmethod(self, *args):
-    """Passes all args on to stash.define_vmethod."""
-    self.__stash.define_vmethod(*args)
+    def define_filter(self, name, filter, dynamic=False):
+        """Adds a new FILTER definition to the local FILTER_CACHE."""
+        if dynamic:
+            filter = util.dynamic_filter(filter)
+        for provider in self.__load_filters:
+            try:
+                provider.store(name, filter)
+                return 1
+            except Exception as e:
+                self.throw(ERROR_FILTER, e)
+        self.throw(ERROR_FILTER,
+                   "FILTER providers declined to store filter %s" % name)
 
-  def visit(self, document, blocks):
-    """Each template.document.Document calls the visit() method on the
-    context before processing itself.
+    def eval_python(self):
+        return self.__eval_python
 
-    It passes the dictionary of named BLOCKs defined within the document,
-    allowing them to be added to the internal BLKSTACK list which is
-    subsequently used by template() to resolve templates.  from a
-    provider.
-    """
-    self.__blkstack.insert(0, blocks)
+    def trim(self):
+        return self.__trim
 
-  def leave(self):
-    """The leave() method is called when the document has finished processing
-    itself.
+    def load_templates(self):
+        return self.__load_templates
 
-    This removes the entry from the BLKSTACK list that was added visit()
-    above.  For persistence of BLOCK definitions, the process() method
-    (i.e. the PROCESS directive) does some extra magic to copy BLOCKs into
-    a shared hash.
-    """
-    self.__blkstack.pop(0)
+    def load_plugins(self):
+        return self.__load_plugins
 
-  def define_block(self, name, block):
-    """Adds a new BLOCK definition to the local BLOCKS cache.
+    def load_filters(self):
+        return self.__load_filters
 
-    block may be specified as a callable or template.document.Document
-    object or as text which is compiled into a template.  Returns a true
-    value ('block' or the compiled block reference) if successful, or
-    raises a TemplateException on failure.
-    """
-    # NOTE: This function is entirely untested by the test suite.
-    if isinstance(block, str):
-      block = self.template(util.Literal(block))
-    self.__blocks[name] = block
-
-  def define_filter(self, name, filter, dynamic=False):
-    """Adds a new FILTER definition to the local FILTER_CACHE."""
-    if dynamic:
-      filter = util.dynamic_filter(filter)
-    for provider in self.__load_filters:
-      try:
-        provider.store(name, filter)
-        return 1
-      except Exception as e:
-        self.throw(ERROR_FILTER, e)
-    self.throw(ERROR_FILTER,
-               "FILTER providers declined to store filter %s" % name)
-
-  def eval_python(self):
-    return self.__eval_python
-
-  def trim(self):
-    return self.__trim
-
-  def load_templates(self):
-    return self.__load_templates
-
-  def load_plugins(self):
-    return self.__load_plugins
-
-  def load_filters(self):
-    return self.__load_filters
-
-  def recursion(self):
-    return self.__recursion
+    def recursion(self):
+        return self.__recursion
 
 
 PREFIX_RE = re.compile(r"(\w{%d,}):(.*)" % (int(os.name == "nt") + 1), re.S)
 
+
 def split_prefix(name):
-  match = PREFIX_RE.match(name)
-  return match and match.groups() or (None, name)
+    match = PREFIX_RE.match(name)
+    return match and match.groups() or (None, name)
 
 
 class Accessor:
-  """Utility class that provides item access to either the items or
-  attributes of a given object--the former if it is a dict, the latter
-  otherwise.
-  """
-  def __init__(self, obj):
-    self.obj = obj
-    if isinstance(obj, dict):
-      self.get, self.set = operator.getitem, operator.setitem
-    else:
-      self.get, self.set = getattr, setattr
+    """Utility class that provides item access to either the items or
+    attributes of a given object--the former if it is a dict, the latter
+    otherwise.
+    """
 
-  def __getitem__(self, attr):
-    return self.get(self.obj, attr)
+    def __init__(self, obj):
+        self.obj = obj
+        if isinstance(obj, dict):
+            self.get, self.set = operator.getitem, operator.setitem
+        else:
+            self.get, self.set = getattr, setattr
 
-  def __setitem__(self, attr, value):
-    self.set(self.obj, attr, value)
+    def __getitem__(self, attr):
+        return self.get(self.obj, attr)
+
+    def __setitem__(self, attr, value):
+        self.set(self.obj, attr, value)

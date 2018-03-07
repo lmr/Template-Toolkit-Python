@@ -137,20 +137,22 @@ MyClient object, primed to communicate with the creating MyServer.
 
 """
 
+
 class Plugin:
-  """Base class for a plugin object which can be loaded and
-  instantiated via the USE directive.
-  """
-  def __init__(self, *args):
-    pass
-
-  @classmethod
-  def load(cls, context=None):
-    """Class method called when the plugin module is first loaded.
-
-    It returns the class object or some other callable which will be
-    used to instantiate new objects.
+    """Base class for a plugin object which can be loaded and
+    instantiated via the USE directive.
     """
-    return cls
 
-  _split_arguments = staticmethod(split_arguments)
+    def __init__(self, *args):
+        pass
+
+    @classmethod
+    def load(cls, context=None):
+        """Class method called when the plugin module is first loaded.
+
+        It returns the class object or some other callable which will be
+        used to instantiate new objects.
+        """
+        return cls
+
+    _split_arguments = staticmethod(split_arguments)

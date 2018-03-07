@@ -11,11 +11,11 @@ import os
 import re
 
 try:
-  import pwd
-  import grp
+    import pwd
+    import grp
 except ImportError:
-  # Modules not available, probably because this is Windows:
-  pwd = grp = None
+    # Modules not available, probably because this is Windows:
+    pwd = grp = None
 
 from template import util
 from template.plugin import Plugin
@@ -259,106 +259,107 @@ STAT_KEYS = ("dev", "ino", "mode", "nlink", "uid", "gid", "rdev", "size",
 
 
 class File(Plugin):
-  """Plugin for encapsulating information about a system file."""
-  def __init__(self, context, path, config=None):
-    """Initialize a new File object.
+    """Plugin for encapsulating information about a system file."""
 
-    Takes the pathname of the file as the argument following the
-    context and an optional dictionary of configuration parameters.
-    """
-    if not isinstance(config, dict):
-      config = {}
-    if not path:
-      self.throw("no file specified")
-    if os.path.isabs(path):
-      root = ""
-    else:
-      root = config.get("root")
-      if root:
-        if root.endswith("/"):
-          root = root[:-1]
-      else:
-        root = ""
-    dir, name = os.path.split(path)
-    name, ext = util.unpack(re.split(r"(\.\w+)$", name), 2)
-    if ext is None:
-      ext = ""
-    if dir.endswith("/"):
-      dir = dir[:-1]
-    if dir == ".":
-      dir = ""
-    name = name + ext
-    if ext.startswith("."):
-      ext = ext[1:]
-    fields = splitpath(dir)
-    if fields and not fields[0]:
-      fields.pop(0)
-    home = "/".join(("..",) * len(fields))
-    abspath = os.path.join(root, path)
-    self.path = path
-    self.name = name
-    self.root = root
-    self.home = home
-    self.dir = dir
-    self.ext = ext
-    self.abs = abspath
-    self.user = ""
-    self.group = ""
-    self.isdir = ""
-    self.stat = config.get("stat") or not config.get("nostat")
-    if self.stat:
-      try:
-        stat = os.stat(abspath)
-      except OSError as e:
-        self.throw("%s: %s" % (abspath, e))
-      for key in STAT_KEYS:
-        setattr(self, key, getattr(stat, "st_%s" % key, None))
-      if not config.get("noid"):
-        self.user = pwd and getpwuid(self.uid)
-        self.group = grp and getgrgid(self.gid)
-      self.isdir = os.path.isdir(abspath)
-    else:
-      for key in STAT_KEYS:
-        setattr(self, key, "")
+    def __init__(self, context, path, config=None):
+        """Initialize a new File object.
 
-  def rel(self, path):
-    """Generate a relative filename for some other file relative to this one.
-    """
-    if isinstance(path, self.__class__):
-      path = path.path
-    if path.startswith("/"):
-      return path
-    elif not self.home:
-      return path
-    else:
-      return "%s/%s" % (self.home, path)
+        Takes the pathname of the file as the argument following the
+        context and an optional dictionary of configuration parameters.
+        """
+        if not isinstance(config, dict):
+            config = {}
+        if not path:
+            self.throw("no file specified")
+        if os.path.isabs(path):
+            root = ""
+        else:
+            root = config.get("root")
+            if root:
+                if root.endswith("/"):
+                    root = root[:-1]
+            else:
+                root = ""
+        dir, name = os.path.split(path)
+        name, ext = util.unpack(re.split(r"(\.\w+)$", name), 2)
+        if ext is None:
+            ext = ""
+        if dir.endswith("/"):
+            dir = dir[:-1]
+        if dir == ".":
+            dir = ""
+        name = name + ext
+        if ext.startswith("."):
+            ext = ext[1:]
+        fields = splitpath(dir)
+        if fields and not fields[0]:
+            fields.pop(0)
+        home = "/".join(("..",) * len(fields))
+        abspath = os.path.join(root, path)
+        self.path = path
+        self.name = name
+        self.root = root
+        self.home = home
+        self.dir = dir
+        self.ext = ext
+        self.abs = abspath
+        self.user = ""
+        self.group = ""
+        self.isdir = ""
+        self.stat = config.get("stat") or not config.get("nostat")
+        if self.stat:
+            try:
+                stat = os.stat(abspath)
+            except OSError as e:
+                self.throw("%s: %s" % (abspath, e))
+            for key in STAT_KEYS:
+                setattr(self, key, getattr(stat, "st_%s" % key, None))
+            if not config.get("noid"):
+                self.user = pwd and getpwuid(self.uid)
+                self.group = grp and getgrgid(self.gid)
+            self.isdir = os.path.isdir(abspath)
+        else:
+            for key in STAT_KEYS:
+                setattr(self, key, "")
 
-  def throw(self, error):
-    raise TemplateException('File', error)
+    def rel(self, path):
+        """Generate a relative filename for some other file relative to this one.
+        """
+        if isinstance(path, self.__class__):
+            path = path.path
+        if path.startswith("/"):
+            return path
+        elif not self.home:
+            return path
+        else:
+            return "%s/%s" % (self.home, path)
+
+    def throw(self, error):
+        raise TemplateException('File', error)
 
 
 def splitpath(path):
-  def helper(path):
-    while True:
-      path, base = os.path.split(path)
-      if base:
-        yield base
-      else:
-        break
-  pathcomp = list(helper(path))
-  pathcomp.reverse()
-  return pathcomp
+    def helper(path):
+        while True:
+            path, base = os.path.split(path)
+            if base:
+                yield base
+            else:
+                break
+    pathcomp = list(helper(path))
+    pathcomp.reverse()
+    return pathcomp
 
 
 def getpwuid(uid):
-  try:
-    return pwd.getpwuid(uid).pw_name
-  except KeyError:
-    return uid
+    try:
+        return pwd.getpwuid(uid).pw_name
+    except KeyError:
+        return uid
 
 
 def getgrgid(gid):
-  try:
-    return grp.getgrgid(gid).gr_name
-  except KeyError:
-    return gid
+    try:
+        return grp.getgrgid(gid).gr_name
+    except KeyError:
+        return gid

@@ -80,24 +80,24 @@ Output:
 
 
 class Wrap(Plugin):
-  """Plugin for wrapping text via the textwrap module."""
-  @classmethod
-  def load(cls, context=None):
-    return cls.factory
+    """Plugin for wrapping text via the textwrap module."""
+    @classmethod
+    def load(cls, context=None):
+        return cls.factory
 
-  @classmethod
-  def factory(cls, context):
-    context.define_filter('wrap', wrap_filter_factory, True)
-    return tt_wrap
+    @classmethod
+    def factory(cls, context):
+        context.define_filter('wrap', wrap_filter_factory, True)
+        return tt_wrap
 
 
 def tt_wrap(text, width=72, itab="", ntab=""):
-  return textwrap.fill(
-    text, width, initial_indent=itab, subsequent_indent=ntab,
-    replace_whitespace=True)
+    return textwrap.fill(
+        text, width, initial_indent=itab, subsequent_indent=ntab,
+        replace_whitespace=True)
 
 
 def wrap_filter_factory(context, *args):
-  def wrap_filter(text):
-    return tt_wrap(text, *args)
-  return wrap_filter
+    def wrap_filter(text):
+        return tt_wrap(text, *args)
+    return wrap_filter

@@ -406,131 +406,131 @@ instance of the template.context.Context class.
 
 
 class Service:
-  """Class implementing a template processing service which wraps a
-  template within PRE_PROCESS and POST_PROCESS templates and offers
-  ERROR recovery.
-  """
-
-  def __init__(self, config=None):
-    config = config or {}
-    delim = config.get("DELIMITER", ":")
-
-    # coerce PRE_PROCESS, PROCESS, and POST_PROCESS to lists if necessary,
-    # by splitting on non-word characters
-    self.__preprocess = Split(config.get("PRE_PROCESS"), delim)
-    self.__process = Split(config.get("PROCESS"), delim)
-    self.__postprocess = Split(config.get("POST_PROCESS"), delim)
-    self.__wrapper = Split(config.get("WRAPPER"), delim)
-
-    # unset PROCESS option unless explicitly specified in config
-    if config.get("PROCESS") is None:
-      self.__process = None
-
-    self.__error = config.get("ERROR") or config.get("ERRORS")
-    self.__autoreset = config.get("AUTO_RESET") is None or \
-                       config.get("AUTO_RESET")
-    self.__debug = config.get("DEBUG", 0) & DEBUG_SERVICE
-    self.__context = config.get("CONTEXT") or Config.context(config)
-    if not self.__context:
-      raise TemplateException()
-
-  def context(self):
-    return self.__context
-
-  def process(self, template, params=None):
-    """Process a template within a service framework.
-
-    A service may encompass PRE_PROCESS and POST_PROCESS templates and
-    an ERROR dictionary which names templates to be substituted for
-    the main template document in case of error.  Each service
-    invocation begins by resetting the state of the context object via
-    a call to reset().  The AUTO_RESET option may be set to 0
-    (default: 1) to bypass this step.
+    """Class implementing a template processing service which wraps a
+    template within PRE_PROCESS and POST_PROCESS templates and offers
+    ERROR recovery.
     """
-    context = self.__context
-    output = StringBuffer()
-    procout = StringBuffer()
 
-    if self.__autoreset:
-      context.reset()
+    def __init__(self, config=None):
+        config = config or {}
+        delim = config.get("DELIMITER", ":")
 
-    template = context.template(template)
+        # coerce PRE_PROCESS, PROCESS, and POST_PROCESS to lists if necessary,
+        # by splitting on non-word characters
+        self.__preprocess = Split(config.get("PRE_PROCESS"), delim)
+        self.__process = Split(config.get("PROCESS"), delim)
+        self.__postprocess = Split(config.get("POST_PROCESS"), delim)
+        self.__wrapper = Split(config.get("WRAPPER"), delim)
 
-    # localise the variable stash with any parameters passed
-    # and set the 'template' variable
-    params = params or {}
-    if not callable(template):
-      params["template"] = template
-    context.localise(params)
+        # unset PROCESS option unless explicitly specified in config
+        if config.get("PROCESS") is None:
+            self.__process = None
 
-    try:
-      for name in self.__preprocess:
-        output.write(context.process(name))
-      if self.__process is not None:
-        proc = self.__process
-      else:
-        proc = [template]
-      try:
-        for name in proc:
-          procout.write(context.process(name))
-      except TemplateException as e:
-        procout.reset(self.__recover(e))
+        self.__error = config.get("ERROR") or config.get("ERRORS")
+        self.__autoreset = config.get("AUTO_RESET") is None or \
+            config.get("AUTO_RESET")
+        self.__debug = config.get("DEBUG", 0) & DEBUG_SERVICE
+        self.__context = config.get("CONTEXT") or Config.context(config)
+        if not self.__context:
+            raise TemplateException()
 
-      procout = procout.get()
-      for name in reversed(self.__wrapper):
-        procout = context.process(name, {"content": procout})
-      output.write(procout)
+    def context(self):
+        return self.__context
 
-      for name in self.__postprocess:
-        output.write(context.process(name))
+    def process(self, template, params=None):
+        """Process a template within a service framework.
 
-    finally:
-      context.delocalise()
-      if "template" in params:
-        del params["template"]
+        A service may encompass PRE_PROCESS and POST_PROCESS templates and
+        an ERROR dictionary which names templates to be substituted for
+        the main template document in case of error.  Each service
+        invocation begins by resetting the state of the context object via
+        a call to reset().  The AUTO_RESET option may be set to 0
+        (default: 1) to bypass this step.
+        """
+        context = self.__context
+        output = StringBuffer()
+        procout = StringBuffer()
 
-    return output.get()
+        if self.__autoreset:
+            context.reset()
 
-  def __recover(self, exception):
-    """Examines the internal ERROR dictionary to find a handler
-    suitable for the passed exception object.
+        template = context.template(template)
 
-    Selecting the handler is done by delegation to the exception's
-    select_handler() method, passing the set of handler keys as
-    arguments.  A 'default' handler may also be provided.  The handler
-    value represents the name of a template which should be processed.
-    """
-    if not isinstance(exception, TemplateException):
-      return None
+        # localise the variable stash with any parameters passed
+        # and set the 'template' variable
+        params = params or {}
+        if not callable(template):
+            params["template"] = template
+        context.localise(params)
 
-    # A 'stop' exception is thrown by [% STOP %] - we return the output
-    # buffer stored in the exception object.
-    if exception.type() == "stop":
-      return exception.text()
+        try:
+            for name in self.__preprocess:
+                output.write(context.process(name))
+            if self.__process is not None:
+                proc = self.__process
+            else:
+                proc = [template]
+            try:
+                for name in proc:
+                    procout.write(context.process(name))
+            except TemplateException as e:
+                procout.reset(self.__recover(e))
 
-    if not self.__error:
-      raise exception
+            procout = procout.get()
+            for name in reversed(self.__wrapper):
+                procout = context.process(name, {"content": procout})
+            output.write(procout)
 
-    if not isinstance(self.__error, dict):
-      handler = self.__error
-    else:
-      hkey = exception.select_handler(self.__error.keys())
-      if hkey:
-        handler = self.__error.get(hkey)
-      else:
-        handler = self.__error.get("default")
-        if not handler:
-          raise exception
+            for name in self.__postprocess:
+                output.write(context.process(name))
 
-    handler = self.__context.template(handler)
-    self.__context.stash().set("error", exception)
-    return self.__context.process(handler)
+        finally:
+            context.delocalise()
+            if "template" in params:
+                del params["template"]
+
+        return output.get()
+
+    def __recover(self, exception):
+        """Examines the internal ERROR dictionary to find a handler
+        suitable for the passed exception object.
+
+        Selecting the handler is done by delegation to the exception's
+        select_handler() method, passing the set of handler keys as
+        arguments.  A 'default' handler may also be provided.  The handler
+        value represents the name of a template which should be processed.
+        """
+        if not isinstance(exception, TemplateException):
+            return None
+
+        # A 'stop' exception is thrown by [% STOP %] - we return the output
+        # buffer stored in the exception object.
+        if exception.type() == "stop":
+            return exception.text()
+
+        if not self.__error:
+            raise exception
+
+        if not isinstance(self.__error, dict):
+            handler = self.__error
+        else:
+            hkey = exception.select_handler(self.__error.keys())
+            if hkey:
+                handler = self.__error.get(hkey)
+            else:
+                handler = self.__error.get("default")
+                if not handler:
+                    raise exception
+
+        handler = self.__context.template(handler)
+        self.__context.stash().set("error", exception)
+        return self.__context.process(handler)
 
 
 def Split(param, delimiter):
-  if param:
-    if not is_seq(param):
-      param = str(param).split(delimiter)
-    return param
-  else:
-    return []
+    if param:
+        if not is_seq(param):
+            param = str(param).split(delimiter)
+        return param
+    else:
+        return []

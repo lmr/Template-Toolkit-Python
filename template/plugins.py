@@ -458,84 +458,84 @@ the same way that Perl's Text::Wrap module does.
 
 
 class Error(Exception):
-  pass
+    pass
 
 
 class Plugins:
-  """Plugin provider which handles the loading of plugin modules and
-  instantiation of plugin objects.
-  """
+    """Plugin provider which handles the loading of plugin modules and
+    instantiation of plugin objects.
+    """
 
-  PLUGIN_BASE = "template.plugin"
+    PLUGIN_BASE = "template.plugin"
 
-  STD_PLUGINS = {
-    "datafile":  ("template.plugin.datafile", "Datafile"),
-    "date":      ("template.plugin.date", "Date"),
-    "directory": ("template.plugin.directory", "Directory"),
-    "file":      ("template.plugin.file", "File"),
-    "format":    ("template.plugin.format", "Format"),
-    "html":      ("template.plugin.html", "Html"),
-    "image":     ("template.plugin.image", "Image"),
-    "iterator":  ("template.plugin.iterator", "Iterator"),
-    "math":      ("template.plugin.math_plugin", "Math"),
-    "string":    ("template.plugin.string", "String"),
-    "table":     ("template.plugin.table", "Table"),
-    "wrap":      ("template.plugin.wrap", "Wrap"),
-    "url":       ("template.plugin.url", "Url"),
-    "view":      ("template.plugin.view", "View"),
-  }
+    STD_PLUGINS = {
+        "datafile": ("template.plugin.datafile", "Datafile"),
+        "date": ("template.plugin.date", "Date"),
+        "directory": ("template.plugin.directory", "Directory"),
+        "file": ("template.plugin.file", "File"),
+        "format": ("template.plugin.format", "Format"),
+        "html": ("template.plugin.html", "Html"),
+        "image": ("template.plugin.image", "Image"),
+        "iterator": ("template.plugin.iterator", "Iterator"),
+        "math": ("template.plugin.math_plugin", "Math"),
+        "string": ("template.plugin.string", "String"),
+        "table": ("template.plugin.table", "Table"),
+        "wrap": ("template.plugin.wrap", "Wrap"),
+        "url": ("template.plugin.url", "Url"),
+        "view": ("template.plugin.view", "View"),
+    }
 
-  def __init__(self, params):
-    pbase = listify(params.get("PLUGIN_BASE") or [])
-    plugins = params.get("PLUGINS") or {}
-    factory = params.get("PLUGIN_FACTORY")
-    if self.PLUGIN_BASE:
-      pbase.append(self.PLUGIN_BASE)
-    self.__plugin_base = pbase
-    self.__plugins = self.STD_PLUGINS.copy()
-    self.__plugins.update(plugins)
-    self.__tolerant = bool(params.get("TOLERANT"))
-    self.__load_python = bool(params.get("LOAD_PYTHON"))
-    self.__factory = factory or {}
-    self.__debug = (params.get("DEBUG") or 0) & DEBUG_PLUGINS
+    def __init__(self, params):
+        pbase = listify(params.get("PLUGIN_BASE") or [])
+        plugins = params.get("PLUGINS") or {}
+        factory = params.get("PLUGIN_FACTORY")
+        if self.PLUGIN_BASE:
+            pbase.append(self.PLUGIN_BASE)
+        self.__plugin_base = pbase
+        self.__plugins = self.STD_PLUGINS.copy()
+        self.__plugins.update(plugins)
+        self.__tolerant = bool(params.get("TOLERANT"))
+        self.__load_python = bool(params.get("LOAD_PYTHON"))
+        self.__factory = factory or {}
+        self.__debug = (params.get("DEBUG") or 0) & DEBUG_PLUGINS
 
-  def fetch(self, name, args=None, context=None):
-    factory = self.__factory[name] = self._load(name, context)
-    if not factory:
-      return None
-    try:
-      if callable(factory):
-        args = (context,) + tuple(args or ())
-        return factory(*args)
-      else:
-        raise Error("%s plugin is not callable" % (name,))
-    except Exception as e:
-      if self.__tolerant:
-        return None
-      else:
-        raise TemplateException.convert(e)
-
-  def _load(self, name, context):
-    impl = self.__plugins.get(name) or self.__plugins.get(name.lower())
-
-    if impl:
-      return get_class(impl).load(context)
-
-    if name:
-      for pbase in self.__plugin_base:
+    def fetch(self, name, args=None, context=None):
+        factory = self.__factory[name] = self._load(name, context)
+        if not factory:
+            return None
         try:
-          return get_class(name, pbase).load(context)
-        except ImportError:
-          pass
+            if callable(factory):
+                args = (context,) + tuple(args or ())
+                return factory(*args)
+            else:
+                raise Error("%s plugin is not callable" % (name,))
+        except Exception as e:
+            if self.__tolerant:
+                return None
+            else:
+                raise TemplateException.convert(e)
 
-    if not self.__load_python:
-      return None
+    def _load(self, name, context):
+        impl = self.__plugins.get(name) or self.__plugins.get(name.lower())
 
-    cls = get_class(name)
-    return lambda _, *args: cls(*args)  # Discard first context argument
+        if impl:
+            return get_class(impl).load(context)
 
-  def plugin_base(self):
-    return self.__plugin_base
+        if name:
+            for pbase in self.__plugin_base:
+                try:
+                    return get_class(name, pbase).load(context)
+                except ImportError:
+                    pass
 
-  def load_python(self):
-    return self.__load_python
+        if not self.__load_python:
+            return None
+
+        cls = get_class(name)
+        return lambda _, *args: cls(*args)  # Discard first context argument
+
+    def plugin_base(self):
+        return self.__plugin_base
+
+    def load_python(self):
+        return self.__load_python

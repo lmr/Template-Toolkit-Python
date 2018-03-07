@@ -235,54 +235,53 @@ Here's a complete example of a plugin filter module.
 
 
 class Filter(Plugin):
-  """Template Toolkit module implementing a base class plugin object
-  which acts like a filter and can be used with the FILTER directive.
-  """
+    """Template Toolkit module implementing a base class plugin object
+    which acts like a filter and can be used with the FILTER directive.
+    """
 
-  DYNAMIC = False  # Create static filters by default.
+    DYNAMIC = False  # Create static filters by default.
 
-  def __init__(self, context, *args):
-    Plugin.__init__(self)
-    self._args, self._config = self._split_arguments(args)
-    self._dynamic = self.DYNAMIC
-    self._context = context
-    self._cached_filter = None
+    def __init__(self, context, *args):
+        Plugin.__init__(self)
+        self._args, self._config = self._split_arguments(args)
+        self._dynamic = self.DYNAMIC
+        self._context = context
+        self._cached_filter = None
 
-  def factory(self):
-    if not self._cached_filter:
-      if self._dynamic:
-        def dynamic(context, *args):
-          args, config = self._split_arguments(args)
-          def filter(text):
-            return self.filter(text, args, config)
-          return filter
-        dynamic.dynamic_filter = True
-        self._cached_filter = dynamic
-      else:
-        def filter(text):
-          return self.filter(text)
-        self._cached_filter = filter
-    return self._cached_filter
+    def factory(self):
+        if not self._cached_filter:
+            if self._dynamic:
+                def dynamic(context, *args):
+                    args, config = self._split_arguments(args)
 
-  def filter(self, text, args=None, config=None):
-    return text
+                    def filter(text):
+                        return self.filter(text, args, config)
+                    return filter
+                dynamic.dynamic_filter = True
+                self._cached_filter = dynamic
+            else:
+                def filter(text):
+                    return self.filter(text)
+                self._cached_filter = filter
+        return self._cached_filter
 
-  def _merge_config(self, newcfg):
-    owncfg = self._config
-    if not newcfg:
-      return owncfg
-    copy = owncfg.copy()
-    copy.update(newcfg)
-    return copy
+    def filter(self, text, args=None, config=None):
+        return text
 
-  def _merge_args(self, newargs):
-    ownargs = self._args
-    if not newargs:
-      return ownargs
-    return ownargs + newargs
+    def _merge_config(self, newcfg):
+        owncfg = self._config
+        if not newcfg:
+            return owncfg
+        copy = owncfg.copy()
+        copy.update(newcfg)
+        return copy
 
-  def _install_filter(self, name):
-    self._context.define_filter(name, self.factory())
-    return self
+    def _merge_args(self, newargs):
+        ownargs = self._args
+        if not newargs:
+            return ownargs
+        return ownargs + newargs
 
-
+    def _install_filter(self, name):
+        self._context.define_filter(name, self.factory())
+        return self

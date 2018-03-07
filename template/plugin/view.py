@@ -39,15 +39,15 @@ the mean time, please consult template.view for further info.
 
 
 class View(Plugin):
-  """A user-definable view based on templates.  Similar to the concept of
-  a "Skin".
-  """
-  @classmethod
-  def load(cls, context=None):
-    return cls.factory
+    """A user-definable view based on templates.  Similar to the concept of
+    a "Skin".
+    """
+    @classmethod
+    def load(cls, context=None):
+        return cls.factory
 
-  @classmethod
-  def factory(cls, context, *args):
-    view = ViewClass(context, *args)
-    view.seal()
-    return view
+    @classmethod
+    def factory(cls, context, *args):
+        view = ViewClass(context, *args)
+        view.seal()
+        return view

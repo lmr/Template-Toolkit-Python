@@ -595,68 +595,67 @@ Ignored and deleted.
 
 
 class Template:
-  """Module implementing a simple, user-oriented front-end to the Template
-  Toolkit.
-  """
-
-  DEBUG = False
-
-  BINMODE = False
-
-  def __init__(self, config=None):
-    config = config or {}
-    # Prepare a namespace handler for any CONSTANTS definition.
-    constants = config.get("CONSTANTS")
-    if constants:
-      namespace = config.get("CONSTANTS_NAMESPACE", "constants")
-      config.setdefault("NAMESPACE", {})[namespace] = (
-        Config.constants(constants))
-    self.__service = Service(config)
-    self.__output = config.get("OUTPUT")
-    self.__output_path = config.get("OUTPUT_PATH")
-
-  def processString(self, template, vars=None, options=None):
-    """A simple wrapper around process() that wraps its template argument
-    in a Literal.
+    """Module implementing a simple, user-oriented front-end to the Template
+    Toolkit.
     """
-    return self.process(Literal(template), vars, options)
 
-  def process(self, template, vars=None, options=None):
-    """Main entry point for the Template Toolkit.  Delegates most of the
-    processing effort to the underlying Service object.
-    """
-    options = options or {}
-    if options.setdefault("binmode", self.BINMODE) and self.DEBUG:
-      util.Debug("set binmode\n")
+    DEBUG = False
 
-    output = self.__service.process(template, vars)
-    self.__MaybeWriteOutput(output, options["binmode"])
-    return output
+    BINMODE = False
 
-  def service(self):
-    """Returns a reference to this object's Service object."""
-    return self.__service
+    def __init__(self, config=None):
+        config = config or {}
+        # Prepare a namespace handler for any CONSTANTS definition.
+        constants = config.get("CONSTANTS")
+        if constants:
+            namespace = config.get("CONSTANTS_NAMESPACE", "constants")
+            config.setdefault("NAMESPACE", {})[namespace] = (
+                Config.constants(constants))
+        self.__service = Service(config)
+        self.__output = config.get("OUTPUT")
+        self.__output_path = config.get("OUTPUT_PATH")
 
-  def context(self):
-    """Returns a reference to this object's Service object's Context
-    object.
-    """
-    return self.__service.context()
+    def processString(self, template, vars=None, options=None):
+        """A simple wrapper around process() that wraps its template argument
+        in a Literal.
+        """
+        return self.process(Literal(template), vars, options)
 
-  def __MaybeWriteOutput(self, text, binmode=False):
-    if not self.__output:
-      return
-    if not isinstance(self.__output, str):
-      self.__output.write(text)
-    else:
-      path = self.__output
-      if self.__output_path:
-        path = os.path.join(self.__output_path, path)
-      if binmode:
-        mode = "wb"
-      else:
-        mode = "w"
-      fh = open(path, mode)
-      fh.write(text)
-      fh.close()
+    def process(self, template, vars=None, options=None):
+        """Main entry point for the Template Toolkit.  Delegates most of the
+        processing effort to the underlying Service object.
+        """
+        options = options or {}
+        if options.setdefault("binmode", self.BINMODE) and self.DEBUG:
+            util.Debug("set binmode\n")
 
+        output = self.__service.process(template, vars)
+        self.__MaybeWriteOutput(output, options["binmode"])
+        return output
+
+    def service(self):
+        """Returns a reference to this object's Service object."""
+        return self.__service
+
+    def context(self):
+        """Returns a reference to this object's Service object's Context
+        object.
+        """
+        return self.__service.context()
+
+    def __MaybeWriteOutput(self, text, binmode=False):
+        if not self.__output:
+            return
+        if not isinstance(self.__output, str):
+            self.__output.write(text)
+        else:
+            path = self.__output
+            if self.__output_path:
+                path = os.path.join(self.__output_path, path)
+            if binmode:
+                mode = "wb"
+            else:
+                mode = "w"
+            fh = open(path, mode)
+            fh.write(text)
+            fh.close()

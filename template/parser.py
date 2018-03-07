@@ -495,32 +495,32 @@ META tags.
 
 
 CONTINUE = 0
-ACCEPT   = 1
-ERROR    = 2
-ABORT    = 3
+ACCEPT = 1
+ERROR = 2
+ABORT = 3
 
 TAG_STYLE = {
-  "default":   (r"\[%",   r"%\]"),
-  "template1": (r"[[%]%", r"%[]%]"),
-  "metatext":  (r"%%",    r"%%"),
-  "html":      (r"<!--",  r"-->"),
-  "mason":     (r"<%",    r">"),
-  "asp":       (r"<%",    r"%>"),
-  "php":       (r"<\?",   r"\?>"),
-  "star":      (r"\[\*",  r"\*\]"),
+    "default": (r"\[%", r"%\]"),
+    "template1": (r"[[%]%", r"%[]%]"),
+    "metatext": (r"%%", r"%%"),
+    "html": (r"<!--", r"-->"),
+    "mason": (r"<%", r">"),
+    "asp": (r"<%", r"%>"),
+    "php": (r"<\?", r"\?>"),
+    "star": (r"\[\*", r"\*\]"),
 }
 
 TAG_STYLE["template"] = TAG_STYLE["tt2"] = TAG_STYLE["default"]
 
 DEFAULT_STYLE = {
-  "START_TAG":   TAG_STYLE["default"][0],
-  "END_TAG":     TAG_STYLE["default"][1],
-  "ANYCASE":     0,
-  "INTERPOLATE": 0,
-  "PRE_CHOMP":   0,
-  "POST_CHOMP":  0,
-  "V1DOLLAR":    0,
-  "EVAL_PYTHON": 0,
+    "START_TAG": TAG_STYLE["default"][0],
+    "END_TAG": TAG_STYLE["default"][1],
+    "ANYCASE": 0,
+    "INTERPOLATE": 0,
+    "PRE_CHOMP": 0,
+    "POST_CHOMP": 0,
+    "V1DOLLAR": 0,
+    "EVAL_PYTHON": 0,
 }
 
 ESCAPE = {"n": "\n", "r": "\r", "t": "\t"}
@@ -533,38 +533,42 @@ CHOMP_GREEDY = str(CHOMP_GREEDY)
 CHOMP_NONE = str(CHOMP_NONE)
 
 CHOMP_CONST = {
-  "-": CHOMP_ALL,
-  "=": CHOMP_COLLAPSE,
-  "~": CHOMP_GREEDY,
-  "+": CHOMP_NONE
+    "-": CHOMP_ALL,
+    "=": CHOMP_COLLAPSE,
+    "~": CHOMP_GREEDY,
+    "+": CHOMP_NONE
 }
 
 PRE_CHOMP = {
-  CHOMP_ALL:      lambda x: re.sub(r"(\n|^)[^\S\n]*\Z", "", x),
-  CHOMP_COLLAPSE: lambda x: re.sub(r"\s+\Z", " ", x),
-  CHOMP_GREEDY:   lambda x: re.sub(r"\s+\Z", "", x),
-  CHOMP_NONE:     lambda x: x,
+    CHOMP_ALL: lambda x: re.sub(r"(\n|^)[^\S\n]*\Z", "", x),
+    CHOMP_COLLAPSE: lambda x: re.sub(r"\s+\Z", " ", x),
+    CHOMP_GREEDY: lambda x: re.sub(r"\s+\Z", "", x),
+    CHOMP_NONE: lambda x: x,
 }
+
 
 def postchomp(regex, prefix):
-  regex = re.compile(regex)
-  def strip(text, postlines):
-    match = regex.match(text)
-    if match:
-      text = prefix + text[match.end():]
-      postlines += match.group().count("\n")
-    return text, postlines
-  return strip
+    regex = re.compile(regex)
+
+    def strip(text, postlines):
+        match = regex.match(text)
+        if match:
+            text = prefix + text[match.end():]
+            postlines += match.group().count("\n")
+        return text, postlines
+    return strip
+
 
 POST_CHOMP = {
-  CHOMP_ALL:      postchomp(r"[^\S\n]*\n", ""),
-  CHOMP_COLLAPSE: postchomp(r"\s+", " "),
-  CHOMP_GREEDY:   postchomp(r"\s+", ""),
-  CHOMP_NONE:     lambda x, y: (x, y),
+    CHOMP_ALL: postchomp(r"[^\S\n]*\n", ""),
+    CHOMP_COLLAPSE: postchomp(r"\s+", " "),
+    CHOMP_GREEDY: postchomp(r"\s+", ""),
+    CHOMP_NONE: lambda x, y: (x, y),
 }
 
+
 def Chomp(x):
-  return re.sub(r"[-=~+]", lambda m: CHOMP_CONST[m.group()], str(x))
+    return re.sub(r"[-=~+]", lambda m: CHOMP_CONST[m.group()], str(x))
 
 
 GRAMMAR = re.compile(r"""
@@ -620,441 +624,443 @@ QUOTED_STRING = re.compile(r"""
 
 
 class Error(Exception):
-  """A trivial local exception class."""
-  pass
+    """A trivial local exception class."""
+    pass
 
 
 class Parser:
-  """This module implements a LALR(1) parser and assocated support
-  methods to parse template documents into the appropriate "compiled"
-  format.
-  """
-  def __init__(self, param):
-    self.start_tag = param.get("START_TAG") or DEFAULT_STYLE["START_TAG"]
-    self.end_tag = param.get("END_TAG") or DEFAULT_STYLE["END_TAG"]
-    self.tag_style = param.get("TAG_STYLE", "default")
-    self.anycase = param.get("ANYCASE", False)
-    self.interpolate = param.get("INTERPOLATE", False)
-    self.pre_chomp = param.get("PRE_CHOMP", CHOMP_NONE)
-    self.post_chomp = param.get("POST_CHOMP", CHOMP_NONE)
-    self.v1dollar = param.get("V1DOLLAR", False)
-    self.eval_python = param.get("EVAL_PYTHON", False)
-    self.file_info = param.get("FILE_INFO", 1)
-    self.grammar = param.get("GRAMMAR", Grammar())
-    self.factory = param.get("FACTORY", Directive)
-    self.fileinfo = []
-    self.defblocks = []
-    self.defblock_stack = []
-    self.infor = 0
-    self.inwhile = 0
-    self.style = []
-
-    # Build a FACTORY object to include any NAMESPACE definitions,
-    # but only if FACTORY isn't already a (non-callable) object.
-    if callable(self.factory):
-      self.factory = self.factory(param)
-
-    self.lextable = self.grammar.lextable
-    self.states = self.grammar.states
-    self.rules = self.grammar.rules
-    self.new_style(param)
-
-    self.tokenize = (
-      ((1,), self._comment),
-      ((2, 3), self._string),
-      ((4,), self._number),
-      ((5,), self._filename),
-      ((6,), self._identifier),
-      ((7,), self._word),
-    )
-
-  def new_style(self, config):
-    """Install a new (stacked) parser style.
-
-    This feature is currently experimental but should mimic the
-    previous behaviour with regard to TAG_STYLE, START_TAG, END_TAG,
-    etc.
+    """This module implements a LALR(1) parser and assocated support
+    methods to parse template documents into the appropriate "compiled"
+    format.
     """
-    if self.style:
-      style = self.style[-1]
-    else:
-      style = DEFAULT_STYLE
-    style = style.copy()
-    tagstyle = config.get("TAG_STYLE")
-    if tagstyle:
-      tags = TAG_STYLE.get(tagstyle)
-      if tags is None:
-        raise Error("Invalid tag style: %s" % tagstyle)
-      start, end = tags
-      config["START_TAG"] = config.get("START_TAG", start)
-      config["END_TAG"] = config.get("END_TAG", end)
-    for key in DEFAULT_STYLE.keys():
-      value = config.get(key)
-      if value is not None:
-        style[key] = value
-    self.style.append(style)
-    return style
 
-  def old_style(self):
-    """Pop the current parser style and revert to the previous one.
+    def __init__(self, param):
+        self.start_tag = param.get("START_TAG") or DEFAULT_STYLE["START_TAG"]
+        self.end_tag = param.get("END_TAG") or DEFAULT_STYLE["END_TAG"]
+        self.tag_style = param.get("TAG_STYLE", "default")
+        self.anycase = param.get("ANYCASE", False)
+        self.interpolate = param.get("INTERPOLATE", False)
+        self.pre_chomp = param.get("PRE_CHOMP", CHOMP_NONE)
+        self.post_chomp = param.get("POST_CHOMP", CHOMP_NONE)
+        self.v1dollar = param.get("V1DOLLAR", False)
+        self.eval_python = param.get("EVAL_PYTHON", False)
+        self.file_info = param.get("FILE_INFO", 1)
+        self.grammar = param.get("GRAMMAR", Grammar())
+        self.factory = param.get("FACTORY", Directive)
+        self.fileinfo = []
+        self.defblocks = []
+        self.defblock_stack = []
+        self.infor = 0
+        self.inwhile = 0
+        self.style = []
 
-    See new_style().  ** experimental **
-    """
-    if len(self.style) <= 1:
-      raise Error("only 1 parser style remaining")
-    self.style.pop()
-    return self.style[-1]
+        # Build a FACTORY object to include any NAMESPACE definitions,
+        # but only if FACTORY isn't already a (non-callable) object.
+        if callable(self.factory):
+            self.factory = self.factory(param)
 
-  def location(self):
-    """Return Python comment indicating current parser file and line."""
-    if not self.file_info:
-      return "\n"
-    line = self.line
-    info = self.fileinfo[-1]
-    file = info and (info.path or info.name) or "(unknown template)"
-    line = re.sub(r"-.*", "", str(line))  # might be 'n-n'
-    return '#line %s "%s"\n' % (line, file)
+        self.lextable = self.grammar.lextable
+        self.states = self.grammar.states
+        self.rules = self.grammar.rules
+        self.new_style(param)
 
-  def parse(self, text, info=None):
-    """Parses the text string, text, and returns a dictionary
-    representing the compiled template block(s) as Python code, in the
-    format expected by template.document.
-    """
-    self.defblock = {}
-    self.metadata = {}
-    tokens = self.split_text(text)
-    if tokens is None:
-      return None
-    self.fileinfo.append(info)
-    block = self._parse(tokens, info)
-    self.fileinfo.pop()
-    if block:
-      return { "BLOCK": block,
-               "DEFBLOCKS": self.defblock,
-               "METADATA": self.metadata }
-    else:
-      return None
+        self.tokenize = (
+            ((1,), self._comment),
+            ((2, 3), self._string),
+            ((4,), self._number),
+            ((5,), self._filename),
+            ((6,), self._identifier),
+            ((7,), self._word),
+        )
 
-  def split_text(self, text):
-    """Split input template text into directives and raw text chunks."""
-    tokens = []
-    line = 1
-    style = self.style[-1]
-    def make_splitter(delims):
-      return re.compile(r"(?s)(.*?)%s(.*?)%s" % delims)
-    splitter = make_splitter((style["START_TAG"], style["END_TAG"]))
-    while True:
-      match = splitter.match(text)
-      if not match:
-        break
-      text = text[match.end():]
-      pre, dir = match.group(1), match.group(2)
-      prelines = pre.count("\n")
-      dirlines = dir.count("\n")
-      postlines = 0
-      if dir.startswith("#"):
-        # commment out entire directive except for any end chomp flag
-        match = re.search(CHOMP_FLAGS + "$", dir)
-        if match:
-          dir = match.group()
+    def new_style(self, config):
+        """Install a new (stacked) parser style.
+
+        This feature is currently experimental but should mimic the
+        previous behaviour with regard to TAG_STYLE, START_TAG, END_TAG,
+        etc.
+        """
+        if self.style:
+            style = self.style[-1]
         else:
-          dir = ""
-      else:
-        # PRE_CHOMP: process whitespace before tag
-        match = re.match(r"(%s)?\s*" % CHOMP_FLAGS, dir)
-        chomp = Chomp(match and match.group(1) or style["PRE_CHOMP"])
-        if match:
-          dir = dir[match.end():]
-        pre = PRE_CHOMP[chomp](pre)
+            style = DEFAULT_STYLE
+        style = style.copy()
+        tagstyle = config.get("TAG_STYLE")
+        if tagstyle:
+            tags = TAG_STYLE.get(tagstyle)
+            if tags is None:
+                raise Error("Invalid tag style: %s" % tagstyle)
+            start, end = tags
+            config["START_TAG"] = config.get("START_TAG", start)
+            config["END_TAG"] = config.get("END_TAG", end)
+        for key in DEFAULT_STYLE.keys():
+            value = config.get(key)
+            if value is not None:
+                style[key] = value
+        self.style.append(style)
+        return style
 
-      # POST_CHOMP: process whitespace after tag
-      match = re.search(r"\s*(%s)?\s*$" % CHOMP_FLAGS, dir)
-      chomp = Chomp(match and match.group(1) or style["POST_CHOMP"])
-      if match:
-        dir = dir[:match.start()]
-      text, postlines = POST_CHOMP[chomp](text, postlines)
+    def old_style(self):
+        """Pop the current parser style and revert to the previous one.
 
-      if pre:
-        if style["INTERPOLATE"]:
-          tokens.append([pre, line, 'ITEXT'])
+        See new_style().  ** experimental **
+        """
+        if len(self.style) <= 1:
+            raise Error("only 1 parser style remaining")
+        self.style.pop()
+        return self.style[-1]
+
+    def location(self):
+        """Return Python comment indicating current parser file and line."""
+        if not self.file_info:
+            return "\n"
+        line = self.line
+        info = self.fileinfo[-1]
+        file = info and (info.path or info.name) or "(unknown template)"
+        line = re.sub(r"-.*", "", str(line))  # might be 'n-n'
+        return '#line %s "%s"\n' % (line, file)
+
+    def parse(self, text, info=None):
+        """Parses the text string, text, and returns a dictionary
+        representing the compiled template block(s) as Python code, in the
+        format expected by template.document.
+        """
+        self.defblock = {}
+        self.metadata = {}
+        tokens = self.split_text(text)
+        if tokens is None:
+            return None
+        self.fileinfo.append(info)
+        block = self._parse(tokens, info)
+        self.fileinfo.pop()
+        if block:
+            return {"BLOCK": block,
+                    "DEFBLOCKS": self.defblock,
+                    "METADATA": self.metadata}
         else:
-          tokens.extend(["TEXT", pre])
-      line += prelines
-      if dir:
-        # The TAGS directive is a compile-time switch.
-        match = re.match(r"(?i)TAGS\s+(.*)", dir)
-        if match:
-          tags = re.split(r"\s+", match.group(1))
-          if len(tags) > 1:
-            splitter = make_splitter(tuple(re.escape(x) for x in tags[:2]))
-          elif tags[0] in TAG_STYLE:
-            splitter = make_splitter(TAG_STYLE[tags[0]])
-          else:
-            sys.stderr.write("Invalid TAGS style: %s" % tags[0])
+            return None
+
+    def split_text(self, text):
+        """Split input template text into directives and raw text chunks."""
+        tokens = []
+        line = 1
+        style = self.style[-1]
+
+        def make_splitter(delims):
+            return re.compile(r"(?s)(.*?)%s(.*?)%s" % delims)
+        splitter = make_splitter((style["START_TAG"], style["END_TAG"]))
+        while True:
+            match = splitter.match(text)
+            if not match:
+                break
+            text = text[match.end():]
+            pre, dir = match.group(1), match.group(2)
+            prelines = pre.count("\n")
+            dirlines = dir.count("\n")
+            postlines = 0
+            if dir.startswith("#"):
+                # commment out entire directive except for any end chomp flag
+                match = re.search(CHOMP_FLAGS + "$", dir)
+                if match:
+                    dir = match.group()
+                else:
+                    dir = ""
+            else:
+                # PRE_CHOMP: process whitespace before tag
+                match = re.match(r"(%s)?\s*" % CHOMP_FLAGS, dir)
+                chomp = Chomp(match and match.group(1) or style["PRE_CHOMP"])
+                if match:
+                    dir = dir[match.end():]
+                pre = PRE_CHOMP[chomp](pre)
+
+            # POST_CHOMP: process whitespace after tag
+            match = re.search(r"\s*(%s)?\s*$" % CHOMP_FLAGS, dir)
+            chomp = Chomp(match and match.group(1) or style["POST_CHOMP"])
+            if match:
+                dir = dir[:match.start()]
+            text, postlines = POST_CHOMP[chomp](text, postlines)
+
+            if pre:
+                if style["INTERPOLATE"]:
+                    tokens.append([pre, line, 'ITEXT'])
+                else:
+                    tokens.extend(["TEXT", pre])
+            line += prelines
+            if dir:
+                # The TAGS directive is a compile-time switch.
+                match = re.match(r"(?i)TAGS\s+(.*)", dir)
+                if match:
+                    tags = re.split(r"\s+", match.group(1))
+                    if len(tags) > 1:
+                        splitter = make_splitter(tuple(re.escape(x) for x in tags[:2]))
+                    elif tags[0] in TAG_STYLE:
+                        splitter = make_splitter(TAG_STYLE[tags[0]])
+                    else:
+                        sys.stderr.write("Invalid TAGS style: %s" % tags[0])
+                else:
+                    if dirlines > 0:
+                        line_range = "%d-%d" % (line, line + dirlines)
+                    else:
+                        line_range = str(line)
+                    tokens.append([dir, line_range, self.tokenise_directive(dir)])
+            line += dirlines + postlines
+
+        if text:
+            if style["INTERPOLATE"]:
+                tokens.append([text, line, "ITEXT"])
+            else:
+                tokens.extend(["TEXT", text])
+
+        return tokens
+
+    def _comment(self, token):
+        """Tokenizes a comment."""
+        return ()
+
+    def _string(self, quote, token):
+        """Tokenizes a string."""
+        if quote == '"':
+            if re.search(r"[$\\]", token):
+                # unescape " and \ but leave \$ escaped so that
+                # interpolate_text() doesn't incorrectly treat it
+                # as a variable reference
+                token = re.sub(r'\\([\\"])', r'\1', token)
+                token = re.sub(r'\\([^$nrt])', r'\1', token)
+                token = re.sub(r'\\([nrt])', lambda m: ESCAPE[m.group(1)], token)
+                return ['"', '"'] + self.interpolate_text(token) + ['"', '"']
+            else:
+                return "LITERAL", "scalar(%r)" % token
         else:
-          if dirlines > 0:
-            line_range = "%d-%d" % (line, line + dirlines)
-          else:
-            line_range = str(line)
-          tokens.append([dir, line_range, self.tokenise_directive(dir)])
-      line += dirlines + postlines
+            # Remove escaped single quotes and backslashes:
+            token = re.sub(r"\\(.)", lambda m: m.group(m.group(1) in "'\\"), token)
+            return "LITERAL", "scalar(%r)" % token
 
-    if text:
-      if style["INTERPOLATE"]:
-        tokens.append([text, line, "ITEXT"])
-      else:
-        tokens.extend(["TEXT", text])
+    def _number(self, token):
+        """Tokenizes a number."""
+        return "NUMBER", "scalar(%s)" % token
 
-    return tokens
+    def _filename(self, token):
+        """Tokenizes a filename."""
+        return "FILENAME", token
 
-  def _comment(self, token):
-    """Tokenizes a comment."""
-    return ()
-
-  def _string(self, quote, token):
-    """Tokenizes a string."""
-    if quote == '"':
-      if re.search(r"[$\\]", token):
-        # unescape " and \ but leave \$ escaped so that
-        # interpolate_text() doesn't incorrectly treat it
-        # as a variable reference
-        token = re.sub(r'\\([\\"])', r'\1', token)
-        token = re.sub(r'\\([^$nrt])', r'\1', token)
-        token = re.sub(r'\\([nrt])', lambda m: ESCAPE[m.group(1)], token)
-        return ['"', '"'] + self.interpolate_text(token) + ['"', '"']
-      else:
-        return "LITERAL", "scalar(%r)" % token
-    else:
-      # Remove escaped single quotes and backslashes:
-      token = re.sub(r"\\(.)", lambda m: m.group(m.group(1) in "'\\"), token)
-      return "LITERAL", "scalar(%r)" % token
-
-  def _number(self, token):
-    """Tokenizes a number."""
-    return "NUMBER", "scalar(%s)" % token
-
-  def _filename(self, token):
-    """Tokenizes a filename."""
-    return "FILENAME", token
-
-  def _identifier(self, token):
-    """Tokenizes an identifier."""
-    if self.anycase:
-      uctoken = token.upper()
-    else:
-      uctoken = token
-    toktype = self.lextable.get(uctoken)
-    if toktype is not None:
-      return toktype, uctoken
-    else:
-      return "IDENT", token
-
-  def _word(self, token):
-    """Tokenizes an unquoted word or symbol ."""
-    return self.lextable.get(token, "UNQUOTED"), token
-
-  def tokenise_directive(self, dirtext):
-    """Called by the private _parse() method when it encounters a
-    DIRECTIVE token in the list provided by the split_text() or
-    interpolate_text() methods.
-
-    The method splits the directive into individual tokens as
-    recognised by the parser grammar (see template.grammar for
-    details).  It constructs a list of tokens each represented by 2
-    elements, as per split_text() et al.  The first element contains
-    the token type, the second the token itself.
-
-    The method tokenises the string using a complex (but fast) regex.
-    For a deeper understanding of the regex magic at work here, see
-    Jeffrey Friedl's excellent book "Mastering Regular Expressions",
-    from O'Reilly, ISBN 1-56592-257-3
-
-    Returns the list of chunks (each one being 2 elements) identified
-    in the directive text.
-    """
-    tokens = []
-    for match in GRAMMAR.finditer(dirtext):
-      for indices, method in self.tokenize:
-        if match.group(indices[0]):
-          tokens.extend(method(*map(match.group, indices)))
-          break
-    return tokens
-
-  def _parse(self, tokens, info):
-    """Parses the list of input tokens passed by reference and returns
-    an object which contains the compiled representation of the
-    template.
-
-    This is the main parser DFA loop.  See embedded comments for
-    further details.
-    """
-    self.grammar.install_factory(self.factory)
-    stack = [[0, None]]  # DFA stack
-    coderet = None
-    token = None
-    in_string = False
-    in_python = False
-    status = CONTINUE
-    lhs = None
-    text = None
-    self.line = 0
-    self.file = info and info.name
-    self.inpython = 0
-    value = None
-
-    while True:
-      stateno = stack[-1][0]
-      state = self.states[stateno]
-
-      # see if any lookaheads exist for the current state
-      if "ACTIONS" in state:
-        # get next token and expand any directives (ie. token is a
-        # list) onto the front of the token list
-        while token is None and tokens:
-          token = tokens.pop(0)
-          if isinstance(token, (list, tuple)):
-            text, self.line, token = util.unpack(token, 3)
-            if isinstance(token, (list, tuple)):
-              tokens[:0] = token + [";", ";"]
-              token = None  # force redo
-            elif token == "ITEXT":
-              if in_python:
-                # don't perform interpolation in PYTHON blocks
-                token = "TEXT"
-                value = text
-              else:
-                tokens[:0] = self.interpolate_text(text, self.line)
-                token = None  # force redo
-          else:
-            # toggle string flag to indicate if we're crossing
-            # a string boundary
-            if token == '"':
-              in_string = not in_string
-            value = tokens and tokens.pop(0) or None
-
-        if token is None:
-          token = ""
-
-        # get the next state for the current lookahead token
-        lookup = state["ACTIONS"].get(token)
-        if lookup:
-          action = lookup
+    def _identifier(self, token):
+        """Tokenizes an identifier."""
+        if self.anycase:
+            uctoken = token.upper()
         else:
-          action = state.get("DEFAULT")
-
-      else:
-        # no lookahead assertions
-        action = state.get("DEFAULT")
-
-      # ERROR: no ACTION
-      if action is None:
-        break
-
-      # shift (positive ACTION)
-      if action > 0:
-        stack.append([action, value])
-        token = value = None
-      else:
-        # reduce (negative ACTION)
-        lhs, len_, code = self.rules[-action]
-        # no action implies ACCEPTance
-        if not action:
-          status = ACCEPT
-        # use dummy sub if code ref doesn't exist
-        if not code:
-          code = lambda *arg: len(arg) >= 2 and arg[1] or None
-        if len_ > 0:
-          codevars = [x[1] for x in stack[-len_:]]
+            uctoken = token
+        toktype = self.lextable.get(uctoken)
+        if toktype is not None:
+            return toktype, uctoken
         else:
-          codevars = []
-        try:
-          coderet = code(self, *codevars)
-        except TemplateException as e:
-          self._parse_error(str(e), info.name)
-        # reduce stack by len_
-        if len_ > 0:
-          stack[-len_:] = []
-        # ACCEPT
-        if status == ACCEPT:
-          return coderet
-        elif status == ABORT:
-          return None
-        elif status == ERROR:
-          break
-        stack.append([self.states[stack[-1][0]].get("GOTOS", {}).get(lhs),
-                      coderet])
+            return "IDENT", token
 
-    # ERROR
-    if value is None:
-      self._parse_error("unexpected end of input", info.name)
-    elif value == ";":
-      self._parse_error("unexpected end of directive", info.name, text)
-    else:
-      self._parse_error("unexpected token (%s)" %
-                        util.unscalar_lex(value), info.name, text)
+    def _word(self, token):
+        """Tokenizes an unquoted word or symbol ."""
+        return self.lextable.get(token, "UNQUOTED"), token
 
-  def _parse_error(self, msg, name, text=None):
-    """Method used to handle errors encountered during the parse process
-    in the _parse() method.
-    """
-    line = self.line or "unknown"
-    if text is not None:
-      msg += "\n  [%% %s %%]" % text
-    raise TemplateException("parse", "%s line %s: %s" % (name, line, msg))
+    def tokenise_directive(self, dirtext):
+        """Called by the private _parse() method when it encounters a
+        DIRECTIVE token in the list provided by the split_text() or
+        interpolate_text() methods.
 
-  def define_block(self, name, block):
-    """Called by the parser 'defblock' rule when a BLOCK definition is
-    encountered in the template.
+        The method splits the directive into individual tokens as
+        recognised by the parser grammar (see template.grammar for
+        details).  It constructs a list of tokens each represented by 2
+        elements, as per split_text() et al.  The first element contains
+        the token type, the second the token itself.
 
-    The name of the block is passed in the first parameter and a
-    reference to the compiled block is passed in the second.  This
-    method stores the block in the self.defblock dictionary which has
-    been initialised by parse() and will later be used by the same
-    method to call the store() method on the calling cache to define
-    the block "externally".
-    """
-    if self.defblock is None:
-      return None
-    self.defblock[name] = block
-    return None
+        The method tokenises the string using a complex (but fast) regex.
+        For a deeper understanding of the regex magic at work here, see
+        Jeffrey Friedl's excellent book "Mastering Regular Expressions",
+        from O'Reilly, ISBN 1-56592-257-3
 
-  def push_defblock(self):
-    self.defblock_stack.append(self.defblock)
-    self.defblock = {}
+        Returns the list of chunks (each one being 2 elements) identified
+        in the directive text.
+        """
+        tokens = []
+        for match in GRAMMAR.finditer(dirtext):
+            for indices, method in self.tokenize:
+                if match.group(indices[0]):
+                    tokens.extend(method(*map(match.group, indices)))
+                    break
+        return tokens
 
-  def pop_defblock(self):
-    if not self.defblock_stack:
-      return self.defblock
-    block = self.defblock
-    self.defblock = self.defblock_stack.pop(0)
-    return block
+    def _parse(self, tokens, info):
+        """Parses the list of input tokens passed by reference and returns
+        an object which contains the compiled representation of the
+        template.
 
-  def add_metadata(self, setlist):
-    setlist = [util.unscalar_lex(x) for x in setlist]
-    if self.metadata is not None:
-      for key, value in util.chop(setlist, 2):
-        self.metadata[key] = value
-    return None
+        This is the main parser DFA loop.  See embedded comments for
+        further details.
+        """
+        self.grammar.install_factory(self.factory)
+        stack = [[0, None]]  # DFA stack
+        coderet = None
+        token = None
+        in_string = False
+        in_python = False
+        status = CONTINUE
+        lhs = None
+        text = None
+        self.line = 0
+        self.file = info and info.name
+        self.inpython = 0
+        value = None
 
-  def interpolate_text(self, text, line=0):
-    """Examines text looking for any variable references embedded
-    like $this or like ${ this }.
-    """
-    tokens = []
-    for match in QUOTED_STRING.finditer(text):
-      pre = match.group(1)
-      var = match.group(3) or match.group(4)
-      dir = match.group(2)
-      # preceding text
-      if pre:
-        line += pre.count("\n")
-        tokens.extend(("TEXT", pre.replace("\\$", "$")))
-      # variable reference
-      if var:
-        line += dir.count("\n")
-        tokens.append([dir, line, self.tokenise_directive(var)])
-      # other '$' reference - treated as text
-      elif dir:
-        line += dir.count("\n")
-        tokens.extend(("TEXT", dir))
-    return tokens
+        while True:
+            stateno = stack[-1][0]
+            state = self.states[stateno]
+
+            # see if any lookaheads exist for the current state
+            if "ACTIONS" in state:
+                # get next token and expand any directives (ie. token is a
+                # list) onto the front of the token list
+                while token is None and tokens:
+                    token = tokens.pop(0)
+                    if isinstance(token, (list, tuple)):
+                        text, self.line, token = util.unpack(token, 3)
+                        if isinstance(token, (list, tuple)):
+                            tokens[:0] = token + [";", ";"]
+                            token = None  # force redo
+                        elif token == "ITEXT":
+                            if in_python:
+                                # don't perform interpolation in PYTHON blocks
+                                token = "TEXT"
+                                value = text
+                            else:
+                                tokens[:0] = self.interpolate_text(text, self.line)
+                                token = None  # force redo
+                    else:
+                        # toggle string flag to indicate if we're crossing
+                        # a string boundary
+                        if token == '"':
+                            in_string = not in_string
+                        value = tokens and tokens.pop(0) or None
+
+                if token is None:
+                    token = ""
+
+                # get the next state for the current lookahead token
+                lookup = state["ACTIONS"].get(token)
+                if lookup:
+                    action = lookup
+                else:
+                    action = state.get("DEFAULT")
+
+            else:
+                # no lookahead assertions
+                action = state.get("DEFAULT")
+
+            # ERROR: no ACTION
+            if action is None:
+                break
+
+            # shift (positive ACTION)
+            if action > 0:
+                stack.append([action, value])
+                token = value = None
+            else:
+                # reduce (negative ACTION)
+                lhs, len_, code = self.rules[-action]
+                # no action implies ACCEPTance
+                if not action:
+                    status = ACCEPT
+                # use dummy sub if code ref doesn't exist
+                if not code:
+                    code = lambda *arg: len(arg) >= 2 and arg[1] or None
+                if len_ > 0:
+                    codevars = [x[1] for x in stack[-len_:]]
+                else:
+                    codevars = []
+                try:
+                    coderet = code(self, *codevars)
+                except TemplateException as e:
+                    self._parse_error(str(e), info.name)
+                # reduce stack by len_
+                if len_ > 0:
+                    stack[-len_:] = []
+                # ACCEPT
+                if status == ACCEPT:
+                    return coderet
+                elif status == ABORT:
+                    return None
+                elif status == ERROR:
+                    break
+                stack.append([self.states[stack[-1][0]].get("GOTOS", {}).get(lhs),
+                              coderet])
+
+        # ERROR
+        if value is None:
+            self._parse_error("unexpected end of input", info.name)
+        elif value == ";":
+            self._parse_error("unexpected end of directive", info.name, text)
+        else:
+            self._parse_error("unexpected token (%s)" %
+                              util.unscalar_lex(value), info.name, text)
+
+    def _parse_error(self, msg, name, text=None):
+        """Method used to handle errors encountered during the parse process
+        in the _parse() method.
+        """
+        line = self.line or "unknown"
+        if text is not None:
+            msg += "\n  [%% %s %%]" % text
+        raise TemplateException("parse", "%s line %s: %s" % (name, line, msg))
+
+    def define_block(self, name, block):
+        """Called by the parser 'defblock' rule when a BLOCK definition is
+        encountered in the template.
+
+        The name of the block is passed in the first parameter and a
+        reference to the compiled block is passed in the second.  This
+        method stores the block in the self.defblock dictionary which has
+        been initialised by parse() and will later be used by the same
+        method to call the store() method on the calling cache to define
+        the block "externally".
+        """
+        if self.defblock is None:
+            return None
+        self.defblock[name] = block
+        return None
+
+    def push_defblock(self):
+        self.defblock_stack.append(self.defblock)
+        self.defblock = {}
+
+    def pop_defblock(self):
+        if not self.defblock_stack:
+            return self.defblock
+        block = self.defblock
+        self.defblock = self.defblock_stack.pop(0)
+        return block
+
+    def add_metadata(self, setlist):
+        setlist = [util.unscalar_lex(x) for x in setlist]
+        if self.metadata is not None:
+            for key, value in util.chop(setlist, 2):
+                self.metadata[key] = value
+        return None
+
+    def interpolate_text(self, text, line=0):
+        """Examines text looking for any variable references embedded
+        like $this or like ${ this }.
+        """
+        tokens = []
+        for match in QUOTED_STRING.finditer(text):
+            pre = match.group(1)
+            var = match.group(3) or match.group(4)
+            dir = match.group(2)
+            # preceding text
+            if pre:
+                line += pre.count("\n")
+                tokens.extend(("TEXT", pre.replace("\\$", "$")))
+            # variable reference
+            if var:
+                line += dir.count("\n")
+                tokens.append([dir, line, self.tokenise_directive(var)])
+            # other '$' reference - treated as text
+            elif dir:
+                line += dir.count("\n")
+                tokens.extend(("TEXT", dir))
+        return tokens

@@ -35,14 +35,15 @@ plugin allows the iterator to be explicitly created with a given name.
 
 """
 
-class Iterator(Plugin):
-  """Plugin to create a template.iterator.Iterator from a list of
-  items and optional configuration parameters.
-  """
-  @classmethod
-  def load(cls, context=None):
-    return cls.factory
 
-  @classmethod
-  def factory(cls, context, *args):
-    return WrappedIterator(*args)
+class Iterator(Plugin):
+    """Plugin to create a template.iterator.Iterator from a list of
+    items and optional configuration parameters.
+    """
+    @classmethod
+    def load(cls, context=None):
+        return cls.factory
+
+    @classmethod
+    def factory(cls, context, *args):
+        return WrappedIterator(*args)
