@@ -104,7 +104,7 @@ class ContextTest(TestCase):
             self.fail('Exception not raised')
         except Exception as e:
             self.assertEqual('plugin error - no_such_plugin: plugin not found',
-                              str(e))
+                             str(e))
 
         # filter()
 

@@ -38,13 +38,13 @@ class ConfigTest(TestCase):
         plugins = factory.plugins({'PLUGIN_BASE': ('my.plugins', 'MyPlugins')})
         self.assertTrue(plugins)
         self.assertEqual([('my.plugins', 'MyPlugins'), 'template.plugin'],
-                          plugins.plugin_base())
+                         plugins.plugin_base())
         plugins = factory.plugins({'LOAD_PYTHON': True,
                                    'PLUGIN_BASE': ('my.plugins', 'NewPlugins')})
         self.assertTrue(plugins)
         self.assertTrue(plugins.load_python())
         self.assertEqual([('my.plugins', 'NewPlugins'), 'template.plugin'],
-                          plugins.plugin_base())
+                         plugins.plugin_base())
 
         # Filters:
         filters = factory.filters({'TOLERANT': True})
@@ -70,7 +70,7 @@ class ConfigTest(TestCase):
         context = factory.context({'INCLUDE_PATH': 'anywhere'})
         self.assertTrue(context)
         self.assertEqual('anywhere',
-                          context.load_templates()[0].include_path()[0])
+                         context.load_templates()[0].include_path()[0])
         context = factory.context({'LOAD_TEMPLATES': [provider],
                                    'LOAD_PLUGINS': [plugins],
                                    'LOAD_FILTERS': [filters],
@@ -85,7 +85,7 @@ class ConfigTest(TestCase):
         service = factory.service({'INCLUDE_PATH': 'amsterdam'})
         self.assertTrue(service)
         self.assertEqual(['amsterdam'],
-                          service.context().load_templates()[0].include_path())
+                         service.context().load_templates()[0].include_path())
 
         # Iterator:
         iterator = factory.iterator(['foo', 'bar', 'baz'])

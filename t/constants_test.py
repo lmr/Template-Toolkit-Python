@@ -20,17 +20,17 @@ class ConstantsTest(TestCase):
                      "counter": counter}
         namespace = Constants(constants)
         self.assertEqual('"Andy \'Da Man\' Wardley"',
-                          namespace.ident(["constants", 0, "'author'", 0]))
+                         namespace.ident(["constants", 0, "'author'", 0]))
         self.assertEqual('"foo\'bar"',
-                          namespace.ident(["constants", 0, "'single'", 0]))
+                         namespace.ident(["constants", 0, "'single'", 0]))
         self.assertEqual("'foo\"bar'",
-                          namespace.ident(["constants", 0, "'double'", 0]))
+                         namespace.ident(["constants", 0, "'double'", 0]))
         self.assertEqual("'#ffffff'", namespace.ident(["constants", 0,
-                                                        "'col'", 0,
-                                                        "'back'", 0]))
+                                                       "'col'", 0,
+                                                       "'back'", 0]))
         self.assertEqual("'#000000'", namespace.ident(["constants", 0,
-                                                        "'col'", 0,
-                                                        "'text'", 0]))
+                                                       "'col'", 0,
+                                                       "'text'", 0]))
         factory = Directive({"NAMESPACE": {"const": namespace}})
         parser1 = Parser({"FACTORY": factory})
         parser2 = Parser({"NAMESPACE": {"const": namespace}})
