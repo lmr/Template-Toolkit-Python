@@ -247,14 +247,15 @@ class Table(Plugin):
                 coloff = 0
             else:
                 coloff = rows - overlap
-                cols = size / coloff + int(size % coloff > overlap)
+                cols = int(size / coloff) + int(size % coloff > overlap)
+
         elif cols:
             if size < cols:
                 cols = size
                 rows = 1
                 coloff = 1
             else:
-                coloff = size / cols + int(size % cols > overlap)
+                coloff = int(size / cols) + int(size % cols > overlap)
                 rows = coloff + overlap
         else:
             rows = size

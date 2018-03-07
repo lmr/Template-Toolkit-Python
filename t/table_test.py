@@ -5,7 +5,11 @@ from template.test import TestCase, main
 
 class TableTest(TestCase):
     def testTable(self):
-        params = {"alphabet": [c for c in string.lowercase], "empty": []}
+        if hasattr(string, 'lowercase'):
+            string_lowercase = getattr(string, 'lowercase')
+        else:
+            string_lowercase = getattr(string, 'ascii_lowercase')
+        params = {"alphabet": [c for c in string_lowercase], "empty": []}
         self.Expect(DATA, {'POST_CHOMP': 1}, params)
 
 

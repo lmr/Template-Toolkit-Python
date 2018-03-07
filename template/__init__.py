@@ -654,6 +654,10 @@ class Template:
                 path = os.path.join(self.__output_path, path)
             if binmode:
                 mode = "wb"
+                try:
+                    text = bytes(text)
+                except TypeError:
+                    text = bytes(text, 'utf-8')
             else:
                 mode = "w"
             fh = open(path, mode)

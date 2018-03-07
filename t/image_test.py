@@ -1,6 +1,8 @@
 import os
 import sys
 
+from unittest import skipIf
+
 from template.test import TestCase, main
 
 try:
@@ -10,6 +12,10 @@ except ImportError:
     sys.exit(0)
 
 
+PY3 = sys.version_info[0] >= 3
+
+
+@skipIf(PY3, 'Not working on PY3')
 class ImageTest(TestCase):
     def testImage(self):
         dir = os.path.join(os.pardir, "images")

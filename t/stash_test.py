@@ -1,6 +1,10 @@
+import sys
+
 from template import Template, constants
 from template.stash import Stash
 from template.test import TestCase, main
+
+PY3 = sys.version_info[0] >= 3
 
 
 class AnObject:
@@ -54,7 +58,7 @@ class StashTest(TestCase):
         self.Expect(DATA, ttlist, data)
 
 
-DATA = r"""
+BASE_DATA = r"""
 -- test --
 a: [% a %]
 -- expect --
@@ -230,11 +234,26 @@ an object
 -- expect --
 Hello World
 
+"""
+
+DATA_PY2 = """
 -- test --
 [% TRY; hashobj.goodbye; CATCH; "ERROR: "; error; END %]
 -- expect --
 ERROR: None error - HashObject instance has no attribute 'no_such_method'
 """
+
+DATA_PY3 = """
+-- test --
+[% TRY; hashobj.goodbye; CATCH; "ERROR: "; error; END %]
+-- expect --
+ERROR: None error - 'HashObject' object has no attribute 'no_such_method'
+"""
+
+if PY3:
+    DATA = BASE_DATA + DATA_PY3
+else:
+    DATA = BASE_DATA + DATA_PY2
 
 if __name__ == '__main__':
     main()

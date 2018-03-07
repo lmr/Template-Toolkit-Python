@@ -356,7 +356,7 @@ class PerlScalar:
         """
         return PerlScalar(self.__value, True)
 
-    def __nonzero__(self):
+    def __bool__(self):
         """Evaluates the truth of the wrapped object according to Perl's notion
         of truth.  If this object's truth value has been frozen, report that
         instead.
@@ -367,6 +367,9 @@ class PerlScalar:
             return truth
         else:
             return self.__value not in self.__False
+
+    def __nonzero__(self):
+        return self.__bool__()
 
     def __invert__(self):
         return PerlScalar(not self)
@@ -398,7 +401,7 @@ NUMBER_RE = re.compile(r"\s*[-+]?(?:\d+(\.\d*)?|(\.\d+))([Ee][-+]?\d+)?")
 
 def numify(value):
     """Converts any object to a number using Perl's rules."""
-    if isinstance(value, (int, int, float)):
+    if isinstance(value, (int, float)):
         return value
     elif value is True:
         return 1
@@ -654,11 +657,17 @@ def is_seq(obj):
     supports iteration.
     """
     try:
+        basestring
+        klass = basestring
+    except NameError:
+        str
+        klass = str
+    try:
         iter(obj)
     except TypeError:
         return False
     else:
-        return not isinstance(obj, basestring)
+        return not isinstance(obj, klass)
 
 
 def slice(seq, indices):

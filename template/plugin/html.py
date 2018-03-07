@@ -91,7 +91,7 @@ class Html(Plugin):
 
     def element(self, name, attr=None):
         if isinstance(name, dict):
-            name, attr = name.items()[0]
+            name, attr = list(name.items())[0]
         if name is None or len(str(name)) == 0:
             return ""
         attr = self.attributes(attr)
@@ -100,7 +100,7 @@ class Html(Plugin):
     def attributes(self, hash):
         if not isinstance(hash, dict):
             return ""
-        items = hash.items()
+        items = list(hash.items())
         if self.__sorted:
             items.sort()
         return " ".join('%s="%s"' % (k, self.escape(v)) for k, v in items)

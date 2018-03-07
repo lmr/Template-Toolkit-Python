@@ -515,7 +515,7 @@ class Service:
         if not isinstance(self.__error, dict):
             handler = self.__error
         else:
-            hkey = exception.select_handler(self.__error.keys())
+            hkey = exception.select_handler(list(self.__error.keys()))
             if hkey:
                 handler = self.__error.get(hkey)
             else:

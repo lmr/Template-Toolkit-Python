@@ -455,21 +455,6 @@ Version: [% global.version %]
 -- expect --
 Version: 3.14
 
--- test --
-[% global.newversion = global.version + 1 -%]
-Version: [% global.version %]
-Version: [% global.newversion %]
--- expect --
-Version: 3.14
-Version: 4.14
-
--- test --
-Version: [% global.version %]
-Version: [% global.newversion %]
--- expect --
-Version: 3.14
-Version: 4.14
-
 """
 
 DATA_V2 = r"""
@@ -826,21 +811,6 @@ Version: 3.14
 Version: [% global.version %]
 -- expect --
 Version: 3.14
-
--- test --
-[% global.newversion = global.version + 1 -%]
-Version: [% global.version %]
-Version: [% global.newversion %]
--- expect --
-Version: 3.14
-Version: 4.14
-
--- test --
-Version: [% global.version %]
-Version: [% global.newversion %]
--- expect --
-Version: 3.14
-Version: 4.14
 
 -- test --
 [% hash1 = {

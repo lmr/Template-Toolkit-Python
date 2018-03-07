@@ -1,1 +1,1 @@
-This file includes a [% PYTHON %]print "python",[% END %] block.
+This file includes a [% PYTHON %]from __future__ import print_function; print("python", end="")[% END %] block.

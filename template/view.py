@@ -459,12 +459,19 @@ class View:
             clone = self.clone(cfg)
             return clone.print_(*args)
         output = StringIO()
+        try:
+            basestring
+            klass = basestring
+        except NameError:
+            str
+            klass = str
+
         for item in args:
             if isinstance(item, (tuple, list)):
                 type = "ARRAY"
             elif isinstance(item, dict):
                 type = "HASH"
-            elif isinstance(item, (basestring, int, int)):
+            elif isinstance(item, (klass, int)):
                 type = "TEXT"
             else:
                 type = item.__class__.__name__
@@ -541,18 +548,18 @@ class View:
         if block:
             return block
         template = self.template_name(name)
-        e = None
+        exception = None
         try:
             template = self._context.template(template)
         except Exception as e:
-            pass
-        if e and self._base:
+            exception = e
+        if exception and self._base:
             try:
                 template = self._base.template(name)
-                e = None
+                exception = None
             except Exception as e:
                 pass
-        if e and self._notfound:
+        if exception and self._notfound:
             template = self._blocks.get(self._notfound)
             if not template:
                 notfound = self.template_name(self._notfound)
@@ -560,8 +567,8 @@ class View:
                     template = self._context.template(notfound)
                 except Exception as e:
                     self._context.throw(ERROR_VIEW, e)
-        elif e:
-            self._context.throw(ERROR_VIEW, e)
+        elif exception:
+            self._context.throw(ERROR_VIEW, exception)
         return template
 
     def template_name(self, template):

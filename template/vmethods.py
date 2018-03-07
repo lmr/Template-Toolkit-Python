@@ -188,12 +188,12 @@ def hash_each(hash):
 
 @hash_op("keys")
 def hash_keys(hash):
-    return hash.keys()
+    return list(hash.keys())
 
 
 @hash_op("values")
 def hash_values(hash):
-    return hash.values()
+    return list(hash.values())
 
 
 @hash_op("pairs")
@@ -244,12 +244,12 @@ def hash_import(hash, imp=None):
 
 @hash_op("sort")
 def hash_sort(hash):
-    return [pair[0] for pair in sorted(hash.items(), key=_by_value(_to_lower))]
+    return [pair[0] for pair in sorted(list(hash.items()), key=_by_value(_to_lower))]
 
 
 @hash_op("nsort")
 def hash_nsort(hash):
-    return [pair[0] for pair in sorted(hash.items(), key=_by_value(_to_long))]
+    return [pair[0] for pair in sorted(list(hash.items()), key=_by_value(_to_long))]
 
 
 @list_op("item")

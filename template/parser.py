@@ -883,7 +883,7 @@ class Parser:
         for match in GRAMMAR.finditer(dirtext):
             for indices, method in self.tokenize:
                 if match.group(indices[0]):
-                    tokens.extend(method(*map(match.group, indices)))
+                    tokens.extend(method(*list(map(match.group, indices))))
                     break
         return tokens
 

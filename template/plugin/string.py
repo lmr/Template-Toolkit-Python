@@ -447,7 +447,7 @@ class String(Plugin):
 
     def output_filter(self, filter):
         if isinstance(filter, dict):
-            filter = list(sum(filter.items(), ()))
+            filter = list(sum(list(filter.items()), ()))
         elif isinstance(filter, str):
             filter = re.split(r"\s*\W+\s*", filter)
 

@@ -102,7 +102,7 @@ class Datafile(Plugin, Sequence):
                 names = fields
             else:
                 fields.extend([None] * (len(names) - len(fields)))
-                items.append(dict(zip(names, fields)))
+                items.append(dict(list(zip(names, fields))))
 
         f.close()
         self.items = items

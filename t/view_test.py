@@ -12,7 +12,7 @@ class Foo:
 
     def reverse(self, view):
         return "{ %s }" % ", ".join(
-            "%s => %s" % item for item in sorted(self.__dict.items(), reverse=True))
+            "%s => %s" % item for item in sorted(list(self.__dict.items()), reverse=True))
 
 
 class MyList:

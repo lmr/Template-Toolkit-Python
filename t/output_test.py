@@ -38,8 +38,9 @@ class OutputTest(TestCase):
                        "OUTPUT": f2})
         tt.process("foo", self._callsign())
         self.assertTrue(os.path.exists(file2))
-        out = open(file2).read()
-        self.assertEqual("This is the foo file, a is alpha", out)
+        with open(file2, 'r') as file2_obj:
+            out = file2_obj.read()
+            self.assertEqual("This is the foo file, a is alpha", out)
         os.remove(file2)
 
         intercept = InterceptDebug()
