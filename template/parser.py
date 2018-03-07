@@ -15,6 +15,7 @@ from template.constants import *
 from template.directive import Directive
 from template.grammar import Grammar
 from template.util import TemplateException
+import collections
 
 
 """
@@ -656,7 +657,7 @@ class Parser:
 
         # Build a FACTORY object to include any NAMESPACE definitions,
         # but only if FACTORY isn't already a (non-callable) object.
-        if callable(self.factory):
+        if isinstance(self.factory, collections.Callable):
             self.factory = self.factory(param)
 
         self.lextable = self.grammar.lextable

@@ -1,6 +1,7 @@
 from template import Template
 from template.document import Document
 from template.test import TestCase, main
+import collections
 
 
 #  Define a dummy object for runtime processing
@@ -26,9 +27,9 @@ class DocumentTest(TestCase):
         self.assertEqual('Andy Wardley', doc.author)
         self.assertEqual(3.14, doc.version)
         self.assertEqual('some output', doc.process(c))
-        self.assertTrue(callable(doc.block()))
-        self.assertTrue(callable(doc.blocks()['foo']))
-        self.assertTrue(callable(doc.blocks()['bar']))
+        self.assertTrue(isinstance(doc.block(), collections.Callable))
+        self.assertTrue(isinstance(doc.blocks()['foo'], collections.Callable))
+        self.assertTrue(isinstance(doc.blocks()['bar'], collections.Callable))
         self.assertEqual('some output', doc.block()())
         self.assertEqual('the foo block', doc.blocks()['foo']())
         self.assertEqual('the bar block', doc.blocks()['bar']())

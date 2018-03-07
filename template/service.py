@@ -12,6 +12,7 @@ import sys
 from template.config import Config
 from template.constants import DEBUG_SERVICE
 from template.util import StringBuffer, TemplateException, is_seq
+import collections
 
 
 """
@@ -459,7 +460,7 @@ class Service:
         # localise the variable stash with any parameters passed
         # and set the 'template' variable
         params = params or {}
-        if not callable(template):
+        if not isinstance(template, collections.Callable):
             params["template"] = template
         context.localise(params)
 

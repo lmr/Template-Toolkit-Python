@@ -10,6 +10,7 @@
 import re
 
 from template.util import chop, is_seq, numify, registrar
+import collections
 
 
 class VMethods:
@@ -438,7 +439,7 @@ def _smartsort(field, coerce):
             key = element[field]
         else:
             attr = getattr(element, field, None)
-            if callable(attr):
+            if isinstance(attr, collections.Callable):
                 key = attr()
         return coerce(key)
     return getkey

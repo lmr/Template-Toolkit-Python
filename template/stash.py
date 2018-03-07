@@ -11,6 +11,7 @@ import re
 
 from template import util
 from template.vmethods import VMethods
+import collections
 
 
 """
@@ -404,7 +405,7 @@ class Stash:
             else:
                 value = root[item]
             if value is not None:
-                if callable(value):
+                if isinstance(value, collections.Callable):
                     result = value(*args)
                 else:
                     return value
@@ -448,7 +449,7 @@ class Stash:
                 except IndexError:
                     return None
                 else:
-                    if callable(value):
+                    if isinstance(value, collections.Callable):
                         result = value(*args)
                     else:
                         return value
@@ -464,7 +465,7 @@ class Stash:
                 else:
                     return func(root.__dict__, *args)
             else:
-                if callable(value):
+                if isinstance(value, collections.Callable):
                     return value(*args)
                 else:
                     return value
@@ -953,7 +954,7 @@ def _smartsort(field, coerce):
             key = element[field]
         else:
             attr = getattr(element, field, None)
-            if callable(attr):
+            if isinstance(attr, collections.Callable):
                 key = attr()
         return coerce(key)
     return getkey

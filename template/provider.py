@@ -17,6 +17,7 @@ from template.constants import *
 from template.document import Document
 from template.util import Literal, Struct, TemplateException, \
     can, modtime, slurp
+import collections
 
 
 """
@@ -913,7 +914,7 @@ class Provider:
                 continue
             # dir can be a sub or object ref which returns a reference
             # to a dynamically generated list of search paths
-            if callable(dir):
+            if isinstance(dir, collections.Callable):
                 ipaths[:0] = dir()
             else:
                 try:
@@ -921,7 +922,7 @@ class Provider:
                 except AttributeError:
                     pass
                 else:
-                    if callable(paths):
+                    if isinstance(paths, collections.Callable):
                         ipaths[:0] = paths()
                         continue
                 opaths.append(dir)

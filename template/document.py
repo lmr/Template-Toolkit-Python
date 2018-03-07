@@ -15,6 +15,7 @@ from template import util
 from template.iterator import Iterator
 from template.constants import *
 from template.util import TemplateException
+import collections
 
 
 """
@@ -176,7 +177,7 @@ class Document:
         self.__hot = False
 
     def __compile(self, block, debug=False):
-        if callable(block):
+        if isinstance(block, collections.Callable):
             return block
         if debug:
             print(block)

@@ -15,6 +15,7 @@ except ImportError:
 import os
 import re
 import sys
+import collections
 
 
 class Error(Exception):
@@ -596,7 +597,7 @@ def Concatenate(*args):
 
 def can(object, method):
     """Returns true iff object has a callable attribute with the given name."""
-    return callable(getattr(object, method, None))
+    return isinstance(getattr(object, method, None), collections.Callable)
 
 
 def chop(seq, count):
@@ -740,7 +741,7 @@ def get_class(classid, base=None):
 
     If classid is not one of the above types, an exception is raised.
     """
-    if callable(classid):
+    if isinstance(classid, collections.Callable):
         return classid
     elif isinstance(classid, tuple):
         if len(classid) == 2:

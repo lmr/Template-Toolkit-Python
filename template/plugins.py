@@ -11,6 +11,7 @@ import types
 
 from template.constants import *
 from template.util import TemplateException, get_class, listify
+import collections
 
 
 """
@@ -504,7 +505,7 @@ class Plugins:
         if not factory:
             return None
         try:
-            if callable(factory):
+            if isinstance(factory, collections.Callable):
                 args = (context,) + tuple(args or ())
                 return factory(*args)
             else:

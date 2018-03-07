@@ -17,6 +17,7 @@ from template import util
 from template.constants import *
 from template.plugin.filter import Filter
 from template.util import TemplateException, dynamic_filter, numify
+import collections
 
 """
 template.filters - Post-processing filters for template blocks
@@ -708,14 +709,14 @@ class Filters:
                 return None
 
         try:
-            if not callable(factory):
+            if not isinstance(factory, collections.Callable):
                 raise Error("invalid FILTER entry for '%s' (not callable)" % (name,))
             elif getattr(factory, "dynamic_filter", False):
                 args = args or ()
                 filter = factory(context, *args)
             else:
                 filter = factory
-            if not callable(filter):
+            if not isinstance(filter, collections.Callable):
                 raise Error("invalid FILTER for '%s' (not callable)" % (name,))
         except Exception as e:
             if self.__tolerant:

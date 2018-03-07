@@ -2,6 +2,7 @@ from template import context, Template
 from template.document import Document
 from template.test import TestCase, main
 from template.plugin.table import Table
+import collections
 
 
 class ContextTest(TestCase):
@@ -110,18 +111,18 @@ class ContextTest(TestCase):
 
         filter = ctx.filter('html')
         self.assertTrue(filter)
-        self.assertTrue(callable(filter))
+        self.assertTrue(isinstance(filter, collections.Callable))
         self.assertEqual('&lt;input/&gt;', filter('<input/>'))
 
         filter = ctx.filter('replace', ['foo', 'bar'], 'repsave')
         self.assertTrue(filter)
-        self.assertTrue(callable(filter))
+        self.assertTrue(isinstance(filter, collections.Callable))
         self.assertEqual('this is bar, so it is', filter('this is foo, so it is'))
 
         # Check that filter got cached
         filter = ctx.filter('repsave')
         self.assertTrue(filter)
-        self.assertTrue(callable(filter))
+        self.assertTrue(isinstance(filter, collections.Callable))
         self.assertEqual('this is bar, so it is', filter('this is foo, so it is'))
 
         # include() and process()

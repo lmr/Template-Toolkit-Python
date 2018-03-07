@@ -24,6 +24,7 @@ from template.plugins import Plugins
 from template.provider import Provider
 from template.stash import Stash
 from template.util import TemplateException, is_seq, unscalar, unscalar_list
+import collections
 
 
 """
@@ -784,7 +785,7 @@ class Context:
             except:
                 component = None
             for name, compiled in zip(template, compileds):
-                if not callable(compiled):
+                if not isinstance(compiled, collections.Callable):
                     element = compiled
                 else:
                     element = {"name": isinstance(name, str) and name or "",
@@ -803,7 +804,7 @@ class Context:
                         tblocks = compiled.blocks()
                         if tblocks:
                             self.__blocks.update(tblocks)
-                if callable(compiled):
+                if isinstance(compiled, collections.Callable):
                     tmpout = compiled(self)
                 elif util.can(compiled, "process"):
                     tmpout = compiled.process(self)
@@ -924,7 +925,7 @@ class Context:
 
         Returns the compiled template, or raises a TemplateException on error.
         """
-        if isinstance(name, Document) or callable(name):
+        if isinstance(name, Document) or isinstance(name, collections.Callable):
             return name
         shortname = name
         prefix = providers = None
