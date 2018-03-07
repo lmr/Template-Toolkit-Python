@@ -173,7 +173,7 @@ class Date(Plugin):
         try:
             # If time is numeric, we assume it's seconds since the epoch:
             time = int(time)
-        except StandardError:
+        except Exception:
             # Otherwise, we try to parse it as a 'H:M:S D:M:Y' string:
             date = re.split(r"[-/ :]", str(time))
             if len(date) < 6:
