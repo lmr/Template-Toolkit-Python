@@ -562,11 +562,12 @@ ERROR redirect: OUTPUT_PATH is not set
 -- test --
 -- use evalpython --
 [% FILTER python %]
+   from __future__ import print_function
    a = 10
    b = 20
    stash['foo'] = a + b
    stash['bar'] = context.config()['BARVAL']
-   print "all done",
+   print("all done", end="")
 [% END +%]
 foo: [% foo +%]
 bar: [% bar %]

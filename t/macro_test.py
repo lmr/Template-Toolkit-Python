@@ -137,8 +137,9 @@ two: 2[The Title] -> one: 2[The Title]
 -- test --
 -- name python macro --
 [% MACRO triple(n) PYTHON %]
+    from __future__ import print_function
     n = stash.get('n').value()
-    print n * 3
+    print(n * 3)
 [% END -%]
 [% triple(10) %]
 -- expect --

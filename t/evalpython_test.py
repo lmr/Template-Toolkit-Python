@@ -25,10 +25,11 @@ DATA = r"""
 %]
 [% TRY %]
 [% PYTHON %]
+    from __future__ import print_function
     output = "author: [% template.author %]\n"
     stash.set('a', 'The cat sat on the mat')
     output += "more python generated output\n"
-    print output,
+    print(output, end='')
 [% END %]
 [% CATCH %]
 Not allowed: [% error +%]
@@ -98,10 +99,11 @@ ERROR: [file]
 -- use do_python --
 [% META author = 'Andy Wardley' %]
 [% PYTHON %]
+    from __future__ import print_function
     output = "author: [% template.author %]\n"
     stash.set('a', 'The cat sat on the mat')
     output += "more python generated output\n"
-    print output,
+    print(output, end='')
 [% END %]
 -- expect --
 author: Andy Wardley
@@ -115,10 +117,11 @@ more python generated output
    version = 3.14
 %]
 [% PYTHON %]
+    from __future__ import print_function
     output = "author: [% template.author %]\n"
     stash.set('a', 'The cat sat on the mat')
     output += "more python generated output\n"
-    print output,
+    print(output, end='')
 [% END %]
 a: [% a +%]
 a: $a
@@ -140,12 +143,13 @@ b: The cat sat where?
 -- test --
 [% BLOCK foo %]This is block foo[% END %]
 [% PYTHON %]
-print context.include('foo'),
-print "\nbar\n",
+from __future__ import print_function
+print(context.include('foo'), end="")
+print("\nbar\n", end="")
 [% END %]
 The end
 -- expect --
-This is block foo 
+This is block foo
 bar
 The end
 
