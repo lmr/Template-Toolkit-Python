@@ -13,8 +13,8 @@ class CompileTest(TestCase):
             if os.path.exists(f):
                 os.remove(f)
         self.Expect(DATA, ttcfg)
-        self.assert_(os.path.exists("test/src/foo.ttc"))
-        self.assert_(os.path.exists("test/src/complex.ttc"))
+        self.assertTrue(os.path.exists("test/src/foo.ttc"))
+        self.assertTrue(os.path.exists("test/src/complex.ttc"))
 
 
 DATA = r"""

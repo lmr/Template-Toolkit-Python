@@ -15,15 +15,15 @@ class ParserTest(TestCase):
         s1 = p2.new_style({"TAG_STYLE": "metatext",
                            "PRE_CHOMP": 0,
                            "POST_CHOMP": 1})
-        self.assert_(s1)
-        self.assertEquals(r"%%", s1["START_TAG"])
-        self.assertEquals(0, s1["PRE_CHOMP"])
-        self.assertEquals(1, s1["POST_CHOMP"])
+        self.assertTrue(s1)
+        self.assertEqual(r"%%", s1["START_TAG"])
+        self.assertEqual(0, s1["PRE_CHOMP"])
+        self.assertEqual(1, s1["POST_CHOMP"])
         s2 = p2.old_style()
-        self.assert_(s2)
-        self.assertEquals(r"\[\*", s2["START_TAG"])
-        self.assertEquals(1, s2["PRE_CHOMP"])
-        self.assertEquals(0, s2["POST_CHOMP"])
+        self.assertTrue(s2)
+        self.assertEqual(r"\[\*", s2["START_TAG"])
+        self.assertEqual(1, s2["PRE_CHOMP"])
+        self.assertEqual(0, s2["POST_CHOMP"])
         p3 = Config.parser(
             {"TAG_STYLE": "html", "POST_CHOMP": 1, "ANYCASE": 1, "INTERPOLATE": 1})
         p4 = Config.parser({"ANYCASE": 0})

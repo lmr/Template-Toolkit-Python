@@ -19,16 +19,16 @@ class ConstantsTest(TestCase):
                      "col": {"back": "#ffffff", "text": "#000000"},
                      "counter": counter}
         namespace = Constants(constants)
-        self.assertEquals('"Andy \'Da Man\' Wardley"',
+        self.assertEqual('"Andy \'Da Man\' Wardley"',
                           namespace.ident(["constants", 0, "'author'", 0]))
-        self.assertEquals('"foo\'bar"',
+        self.assertEqual('"foo\'bar"',
                           namespace.ident(["constants", 0, "'single'", 0]))
-        self.assertEquals("'foo\"bar'",
+        self.assertEqual("'foo\"bar'",
                           namespace.ident(["constants", 0, "'double'", 0]))
-        self.assertEquals("'#ffffff'", namespace.ident(["constants", 0,
+        self.assertEqual("'#ffffff'", namespace.ident(["constants", 0,
                                                         "'col'", 0,
                                                         "'back'", 0]))
-        self.assertEquals("'#000000'", namespace.ident(["constants", 0,
+        self.assertEqual("'#000000'", namespace.ident(["constants", 0,
                                                         "'col'", 0,
                                                         "'text'", 0]))
         factory = Directive({"NAMESPACE": {"const": namespace}})

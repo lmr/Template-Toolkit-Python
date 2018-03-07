@@ -17,7 +17,7 @@ vars = {'foo': 3.14, 'bar': 2.718, 'baz': 1.618,
 
 class ChompTest(TestCase):
     def AssertExpectedOutput(self, tmpl, block, vars, expected):
-        self.assertEquals(expected, tmpl.process(block, vars))
+        self.assertEqual(expected, tmpl.process(block, vars))
 
     def testNoChomp(self):
         tmpl = Template({"BLOCKS": blocks})

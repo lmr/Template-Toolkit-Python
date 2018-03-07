@@ -36,17 +36,17 @@ class StashTest(TestCase):
                 "obj": AnObject(name="an object"),
                 "hashobj": HashObject(planet="World")}
         stash = Stash(data)
-        self.assertEquals(10, stash.get("foo").value())
-        self.assertEquals(20, stash.get(["bar", 0, "baz", 0]).value())
-        self.assertEquals(20, stash.get("bar.baz").value())
-        self.assertEquals(20, stash.get("bar(10).baz").value())
-        self.assertEquals(30, stash.get("baz.boz").value())
-        self.assertEquals(40, stash.get("baz.boz").value())
-        self.assertEquals("<undef>", stash.get("baz.biz").value())
-        self.assertEquals("<undef>", stash.get("baz(50).biz").value())  # args are ignored
+        self.assertEqual(10, stash.get("foo").value())
+        self.assertEqual(20, stash.get(["bar", 0, "baz", 0]).value())
+        self.assertEqual(20, stash.get("bar.baz").value())
+        self.assertEqual(20, stash.get("bar(10).baz").value())
+        self.assertEqual(30, stash.get("baz.boz").value())
+        self.assertEqual(40, stash.get("baz.boz").value())
+        self.assertEqual("<undef>", stash.get("baz.biz").value())
+        self.assertEqual("<undef>", stash.get("baz(50).biz").value())  # args are ignored
 
         stash.set("bar.buz", 100)
-        self.assertEquals(100, stash.get("bar.buz").value())
+        self.assertEqual(100, stash.get("bar.buz").value())
 
         ttlist = (("default", Template()),
                   ("warn", Template({"DEBUG": constants.DEBUG_UNDEF,

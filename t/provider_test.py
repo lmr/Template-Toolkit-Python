@@ -77,18 +77,18 @@ class ProviderTest(TestCase):
                                    "TOLERANT": 1})
         provabs = Config.provider({"ABSOLUTE": 1, "PARSER": parser})
         provrel = Config.provider({"RELATIVE": 1, "PARSER": parser})
-        self.assert_(provinc.parser() is provabs.parser())
-        self.assert_(provabs.parser() is provrel.parser())
+        self.assertTrue(provinc.parser() is provabs.parser())
+        self.assertTrue(provabs.parser() is provrel.parser())
 
-        self.assert_(delivered(provinc, file))
-        self.assert_(declined(provinc, absfile))
-        self.assert_(declined(provinc, relfile))
-        self.assert_(declined(provabs, file))
-        self.assert_(delivered(provabs, absfile))
-        self.assert_(denied(provabs, relfile))
-        self.assert_(declined(provrel, file))
-        self.assert_(denied(provrel, absfile))
-        self.assert_(delivered(provrel, relfile))
+        self.assertTrue(delivered(provinc, file))
+        self.assertTrue(declined(provinc, absfile))
+        self.assertTrue(declined(provinc, relfile))
+        self.assertTrue(declined(provabs, file))
+        self.assertTrue(delivered(provabs, absfile))
+        self.assertTrue(denied(provabs, relfile))
+        self.assertTrue(declined(provrel, file))
+        self.assertTrue(denied(provrel, absfile))
+        self.assertTrue(delivered(provrel, relfile))
 
         # Test if can fetch from a file handle.
         ttfile = Template()
@@ -96,7 +96,7 @@ class ProviderTest(TestCase):
         file = open(path)
         outstr = ttfile.process(file, {"a": "filetest"})
         file.close()
-        self.assertEquals("This is the baz file, a: filetest\n", outstr)
+        self.assertEqual("This is the baz file, a: filetest\n", outstr)
 
         #------------------------------------------------------------------------
         # now we'll fold those providers up into some Template objects that

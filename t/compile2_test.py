@@ -11,8 +11,8 @@ class CompileTest(TestCase):
                  "COMPILE_EXT": ".ttc"}
         # Check that compiled template files exist.
         compiled = "test/src/foo.ttc"
-        self.assert_(os.path.exists(compiled))
-        self.assert_(os.path.exists("test/src/complex.ttc"))
+        self.assertTrue(os.path.exists(compiled))
+        self.assertTrue(os.path.exists("test/src/complex.ttc"))
 
         # Ensure template metadata is saved in compiled file.
         output = Template(ttcfg).process("baz", {"showname": 1})

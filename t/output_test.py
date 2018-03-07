@@ -37,22 +37,22 @@ class OutputTest(TestCase):
                        "OUTPUT_PATH": "test/tmp",
                        "OUTPUT": f2})
         tt.process("foo", self._callsign())
-        self.assert_(os.path.exists(file2))
+        self.assertTrue(os.path.exists(file2))
         out = open(file2).read()
-        self.assertEquals("This is the foo file, a is alpha", out)
+        self.assertEqual("This is the foo file, a is alpha", out)
         os.remove(file2)
 
         intercept = InterceptDebug()
         Template.DEBUG = True
         util.Debug = intercept
         tt.process("foo", self._callsign(), {"binmode": 1})
-        self.assert_(os.path.exists(file2))
-        self.assertEquals("set binmode\n", intercept.message)
+        self.assertTrue(os.path.exists(file2))
+        self.assertEqual("set binmode\n", intercept.message)
         MyTemplate.MESSAGE = "reset"
         intercept.message = "reset"
         tt.process("foo", self._callsign(), {"binmode": 1})
-        self.assert_(os.path.exists(file2))
-        self.assertEquals("set binmode\n", intercept.message)
+        self.assertTrue(os.path.exists(file2))
+        self.assertEqual("set binmode\n", intercept.message)
 
 
 main()
