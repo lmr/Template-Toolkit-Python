@@ -98,7 +98,7 @@ class Constants:
         ident[e * 2 + 1] = comp
 
     result = self.__stash.get(ident).value()
-    if len(str(result)) == 0 or not isinstance(result, (str, int, long)):
+    if len(str(result)) == 0 or not isinstance(result, (str, int, int)):
       return Directive.Ident(save)
     else:
       return repr(result)

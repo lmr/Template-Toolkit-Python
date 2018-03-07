@@ -968,11 +968,11 @@ LONG_REGEX = re.compile(r"-?\d+")
 
 def _to_long(x):
   try:
-    return long(x)
+    return int(x)
   except ValueError:
     match = LONG_REGEX.match(str(x))
     if match:
-      return long(match.group(0))
+      return int(match.group(0))
     else:
       return 0
 

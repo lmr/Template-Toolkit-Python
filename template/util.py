@@ -370,7 +370,7 @@ class PerlScalar:
     return int(self.__numify())
 
   def __long__(self):
-    return long(self.__numify())
+    return int(self.__numify())
 
   def __float__(self):
     return float(self.__numify())
@@ -393,7 +393,7 @@ NUMBER_RE = re.compile(r"\s*[-+]?(?:\d+(\.\d*)?|(\.\d+))([Ee][-+]?\d+)?")
 
 def numify(value):
   """Converts any object to a number using Perl's rules."""
-  if isinstance(value, (int, long, float)):
+  if isinstance(value, (int, int, float)):
     return value
   elif value is True:
     return 1

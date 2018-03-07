@@ -223,7 +223,7 @@ class Math(Plugin):
 
   def sqrt(self, x):
     root = math.sqrt(numify(x))
-    trunc = long(root)
+    trunc = int(root)
     # Try to return an integer, if possible:
     if root == trunc:
       return trunc

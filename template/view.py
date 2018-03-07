@@ -460,7 +460,7 @@ class View:
         type = "ARRAY"
       elif isinstance(item, dict):
         type = "HASH"
-      elif isinstance(item, (basestring, int, long)):
+      elif isinstance(item, (basestring, int, int)):
         type = "TEXT"
       else:
         type = item.__class__.__name__
