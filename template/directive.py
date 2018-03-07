@@ -215,6 +215,9 @@ class Directive:
     def next(self, *args):
         return "raise Continue"
 
+    def __next__(self, *args):
+        return self.next(*args)
+
     def wrapper(self, nameargs, block):  # [% WRAPPER template foo = bar %]
         file, args = unpack(nameargs, 2)
         hash = args.pop(0)
