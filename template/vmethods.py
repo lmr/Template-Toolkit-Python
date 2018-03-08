@@ -165,7 +165,8 @@ def scalar_substr(scalar="", offset=0, length=None, replacement=None):
 
 @hash_op("item")
 def hash_item(hash, item=""):
-    if Stash.PRIVATE and re.search(Stash.PRIVATE, item):
+    PRIVATE = r"^[_.]"
+    if re.search(PRIVATE, item):
         return None
     else:
         return hash.get(item)

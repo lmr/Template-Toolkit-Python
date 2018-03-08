@@ -166,8 +166,7 @@ Random = random.Random()
 # A casual search finds no obvious Python counterpart to Perl's
 # Math::TrulyRandom module.  If you have one, set the following global
 # variable to the function you want.
-TrulyRandomFunction = None
-
+TrulyRandomFunction = random.SystemRandom().seed
 
 # A trivial local error class.
 class Error(Exception):
@@ -267,7 +266,7 @@ class Math(Plugin):
     def atan(self, x):
         return math.atan(numify(x))
 
-    def acsc(x):
+    def acsc(self, x):
         return math.pi / 2.0 - self.asec(x)
 
     acosec = acsc
