@@ -5,13 +5,6 @@ from unittest import skipIf
 
 from template.test import TestCase, main
 
-try:
-    import PIL
-except ImportError:
-    print("Failed to import PIL module; skipping test")
-    sys.exit(0)
-
-
 PY3 = sys.version_info[0] >= 3
 
 

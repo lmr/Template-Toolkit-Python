@@ -7,8 +7,6 @@
 #  the terms under which this file may be distributed.
 #
 
-import sys
-
 from template.config import Config
 from template.constants import DEBUG_SERVICE
 from template.util import StringBuffer, TemplateException, is_seq

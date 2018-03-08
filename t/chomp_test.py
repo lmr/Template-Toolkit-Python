@@ -1,4 +1,4 @@
-from template import util, Template
+from template import Template
 from template.test import TestCase, main
 from template.constants import *
 

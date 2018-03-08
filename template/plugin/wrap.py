@@ -6,8 +6,6 @@
 #  The file "LICENSE" at the top level of this source distribution describes
 #  the terms under which this file may be distributed.
 #
-
-import re
 import textwrap
 
 from template.plugin import Plugin

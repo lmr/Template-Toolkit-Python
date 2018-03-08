@@ -9,14 +9,12 @@
 
 import os
 import re
-import sys
 import time
 
 from template.config import Config
 from template.constants import *
 from template.document import Document
-from template.util import Literal, Struct, TemplateException, \
-    can, modtime, slurp
+from template.util import Literal, Struct, TemplateException, modtime
 import collections
 
 

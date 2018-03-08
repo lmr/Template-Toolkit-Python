@@ -7,8 +7,6 @@
 #  the terms under which this file may be distributed.
 #
 
-import types
-
 from template.constants import *
 from template.util import TemplateException, get_class, listify
 import collections
