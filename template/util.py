@@ -199,6 +199,10 @@ class Literal:
         return self.__text
 
 
+def cmp(x, y):
+    return (x > y) - (x < y)
+
+
 class PerlScalar:
     """An object wrapper that imposes certain aspects of Perl's scalar
     semantics on the wrapped object.
