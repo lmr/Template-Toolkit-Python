@@ -12,7 +12,7 @@
 
 from distutils.core import setup
 
-setup(name='Template-Python',
+setup(name='Template-Toolkit-Python',
       version='0.2',
       description='Python port of the Template Toolkit',
       author='Sean McAfee',
