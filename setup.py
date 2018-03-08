@@ -13,7 +13,7 @@
 from distutils.core import setup
 
 setup(name='Template-Python',
-      version='0.1.post1',
+      version='0.2',
       description='Python port of the Template Toolkit',
       author='Sean McAfee',
       author_email='eefacm@gmail.com',
