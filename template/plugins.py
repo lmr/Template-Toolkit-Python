@@ -7,10 +7,10 @@
 #  the terms under which this file may be distributed.
 #
 
-from template.constants import *
-from template.util import TemplateException, get_class, listify
 import collections
 
+from template.constants import *
+from template.util import TemplateException, get_class, listify
 
 """
 template.plugins - Plugin provider module

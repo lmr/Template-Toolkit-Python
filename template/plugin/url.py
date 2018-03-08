@@ -9,8 +9,8 @@
 
 import re
 
-from template.plugin import Plugin
 from template import util
+from template.plugin import Plugin
 
 """
 template.plugin.url - Plugin to construct complex URLs

@@ -7,12 +7,11 @@
 #  the terms under which this file may be distributed.
 #
 
+import collections
 import re
 
 from template import util
 from template.vmethods import VMethods
-import collections
-
 
 """
 template.stash.Stash - Magical storage for template variables

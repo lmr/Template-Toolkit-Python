@@ -12,7 +12,6 @@ import unittest
 
 from template import Template, TemplateException
 
-
 main = unittest.main
 
 words = dict((word[0], word) for word in (

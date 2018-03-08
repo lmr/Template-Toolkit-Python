@@ -7,16 +7,15 @@
 #  the terms under which this file may be distributed.
 #
 
+import collections
 import os
 import re
 import tempfile
 
 from template import util
-from template.iterator import Iterator
 from template.constants import *
+from template.iterator import Iterator
 from template.util import TemplateException
-import collections
-
 
 """
 template.document.Document - Compiled template document object

@@ -17,7 +17,6 @@ import re
 from template.constants import ERROR_VIEW
 from template.util import can
 
-
 """
 template.view - customised view of a template processing context
 

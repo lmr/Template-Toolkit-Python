@@ -11,6 +11,7 @@ try:
 except ImportError:
     from io import StringIO
 
+import collections
 import operator
 import os
 import re
@@ -24,8 +25,6 @@ from template.plugins import Plugins
 from template.provider import Provider
 from template.stash import Stash
 from template.util import TemplateException, is_seq, unscalar, unscalar_list
-import collections
-
 
 """
 

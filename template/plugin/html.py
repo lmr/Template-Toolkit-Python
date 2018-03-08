@@ -11,7 +11,6 @@ import re
 
 from template.plugin import Plugin
 
-
 """
 template.plugin.html - Plugin to create HTML elements
 

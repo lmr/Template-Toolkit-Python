@@ -8,6 +8,7 @@
 #  the terms under which this file may be distributed.
 #
 
+import collections
 import errno
 import os
 import re
@@ -17,7 +18,6 @@ from template import util
 from template.constants import *
 from template.plugin.filter import Filter
 from template.util import TemplateException, dynamic_filter, numify
-import collections
 
 """
 template.filters - Post-processing filters for template blocks

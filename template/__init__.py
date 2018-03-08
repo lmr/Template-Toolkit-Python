@@ -10,10 +10,9 @@
 import os
 
 from template import util
-from template.service import Service
 from template.config import Config
+from template.service import Service
 from template.util import Literal, TemplateException
-
 
 """
 

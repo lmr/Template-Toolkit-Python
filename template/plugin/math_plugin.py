@@ -14,7 +14,6 @@ import re
 from template.plugin import Plugin
 from template.util import numify
 
-
 """
 template.plugin.math_plugin - Plugin interface to mathematical functions
 

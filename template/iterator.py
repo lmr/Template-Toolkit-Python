@@ -14,7 +14,6 @@ from template.config import Config
 from template.constants import *
 from template.util import unscalar, unscalar_list
 
-
 """
 template.iterator - Data iterator used by the FOREACH directive
 

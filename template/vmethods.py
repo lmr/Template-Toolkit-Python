@@ -7,10 +7,10 @@
 #  the terms under which this file may be distributed.
 #
 
+import collections
 import re
 
 from template.util import chop, is_seq, numify, registrar
-import collections
 
 
 class VMethods:

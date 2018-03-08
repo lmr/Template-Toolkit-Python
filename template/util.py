@@ -12,10 +12,10 @@ try:
 except ImportError:
     from io import StringIO
 
+import collections
 import os
 import re
 import sys
-import collections
 
 
 class Error(Exception):

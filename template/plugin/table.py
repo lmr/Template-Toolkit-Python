@@ -7,9 +7,8 @@
 #  the terms under which this file may be distributed.
 #
 
-from template.plugin import Plugin
 from template.iterator import Iterator
-
+from template.plugin import Plugin
 
 """
 template.plugin.table - Plugin to present data in a table

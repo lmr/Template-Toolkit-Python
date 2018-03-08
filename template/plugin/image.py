@@ -8,11 +8,11 @@
 #
 
 import os
+
 import PIL.Image
 
 from template.plugin import Plugin
 from template.util import TemplateException
-
 
 """
 template.plugin.image - Plugin access to image sizes

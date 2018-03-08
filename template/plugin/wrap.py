@@ -10,7 +10,6 @@ import textwrap
 
 from template.plugin import Plugin
 
-
 """
 template.plugin.wrap - Plugin interface to Text::Wrap
 

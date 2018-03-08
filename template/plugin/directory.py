@@ -12,7 +12,6 @@ import os
 from template.plugin.file import File
 from template.util import TemplateException
 
-
 """
 template.plugin.directory - Plugin for generating directory listings
 

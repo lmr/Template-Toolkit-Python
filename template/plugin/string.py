@@ -11,7 +11,6 @@ import re
 
 from template.plugin import Plugin
 
-
 """
 template.plugin.string - Object oriented interface for string manipulation
 

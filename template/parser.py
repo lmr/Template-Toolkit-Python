@@ -7,6 +7,7 @@
 #  the terms under which this file may be distributed.
 #
 
+import collections
 import re
 import sys
 
@@ -15,8 +16,6 @@ from template.constants import *
 from template.directive import Directive
 from template.grammar import Grammar
 from template.util import TemplateException
-import collections
-
 
 """
 template.parser - LALR(1) parser for compiling template documents

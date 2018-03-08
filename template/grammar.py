@@ -12,7 +12,6 @@ import sys
 
 from template.util import registrar, unscalar_lex
 
-
 factory = None
 rawstart = None
 

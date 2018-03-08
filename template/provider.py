@@ -7,6 +7,7 @@
 #  the terms under which this file may be distributed.
 #
 
+import collections
 import os
 import re
 import time
@@ -15,8 +16,6 @@ from template.config import Config
 from template.constants import *
 from template.document import Document
 from template.util import Literal, Struct, TemplateException, modtime
-import collections
-
 
 """
 template.provider - Provider module for loading/compiling templates
