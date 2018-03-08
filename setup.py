@@ -19,5 +19,5 @@ setup(name='Template-Python',
       author_email='eefacm@gmail.com',
       url='http://template-toolkit.org/python/',
       packages=['template', 'template.plugin', 'template.namespace'],
-      package_dir={'template.plugin': 'template/plugin', 'template.namespace': 'template/namespace'},
-      )
+      package_dir={'template.plugin': 'template/plugin',
+                   'template.namespace': 'template/namespace'})
