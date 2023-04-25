@@ -49,7 +49,7 @@ class TestObject:
         if not (name and name[0].islower()):
             raise AttributeError
         value = self.PARAMS.get(name)
-        if isinstance(value, collections.Callable):
+        if isinstance(value, collections.abc.Callable):
             def func(*params):
                 return value(*params)
         else:

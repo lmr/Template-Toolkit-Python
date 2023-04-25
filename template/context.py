@@ -784,7 +784,7 @@ class Context:
             except:
                 component = None
             for name, compiled in zip(template, compileds):
-                if not isinstance(compiled, collections.Callable):
+                if not isinstance(compiled, collections.abc.Callable):
                     element = compiled
                 else:
                     element = {"name": isinstance(name, str) and name or "",
@@ -803,7 +803,7 @@ class Context:
                         tblocks = compiled.blocks()
                         if tblocks:
                             self.__blocks.update(tblocks)
-                if isinstance(compiled, collections.Callable):
+                if isinstance(compiled, collections.abc.Callable):
                     tmpout = compiled(self)
                 elif util.can(compiled, "process"):
                     tmpout = compiled.process(self)
@@ -924,7 +924,7 @@ class Context:
 
         Returns the compiled template, or raises a TemplateException on error.
         """
-        if isinstance(name, Document) or isinstance(name, collections.Callable):
+        if isinstance(name, Document) or isinstance(name, collections.abc.Callable):
             return name
         shortname = name
         prefix = providers = None

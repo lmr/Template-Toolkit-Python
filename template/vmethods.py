@@ -440,7 +440,7 @@ def _smartsort(field, coerce):
             key = element[field]
         else:
             attr = getattr(element, field, None)
-            if isinstance(attr, collections.Callable):
+            if isinstance(attr, collections.abc.Callable):
                 key = attr()
         return coerce(key)
     return getkey

@@ -176,7 +176,7 @@ class Document:
         self.__hot = False
 
     def __compile(self, block, debug=False):
-        if isinstance(block, collections.Callable):
+        if isinstance(block, collections.abc.Callable):
             return block
         if debug:
             print(block)

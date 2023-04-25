@@ -611,7 +611,7 @@ def Concatenate(*args):
 
 def can(object, method):
     """Returns true iff object has a callable attribute with the given name."""
-    return isinstance(getattr(object, method, None), collections.Callable)
+    return isinstance(getattr(object, method, None), collections.abc.Callable)
 
 
 def chop(seq, count):
@@ -761,7 +761,7 @@ def get_class(classid, base=None):
 
     If classid is not one of the above types, an exception is raised.
     """
-    if isinstance(classid, collections.Callable):
+    if isinstance(classid, collections.abc.Callable):
         return classid
     elif isinstance(classid, tuple):
         if len(classid) == 2:
