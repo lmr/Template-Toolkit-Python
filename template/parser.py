@@ -656,7 +656,7 @@ class Parser:
 
         # Build a FACTORY object to include any NAMESPACE definitions,
         # but only if FACTORY isn't already a (non-callable) object.
-        if isinstance(self.factory, collections.Callable):
+        if isinstance(self.factory, collections.abc.Callable):
             self.factory = self.factory(param)
 
         self.lextable = self.grammar.lextable

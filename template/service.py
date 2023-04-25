@@ -458,7 +458,7 @@ class Service:
         # localise the variable stash with any parameters passed
         # and set the 'template' variable
         params = params or {}
-        if not isinstance(template, collections.Callable):
+        if not isinstance(template, collections.abc.Callable):
             params["template"] = template
         context.localise(params)
 

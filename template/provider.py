@@ -916,7 +916,7 @@ class Provider:
                 continue
             # dir can be a sub or object ref which returns a reference
             # to a dynamically generated list of search paths
-            if isinstance(dir, collections.Callable):
+            if isinstance(dir, collections.abc.Callable):
                 ipaths[:0] = dir()
             else:
                 try:
@@ -924,7 +924,7 @@ class Provider:
                 except AttributeError:
                     pass
                 else:
-                    if isinstance(paths, collections.Callable):
+                    if isinstance(paths, collections.abc.Callable):
                         ipaths[:0] = paths()
                         continue
                 opaths.append(dir)
