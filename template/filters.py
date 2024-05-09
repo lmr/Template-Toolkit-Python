@@ -336,7 +336,7 @@ The html filter is fast and simple but it doesn't encode the full
 range of HTML entities that your text may contain.  The html_entity
 filter uses the htmlentitydefs module to perform the encoding.  The
 text will be encoded to convert all extended characters into their
-appropriate HTML entities (e.g. converting 'é' to '&eacute;').
+appropriate HTML entities (e.g. converting 'ï¿½' to '&eacute;').
 
 For further information on HTML entity encoding, see
 http://www.w3.org/TR/REC-html40/sgml/entities.html.
@@ -709,14 +709,14 @@ class Filters:
                 return None
 
         try:
-            if not isinstance(factory, collections.Callable):
+            if not isinstance(factory, collections.abc.Callable):
                 raise Error("invalid FILTER entry for '%s' (not callable)" % (name,))
             elif getattr(factory, "dynamic_filter", False):
                 args = args or ()
                 filter = factory(context, *args)
             else:
                 filter = factory
-            if not isinstance(filter, collections.Callable):
+            if not isinstance(filter, collections.abc.Callable):
                 raise Error("invalid FILTER for '%s' (not callable)" % (name,))
         except Exception as e:
             if self.__tolerant:

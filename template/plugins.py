@@ -503,7 +503,7 @@ class Plugins:
         if not factory:
             return None
         try:
-            if isinstance(factory, collections.Callable):
+            if isinstance(factory, collections.abc.Callable):
                 args = (context,) + tuple(args or ())
                 return factory(*args)
             else:

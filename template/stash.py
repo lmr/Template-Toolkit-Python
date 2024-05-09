@@ -404,7 +404,7 @@ class Stash:
             else:
                 value = root[item]
             if value is not None:
-                if isinstance(value, collections.Callable):
+                if isinstance(value, collections.abc.Callable):
                     result = value(*args)
                 else:
                     return value
@@ -448,7 +448,7 @@ class Stash:
                 except IndexError:
                     return None
                 else:
-                    if isinstance(value, collections.Callable):
+                    if isinstance(value, collections.abc.Callable):
                         result = value(*args)
                     else:
                         return value
@@ -464,7 +464,7 @@ class Stash:
                 else:
                     return func(root.__dict__, *args)
             else:
-                if isinstance(value, collections.Callable):
+                if isinstance(value, collections.abc.Callable):
                     return value(*args)
                 else:
                     return value
@@ -953,7 +953,7 @@ def _smartsort(field, coerce):
             key = element[field]
         else:
             attr = getattr(element, field, None)
-            if isinstance(attr, collections.Callable):
+            if isinstance(attr, collections.abc.Callable):
                 key = attr()
         return coerce(key)
     return getkey
